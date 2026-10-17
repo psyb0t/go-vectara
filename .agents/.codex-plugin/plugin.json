@@ -1,0 +1,11 @@
+{
+  "name": "go-vectara",
+  "version": "0.1.0",
+  "description": "Unofficial Go client for the Vectara API v2: corpora, documents, search, generation, chats and API keys, generated from the spec Vectara publishes.",
+  "author": { "name": "psyb0t", "url": "https://github.com/psyb0t" },
+  "homepage": "https://github.com/psyb0t/go-vectara",
+  "repository": "https://github.com/psyb0t/go-vectara",
+  "license": "MIT",
+  "keywords": ["vectara", "rag", "search", "api-client", "go-library", "openapi"],
+  "skills": "./skills/"
+}
