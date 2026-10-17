@@ -2836,7 +2836,7 @@ type A2aV03OpenIdConnectSecurityScheme struct {
 	OpenIdConnectUrl string `json:"openIdConnectUrl"`
 }
 
-// A2aV03Part A v0.3 message or artifact content part. Exactly one of `text`, `file`, or `data` is populated. There is no `kind` discriminator field, the populated oneof field selects the variant.
+// A2aV03Part A v0.3 message or artifact content part. Exactly one of `text`, `file`, or `data` is populated. There is no `kind` discriminator field — the populated oneof field selects the variant.
 type A2aV03Part struct {
 	// Data A v0.3 structured-data part. The `data` field is an arbitrary JSON object.
 	Data *A2aV03DataPart `json:"data,omitempty"`
@@ -3540,7 +3540,7 @@ type Agent struct {
 	ToolConfigurations map[string]AgentToolConfiguration `json:"tool_configurations"`
 
 	// ToolOutputOffloading Controls how large tool outputs are kept from overwhelming the agent context window.
-	// Tool outputs are inspected as they are produced. A small output is always passed through unchanged. A larger output is handled in one of two cases: when the output on its own is big enough to dominate the context, or when adding it to the conversation would leave too little room for the agent to continue. In either case the output is handled according to `mode`, stored as an artifact and replaced with a compact reference, or truncated in place with the head and tail preserved and the middle omitted. When stored as an artifact, the agent is expected to have artifact_read, artifact_grep, or artifact_jq configured so it can retrieve the full content on demand.
+	// Tool outputs are inspected as they are produced. A small output is always passed through unchanged. A larger output is handled in one of two cases: when the output on its own is big enough to dominate the context, or when adding it to the conversation would leave too little room for the agent to continue. In either case the output is handled according to `mode` — stored as an artifact and replaced with a compact reference, or truncated in place with the head and tail preserved and the middle omitted. When stored as an artifact, the agent is expected to have artifact_read, artifact_grep, or artifact_jq configured so it can retrieve the full content on demand.
 	// All fields are optional; omitted fields fall back to defaults.
 	ToolOutputOffloading *ToolOutputOffloadingConfiguration `json:"tool_output_offloading,omitempty"`
 
@@ -3553,8 +3553,8 @@ type Agent struct {
 // AgentAlias A routing primitive that maps a public name to one or more agents under a configurable policy. When a session is created through an alias (via `POST /v2/agent_aliases/{alias_key}/sessions`), the alias's policy selects the underlying agent that runs the session.
 //
 // Use aliases for:
-// - Canary rollouts, weighted routing between two agents.
-// - Tenant routing, different agents for different customers, based on your tenant metadata.
+// - Canary rollouts — weighted routing between two agents.
+// - Tenant routing — different agents for different customers, based on your tenant metadata.
 // - A stable handle in front of agents whose configuration evolves.
 //
 // The resolved agent's session_enrichment applies to sessions created through the alias, after routing resolves. Routing runs before enrichment. Routing rules therefore read the request metadata, not enriched values. The resolved agent's `run_condition` is evaluated last, after its enrichment. When it evaluates to false no session is created and the request returns 409.
@@ -3586,7 +3586,7 @@ type AgentAlias struct {
 
 	// Policy A routing policy. The `type` discriminator determines which fields apply:
 	//
-	// * `routed`, evaluates ordered rules. The policy selects the first rule whose `match` expression evaluates to true. The selected rule's `targets` are then used (one agent for `single`, hashed by `partition_by` for `weighted`). A rule with omitted `match` is a catch-all that always matches. It must be the last rule. The platform rejects any rule placed after a catch-all as unreachable.
+	// * `routed` — evaluates ordered rules. The policy selects the first rule whose `match` expression evaluates to true. The selected rule's `targets` are then used (one agent for `single`, hashed by `partition_by` for `weighted`). A rule with omitted `match` is a catch-all that always matches. It must be the last rule. The platform rejects any rule placed after a catch-all as unreachable.
 	//
 	// Most use cases (direct, weighted/canary, conditional, conditional+canary) collapse into `routed`.
 	Policy AliasPolicy `json:"policy"`
@@ -3600,7 +3600,7 @@ type AgentAlias struct {
 // Example: support
 type AgentAliasKey = string
 
-// AgentConnector A connector that surfaces an agent alias to end users through a channel, an external platform like Slack, Google Chat, or Zoom Contact Center, or the embeddable widget. Sessions created through a connector are routed to an agent by the alias's policy.
+// AgentConnector A connector that surfaces an agent alias to end users through a channel — an external platform like Slack, Google Chat, or Zoom Contact Center, or the embeddable widget. Sessions created through a connector are routed to an agent by the alias's policy.
 type AgentConnector struct {
 	// AliasKey The unique key that identifies an alias. Alias keys are independent of agent keys. The same string can exist as both an alias key and an agent key in the same customer account. Calls to `/v2/agent_aliases/{key}/...` target the alias. Calls to `/v2/agents/{key}/...` target the agent.
 	//
@@ -3707,7 +3707,7 @@ type AgentCorporaSearchQueryConfiguration struct {
 	Search *AgentSearchCorporaParameters `json:"search,omitempty"`
 }
 
-// AgentErrorEvent A turn-ending event emitted when the turn failed because of an unexpected error, for example a
+// AgentErrorEvent A turn-ending event emitted when the turn failed because of an unexpected error — for example a
 // model configuration problem, a blocked LLM endpoint, or an internal failure. It is a `StreamError`
 // carrying the same `messages`, plus the event id, session key, and timestamp. It is streamed as the
 // `error` frame. When the failure happens while the agent is running, it is also recorded on the session,
@@ -4056,7 +4056,7 @@ type AgentSearchCorporaParameters struct {
 	// Offset The number of results to skip for pagination.
 	Offset *int32 `json:"offset,omitempty"`
 
-	// Reranker Reranks the results of the search. Rerankers improve the order of search results. By default, the search uses the reranker selected for the customer's plan. To disable reranking, set the reranker `type` to `"none"`.
+	// Reranker Reranks the results of the search. Rerankers improve the order of search results. By default, the search uses the most powerful reranker available to the customer's plan. To disable reranking, set the reranker `type` to `"none"`.
 	Reranker *SearchReranker `json:"reranker,omitempty"`
 }
 
@@ -4140,7 +4140,7 @@ type AgentSession struct {
 	// SessionContextUsage Token usage of the session's most recent agent call, reflecting current context window consumption. Not a running total across calls.
 	SessionContextUsage *SessionContextUsage `json:"session_context_usage,omitempty"`
 
-	// Status Lifecycle status of the session. `unstarted` before the session receives any event, `running` while the agent is producing events, and `stopped` when the session is idle with no event in flight. `stopped` implies no terminating action, the session returns to `running` on the next request.
+	// Status Lifecycle status of the session. `unstarted` before the session receives any event, `running` while the agent is producing events, and `stopped` when the session is idle with no event in flight. `stopped` implies no terminating action — the session returns to `running` on the next request.
 	//
 	//
 	// Example: stopped
@@ -4152,7 +4152,7 @@ type AgentSession struct {
 	TtiMinutes *int64 `json:"tti_minutes,omitempty"`
 }
 
-// AgentSessionStatus Lifecycle status of the session. `unstarted` before the session receives any event, `running` while the agent is producing events, and `stopped` when the session is idle with no event in flight. `stopped` implies no terminating action, the session returns to `running` on the next request.
+// AgentSessionStatus Lifecycle status of the session. `unstarted` before the session receives any event, `running` while the agent is producing events, and `stopped` when the session is idle with no event in flight. `stopped` implies no terminating action — the session returns to `running` on the next request.
 //
 // Example: stopped
 type AgentSessionStatus string
@@ -4431,7 +4431,7 @@ type AgentVerification struct {
 
 // AliasPolicy A routing policy. The `type` discriminator determines which fields apply:
 //
-// * `routed`, evaluates ordered rules. The policy selects the first rule whose `match` expression evaluates to true. The selected rule's `targets` are then used (one agent for `single`, hashed by `partition_by` for `weighted`). A rule with omitted `match` is a catch-all that always matches. It must be the last rule. The platform rejects any rule placed after a catch-all as unreachable.
+// * `routed` — evaluates ordered rules. The policy selects the first rule whose `match` expression evaluates to true. The selected rule's `targets` are then used (one agent for `single`, hashed by `partition_by` for `weighted`). A rule with omitted `match` is a catch-all that always matches. It must be the last rule. The platform rejects any rule placed after a catch-all as unreachable.
 //
 // Most use cases (direct, weighted/canary, conditional, conditional+canary) collapse into `routed`.
 type AliasPolicy struct {
@@ -4447,7 +4447,7 @@ type AliasRule struct {
 	//
 	// Missing paths return `null`, which is falsy under equality, so the rule falls through to the next one in the policy. An ordered comparison such as `>` against a missing path raises an error and fails the resolution. Use `get('$.path', default)` where a value may be absent.
 	//
-	// Context shape, at resolution time the underlying agent is not yet selected. The `agent.*` fields therefore reflect the *alias's* metadata (name, description, metadata), with the alias's URL key in `agent.key`. Use these for alias-level context (e.g. `$.agent.metadata.region`). Use `session.*` for per-call routing inputs (tenant, user_id, etc.). Most rules dispatch on `session.*`.
+	// Context shape — at resolution time the underlying agent is not yet selected. The `agent.*` fields therefore reflect the *alias's* metadata (name, description, metadata), with the alias's URL key in `agent.key`. Use these for alias-level context (e.g. `$.agent.metadata.region`). Use `session.*` for per-call routing inputs (tenant, user_id, etc.). Most rules dispatch on `session.*`.
 	//
 	// ```
 	// {
@@ -4470,8 +4470,8 @@ type AliasRule struct {
 
 	// Targets The shape of a rule's targets. The `type` discriminator selects which fields apply:
 	//
-	// * `single`, a direct route to one agent. No weight, no partition function.
-	// * `weighted`, a weighted selection among several agents. Requires a `partition_by` userfn expression that names what to hash on. Different rules can use different partition functions.
+	// * `single` — a direct route to one agent. No weight, no partition function.
+	// * `weighted` — a weighted selection among several agents. Requires a `partition_by` userfn expression that names what to hash on. Different rules can use different partition functions.
 	Targets RuleTargets `json:"targets"`
 }
 
@@ -4510,7 +4510,7 @@ type ApiKey struct {
 	SecretKey string `json:"secret_key"`
 }
 
-// ApiKeyRole The role of the API key. A `personal` key has the same permissions as its owner. A `serving` API key can only perform query type requests on its corpora, and a `serving_and_indexing` key can perform both indexing and query type requests; these two roles are deprecated for creation, assign roles with `api_roles` instead.
+// ApiKeyRole The role of the API key. A `personal` key has the same permissions as its owner. A `serving` API key can only perform query type requests on its corpora, and a `serving_and_indexing` key can perform both indexing and query type requests; these two roles are deprecated for creation — assign roles with `api_roles` instead.
 type ApiKeyRole string
 
 // ApiOperationPolicy Policy that allows an operation only on the specified resources.
@@ -4608,9 +4608,9 @@ type ArtifactCreateTool struct {
 	// If the expression fails to compile or evaluate, the tool call returns an error to the agent.
 	//
 	// Examples:
-	//   - `.args + { auth: ("Bearer " + .agent.secrets.token) }`, inject a bearer header
-	//   - `.args | .corpus_key = .session.metadata.corpus_key`, pull a corpus key from session metadata
-	//   - `.args | .query = (.args.query + " " + .session.metadata.query_suffix)`, augment the agent's query
+	//   - `.args + { auth: ("Bearer " + .agent.secrets.token) }` — inject a bearer header
+	//   - `.args | .corpus_key = .session.metadata.corpus_key` — pull a corpus key from session metadata
+	//   - `.args | .query = (.args.query + " " + .session.metadata.query_suffix)` — augment the agent's query
 	//
 	//
 	// Example: .args + { auth: ("Bearer " + .agent.secrets.token) }
@@ -4623,9 +4623,9 @@ type ArtifactCreateTool struct {
 	// If the expression fails to compile or evaluate at runtime, the tool call returns an error to the agent so the agent can react.
 	//
 	// Examples:
-	//   - `.results | map({title, url})`, keep only title/url for each result
-	//   - `.items[0:5]`, first 5 items
-	//   - `del(.debug)`, drop a noisy field
+	//   - `.results | map({title, url})` — keep only title/url for each result
+	//   - `.items[0:5]` — first 5 items
+	//   - `del(.debug)` — drop a noisy field
 	//
 	//
 	// Example: .results | map({title, url})
@@ -4744,9 +4744,9 @@ type ArtifactGrepTool struct {
 	// If the expression fails to compile or evaluate, the tool call returns an error to the agent.
 	//
 	// Examples:
-	//   - `.args + { auth: ("Bearer " + .agent.secrets.token) }`, inject a bearer header
-	//   - `.args | .corpus_key = .session.metadata.corpus_key`, pull a corpus key from session metadata
-	//   - `.args | .query = (.args.query + " " + .session.metadata.query_suffix)`, augment the agent's query
+	//   - `.args + { auth: ("Bearer " + .agent.secrets.token) }` — inject a bearer header
+	//   - `.args | .corpus_key = .session.metadata.corpus_key` — pull a corpus key from session metadata
+	//   - `.args | .query = (.args.query + " " + .session.metadata.query_suffix)` — augment the agent's query
 	//
 	//
 	// Example: .args + { auth: ("Bearer " + .agent.secrets.token) }
@@ -4759,9 +4759,9 @@ type ArtifactGrepTool struct {
 	// If the expression fails to compile or evaluate at runtime, the tool call returns an error to the agent so the agent can react.
 	//
 	// Examples:
-	//   - `.results | map({title, url})`, keep only title/url for each result
-	//   - `.items[0:5]`, first 5 items
-	//   - `del(.debug)`, drop a noisy field
+	//   - `.results | map({title, url})` — keep only title/url for each result
+	//   - `.items[0:5]` — first 5 items
+	//   - `del(.debug)` — drop a noisy field
 	//
 	//
 	// Example: .results | map({title, url})
@@ -4879,9 +4879,9 @@ type ArtifactGrepToolConfiguration struct {
 	// If the expression fails to compile or evaluate, the tool call returns an error to the agent.
 	//
 	// Examples:
-	//   - `.args + { auth: ("Bearer " + .agent.secrets.token) }`, inject a bearer header
-	//   - `.args | .corpus_key = .session.metadata.corpus_key`, pull a corpus key from session metadata
-	//   - `.args | .query = (.args.query + " " + .session.metadata.query_suffix)`, augment the agent's query
+	//   - `.args + { auth: ("Bearer " + .agent.secrets.token) }` — inject a bearer header
+	//   - `.args | .corpus_key = .session.metadata.corpus_key` — pull a corpus key from session metadata
+	//   - `.args | .query = (.args.query + " " + .session.metadata.query_suffix)` — augment the agent's query
 	//
 	//
 	// Example: .args + { auth: ("Bearer " + .agent.secrets.token) }
@@ -4916,9 +4916,9 @@ type ArtifactGrepToolConfiguration struct {
 	// If the expression fails to compile or evaluate at runtime, the tool call returns an error to the agent so the agent can react.
 	//
 	// Examples:
-	//   - `.results | map({title, url})`, keep only title/url for each result
-	//   - `.items[0:5]`, first 5 items
-	//   - `del(.debug)`, drop a noisy field
+	//   - `.results | map({title, url})` — keep only title/url for each result
+	//   - `.items[0:5]` — first 5 items
+	//   - `del(.debug)` — drop a noisy field
 	//
 	//
 	// Example: .results | map({title, url})
@@ -5007,9 +5007,9 @@ type ArtifactReadTool struct {
 	// If the expression fails to compile or evaluate, the tool call returns an error to the agent.
 	//
 	// Examples:
-	//   - `.args + { auth: ("Bearer " + .agent.secrets.token) }`, inject a bearer header
-	//   - `.args | .corpus_key = .session.metadata.corpus_key`, pull a corpus key from session metadata
-	//   - `.args | .query = (.args.query + " " + .session.metadata.query_suffix)`, augment the agent's query
+	//   - `.args + { auth: ("Bearer " + .agent.secrets.token) }` — inject a bearer header
+	//   - `.args | .corpus_key = .session.metadata.corpus_key` — pull a corpus key from session metadata
+	//   - `.args | .query = (.args.query + " " + .session.metadata.query_suffix)` — augment the agent's query
 	//
 	//
 	// Example: .args + { auth: ("Bearer " + .agent.secrets.token) }
@@ -5022,9 +5022,9 @@ type ArtifactReadTool struct {
 	// If the expression fails to compile or evaluate at runtime, the tool call returns an error to the agent so the agent can react.
 	//
 	// Examples:
-	//   - `.results | map({title, url})`, keep only title/url for each result
-	//   - `.items[0:5]`, first 5 items
-	//   - `del(.debug)`, drop a noisy field
+	//   - `.results | map({title, url})` — keep only title/url for each result
+	//   - `.items[0:5]` — first 5 items
+	//   - `del(.debug)` — drop a noisy field
 	//
 	//
 	// Example: .results | map({title, url})
@@ -5142,9 +5142,9 @@ type ArtifactReadToolConfiguration struct {
 	// If the expression fails to compile or evaluate, the tool call returns an error to the agent.
 	//
 	// Examples:
-	//   - `.args + { auth: ("Bearer " + .agent.secrets.token) }`, inject a bearer header
-	//   - `.args | .corpus_key = .session.metadata.corpus_key`, pull a corpus key from session metadata
-	//   - `.args | .query = (.args.query + " " + .session.metadata.query_suffix)`, augment the agent's query
+	//   - `.args + { auth: ("Bearer " + .agent.secrets.token) }` — inject a bearer header
+	//   - `.args | .corpus_key = .session.metadata.corpus_key` — pull a corpus key from session metadata
+	//   - `.args | .query = (.args.query + " " + .session.metadata.query_suffix)` — augment the agent's query
 	//
 	//
 	// Example: .args + { auth: ("Bearer " + .agent.secrets.token) }
@@ -5179,9 +5179,9 @@ type ArtifactReadToolConfiguration struct {
 	// If the expression fails to compile or evaluate at runtime, the tool call returns an error to the agent so the agent can react.
 	//
 	// Examples:
-	//   - `.results | map({title, url})`, keep only title/url for each result
-	//   - `.items[0:5]`, first 5 items
-	//   - `del(.debug)`, drop a noisy field
+	//   - `.results | map({title, url})` — keep only title/url for each result
+	//   - `.items[0:5]` — first 5 items
+	//   - `del(.debug)` — drop a noisy field
 	//
 	//
 	// Example: .results | map({title, url})
@@ -5315,13 +5315,13 @@ type BadRequestError struct {
 }
 
 // BaseBoxSourceConfiguration Base Box source configuration. Ingests files from a Box enterprise starting at `folder_id`.
-// The connector walks every descendant subdirectory. It inherits each item's Box collaborations
+// The connector walks every descendant subfolder. It inherits each item's Box collaborations
 // as document-level ACL.
 type BaseBoxSourceConfiguration struct {
 	// Auth Credentials used to authenticate with the Box API.
 	Auth *BoxCcgAuth `json:"auth,omitempty"`
 
-	// FolderId The Box directory ID to ingest from. A Box directory URL (`https://app.box.com/folder/<id>`)
+	// FolderId The Box folder ID to ingest from. A Box folder URL (`https://app.box.com/folder/<id>`)
 	// is also accepted, in which case the ID is taken from the URL. Defaults to the enterprise
 	// root (ID `"0"`).
 	//
@@ -5467,13 +5467,13 @@ type BaseDoceboSourceConfiguration struct {
 // changed that the tenant no longer returns, is reported as a delete record (`operation: delete`)
 // in the `documents` and `maps` scopes. A deletion is reported by record id, so `filters`,
 // `locale`, `include_sources`, and `exclude_sources` do not apply to it. In the `topics` scope a
-// deleted map's topics can no longer be listed, so they are not reported. Full-refresh runs, and
-// the first run, which has no watermark yet, enumerate all content and report no deletions.
+// deleted map's topics can no longer be listed, so they are not reported. Full-refresh runs — and
+// the first run, which has no watermark yet — enumerate all content and report no deletions.
 type BaseFluidtopicsSourceConfiguration struct {
 	// ApiKey Fluid Topics API key, sent as an HTTP Bearer authorization token. Requires read access to
 	// the configured content, plus administration scope when incremental runs read dataflow
 	// reports. Generate one in the Fluid Topics administration interface under Integrations, API
-	// keys, see
+	// keys — see
 	// https://doc.fluidtopics.com/r/Fluid-Topics-Configuration-and-Administration-Guide/Configure-a-Fluid-Topics-tenant/Integrations/API-keys.
 	// Encrypted at rest and not returned in responses.
 	ApiKey *string `json:"api_key,omitempty"`
@@ -5567,7 +5567,7 @@ type BaseFluidtopicsSourceConfigurationContentScope string
 type BaseGoogleDriveSourceConfiguration struct {
 	// ClientEmail The Google Cloud service account's email address (the `client_email` field of
 	// the service account JSON key). For `shared` scopes, grant this email read access
-	// to each drive or directory you want to ingest.
+	// to each drive or folder you want to ingest.
 	//
 	//
 	// Example: drive-ingest@my-project.iam.gserviceaccount.com
@@ -5719,7 +5719,7 @@ type BaseSharepointSourceConfiguration struct {
 	// DriveId The ID of a specific document library. If omitted, the default document library is used.
 	DriveId *string `json:"drive_id,omitempty"`
 
-	// FolderPath Optional directory path to scope ingestion to a subdirectory.
+	// FolderPath Optional folder path to scope ingestion to a subdirectory.
 	//
 	// Example: /Contracts/2026
 	FolderPath *string `json:"folder_path,omitempty"`
@@ -5783,7 +5783,7 @@ type BaseWebSource struct {
 	MaxPages *int32 `json:"max_pages,omitempty"`
 
 	// RequestsPerSecond Maximum sustained requests per second, applied to each concurrent fetch
-	// independently, the worst-case rate against a host is this value multiplied by
+	// independently — the worst-case rate against a host is this value multiplied by
 	// `max_concurrent_fetches`.
 	RequestsPerSecond *float64 `json:"requests_per_second,omitempty"`
 
@@ -6145,7 +6145,7 @@ type BoxSourceConfiguration struct {
 	// Auth Credentials used to authenticate with the Box API.
 	Auth BoxCcgAuth `json:"auth"`
 
-	// FolderId The Box directory ID to ingest from. A Box directory URL (`https://app.box.com/folder/<id>`)
+	// FolderId The Box folder ID to ingest from. A Box folder URL (`https://app.box.com/folder/<id>`)
 	// is also accepted, in which case the ID is taken from the URL. Defaults to the enterprise
 	// root (ID `"0"`).
 	//
@@ -6712,9 +6712,9 @@ type ClientTool struct {
 	// If the expression fails to compile or evaluate, the tool call returns an error to the agent.
 	//
 	// Examples:
-	//   - `.args + { auth: ("Bearer " + .agent.secrets.token) }`, inject a bearer header
-	//   - `.args | .corpus_key = .session.metadata.corpus_key`, pull a corpus key from session metadata
-	//   - `.args | .query = (.args.query + " " + .session.metadata.query_suffix)`, augment the agent's query
+	//   - `.args + { auth: ("Bearer " + .agent.secrets.token) }` — inject a bearer header
+	//   - `.args | .corpus_key = .session.metadata.corpus_key` — pull a corpus key from session metadata
+	//   - `.args | .query = (.args.query + " " + .session.metadata.query_suffix)` — augment the agent's query
 	//
 	//
 	// Example: .args + { auth: ("Bearer " + .agent.secrets.token) }
@@ -6727,9 +6727,9 @@ type ClientTool struct {
 	// If the expression fails to compile or evaluate at runtime, the tool call returns an error to the agent so the agent can react.
 	//
 	// Examples:
-	//   - `.results | map({title, url})`, keep only title/url for each result
-	//   - `.items[0:5]`, first 5 items
-	//   - `del(.debug)`, drop a noisy field
+	//   - `.results | map({title, url})` — keep only title/url for each result
+	//   - `.items[0:5]` — first 5 items
+	//   - `del(.debug)` — drop a noisy field
 	//
 	//
 	// Example: .results | map({title, url})
@@ -6849,9 +6849,9 @@ type ClientToolConfiguration struct {
 	// If the expression fails to compile or evaluate, the tool call returns an error to the agent.
 	//
 	// Examples:
-	//   - `.args + { auth: ("Bearer " + .agent.secrets.token) }`, inject a bearer header
-	//   - `.args | .corpus_key = .session.metadata.corpus_key`, pull a corpus key from session metadata
-	//   - `.args | .query = (.args.query + " " + .session.metadata.query_suffix)`, augment the agent's query
+	//   - `.args + { auth: ("Bearer " + .agent.secrets.token) }` — inject a bearer header
+	//   - `.args | .corpus_key = .session.metadata.corpus_key` — pull a corpus key from session metadata
+	//   - `.args | .query = (.args.query + " " + .session.metadata.query_suffix)` — augment the agent's query
 	//
 	//
 	// Example: .args + { auth: ("Bearer " + .agent.secrets.token) }
@@ -6886,9 +6886,9 @@ type ClientToolConfiguration struct {
 	// If the expression fails to compile or evaluate at runtime, the tool call returns an error to the agent so the agent can react.
 	//
 	// Examples:
-	//   - `.results | map({title, url})`, keep only title/url for each result
-	//   - `.items[0:5]`, first 5 items
-	//   - `del(.debug)`, drop a noisy field
+	//   - `.results | map({title, url})` — keep only title/url for each result
+	//   - `.items[0:5]` — first 5 items
+	//   - `del(.debug)` — drop a noisy field
 	//
 	//
 	// Example: .results | map({title, url})
@@ -6958,9 +6958,9 @@ type ClientToolPendingCall struct {
 // calls before it continues. Not persisted to session history. Resume by submitting a `tool_output`
 // input containing one entry per `event_id` in `pending_calls`.
 //
-// Only client tools awaiting output are listed. Each call carries its fully materialized arguments,
+// Only client tools awaiting output are listed. Each call carries its fully materialized arguments —
 // the agent-supplied arguments already merged with the tool configuration's argument overrides and
-// literals, with `$ref`s resolved against the session, so the client can dispatch the call without
+// literals, with `$ref`s resolved against the session — so the client can dispatch the call without
 // cross-referencing the corresponding `tool_input` event. Secret-derived values are delivered unmasked
 // because the client needs them to execute the tool.
 type ClientToolPendingEvent struct {
@@ -7435,9 +7435,9 @@ type CoreDocumentPart struct {
 
 	// ImagePartMode How this part is matched at query time.
 	//
-	// - `text`, matched on its `text`, like any text part.
-	// - `image`, matched by visual similarity against image queries for the image referenced by `image_id`; its `text`, if set, also makes the part findable through keyword search.
-	// - `image_and_text`, matched against both the referenced image and its `text` together.
+	// - `text` — matched on its `text`, like any text part.
+	// - `image` — matched by visual similarity against image queries for the image referenced by `image_id`; its `text`, if set, also makes the part findable through keyword search.
+	// - `image_and_text` — matched against both the referenced image and its `text` together.
 	//
 	// When omitted, the mode is inferred. On a corpus that does not support image queries, a part is always `text`. Otherwise it defaults to `image` when it references an image and has no `text`, `image_and_text` when it references an image and has `text`, and `text` otherwise.
 	//
@@ -7463,9 +7463,9 @@ type CoreDocumentPart struct {
 
 // CoreDocumentPartImagePartMode How this part is matched at query time.
 //
-// - `text`, matched on its `text`, like any text part.
-// - `image`, matched by visual similarity against image queries for the image referenced by `image_id`; its `text`, if set, also makes the part findable through keyword search.
-// - `image_and_text`, matched against both the referenced image and its `text` together.
+// - `text` — matched on its `text`, like any text part.
+// - `image` — matched by visual similarity against image queries for the image referenced by `image_id`; its `text`, if set, also makes the part findable through keyword search.
+// - `image_and_text` — matched against both the referenced image and its `text` together.
 //
 // When omitted, the mode is inferred. On a corpus that does not support image queries, a part is always `text`. Otherwise it defaults to `image` when it references an image and has no `text`, `image_and_text` when it references an image and has `text`, and `text` otherwise.
 //
@@ -7516,9 +7516,9 @@ type CorporaSearchTool struct {
 	// If the expression fails to compile or evaluate, the tool call returns an error to the agent.
 	//
 	// Examples:
-	//   - `.args + { auth: ("Bearer " + .agent.secrets.token) }`, inject a bearer header
-	//   - `.args | .corpus_key = .session.metadata.corpus_key`, pull a corpus key from session metadata
-	//   - `.args | .query = (.args.query + " " + .session.metadata.query_suffix)`, augment the agent's query
+	//   - `.args + { auth: ("Bearer " + .agent.secrets.token) }` — inject a bearer header
+	//   - `.args | .corpus_key = .session.metadata.corpus_key` — pull a corpus key from session metadata
+	//   - `.args | .query = (.args.query + " " + .session.metadata.query_suffix)` — augment the agent's query
 	//
 	//
 	// Example: .args + { auth: ("Bearer " + .agent.secrets.token) }
@@ -7531,9 +7531,9 @@ type CorporaSearchTool struct {
 	// If the expression fails to compile or evaluate at runtime, the tool call returns an error to the agent so the agent can react.
 	//
 	// Examples:
-	//   - `.results | map({title, url})`, keep only title/url for each result
-	//   - `.items[0:5]`, first 5 items
-	//   - `del(.debug)`, drop a noisy field
+	//   - `.results | map({title, url})` — keep only title/url for each result
+	//   - `.items[0:5]` — first 5 items
+	//   - `del(.debug)` — drop a noisy field
 	//
 	//
 	// Example: .results | map({title, url})
@@ -7651,9 +7651,9 @@ type CorporaSearchToolConfiguration struct {
 	// If the expression fails to compile or evaluate, the tool call returns an error to the agent.
 	//
 	// Examples:
-	//   - `.args + { auth: ("Bearer " + .agent.secrets.token) }`, inject a bearer header
-	//   - `.args | .corpus_key = .session.metadata.corpus_key`, pull a corpus key from session metadata
-	//   - `.args | .query = (.args.query + " " + .session.metadata.query_suffix)`, augment the agent's query
+	//   - `.args + { auth: ("Bearer " + .agent.secrets.token) }` — inject a bearer header
+	//   - `.args | .corpus_key = .session.metadata.corpus_key` — pull a corpus key from session metadata
+	//   - `.args | .query = (.args.query + " " + .session.metadata.query_suffix)` — augment the agent's query
 	//
 	//
 	// Example: .args + { auth: ("Bearer " + .agent.secrets.token) }
@@ -7688,9 +7688,9 @@ type CorporaSearchToolConfiguration struct {
 	// If the expression fails to compile or evaluate at runtime, the tool call returns an error to the agent so the agent can react.
 	//
 	// Examples:
-	//   - `.results | map({title, url})`, keep only title/url for each result
-	//   - `.items[0:5]`, first 5 items
-	//   - `del(.debug)`, drop a noisy field
+	//   - `.results | map({title, url})` — keep only title/url for each result
+	//   - `.items[0:5]` — first 5 items
+	//   - `del(.debug)` — drop a noisy field
 	//
 	//
 	// Example: .results | map({title, url})
@@ -7964,7 +7964,7 @@ type CreateAgentAliasRequest struct {
 
 	// Policy A routing policy. The `type` discriminator determines which fields apply:
 	//
-	// * `routed`, evaluates ordered rules. The policy selects the first rule whose `match` expression evaluates to true. The selected rule's `targets` are then used (one agent for `single`, hashed by `partition_by` for `weighted`). A rule with omitted `match` is a catch-all that always matches. It must be the last rule. The platform rejects any rule placed after a catch-all as unreachable.
+	// * `routed` — evaluates ordered rules. The policy selects the first rule whose `match` expression evaluates to true. The selected rule's `targets` are then used (one agent for `single`, hashed by `partition_by` for `weighted`). A rule with omitted `match` is a catch-all that always matches. It must be the last rule. The platform rejects any rule placed after a catch-all as unreachable.
 	//
 	// Most use cases (direct, weighted/canary, conditional, conditional+canary) collapse into `routed`.
 	Policy AliasPolicy `json:"policy"`
@@ -8113,7 +8113,7 @@ type CreateAgentRequest struct {
 	ToolConfigurations map[string]AgentToolConfiguration `json:"tool_configurations"`
 
 	// ToolOutputOffloading Controls how large tool outputs are kept from overwhelming the agent context window.
-	// Tool outputs are inspected as they are produced. A small output is always passed through unchanged. A larger output is handled in one of two cases: when the output on its own is big enough to dominate the context, or when adding it to the conversation would leave too little room for the agent to continue. In either case the output is handled according to `mode`, stored as an artifact and replaced with a compact reference, or truncated in place with the head and tail preserved and the middle omitted. When stored as an artifact, the agent is expected to have artifact_read, artifact_grep, or artifact_jq configured so it can retrieve the full content on demand.
+	// Tool outputs are inspected as they are produced. A small output is always passed through unchanged. A larger output is handled in one of two cases: when the output on its own is big enough to dominate the context, or when adding it to the conversation would leave too little room for the agent to continue. In either case the output is handled according to `mode` — stored as an artifact and replaced with a compact reference, or truncated in place with the head and tail preserved and the middle omitted. When stored as an artifact, the agent is expected to have artifact_read, artifact_grep, or artifact_jq configured so it can retrieve the full content on demand.
 	// All fields are optional; omitted fields fall back to defaults.
 	ToolOutputOffloading *ToolOutputOffloadingConfiguration `json:"tool_output_offloading,omitempty"`
 }
@@ -8426,7 +8426,7 @@ type CreateClientToolRequest struct {
 // (queued as a follow-up) or when idle.
 type CreateCompactRequest struct {
 	// CompactUpToEventId Compact all inputs up to this event ID (inclusive), e.g. "aev_abc123".
-	// When specified, `keep_recent_inputs` is bypassed, all inputs up to the anchor are compacted.
+	// When specified, `keep_recent_inputs` is bypassed — all inputs up to the anchor are compacted.
 	// If omitted, compacts all inputs except the most recent `keep_recent_inputs` inputs.
 	//
 	//
@@ -8966,7 +8966,7 @@ type CreateLambdaToolRequest struct {
 	// ToolConfigurations Named configurations of other tools this lambda may invoke from its Python code through the built-in `tool` module. Each entry is exposed as
 	// `tool.<name>(param=value)`; `tool.list()` returns their names and schemas, and failures raise `tool.ToolError`.
 	//
-	// `$ref` values inside `argument_override` resolve against the hosting agent and session at execution time, `agent.metadata.*`, `agent.secrets.*`, and
+	// `$ref` values inside `argument_override` resolve against the hosting agent and session at execution time — `agent.metadata.*`, `agent.secrets.*`, and
 	// `session.metadata.*` only. These configurations are private to the tool: they never appear on the hosting agent's callable tools, and their calls produce
 	// no session events.
 	//
@@ -9544,7 +9544,7 @@ type CreateWidgetConnectorConfiguration struct {
 
 	// EndUserSignIn Enables the widget's sign-in affordance and names the identity provider it authenticates users against.
 	// The host page supplies a token minted by the referenced trusted token issuer, and the widget presents it as the bearer credential on end-user session requests.
-	// The platform verifies the token by its `iss` claim against the globally-unique issuer registration, never against this connector, so the token stands on its own: it signs the caller in as an end user across the customer's aliases, not this widget's alone.
+	// The platform verifies the token by its `iss` claim against the globally-unique issuer registration — never against this connector — so the token stands on its own: it signs the caller in as an end user across the customer's aliases, not this widget's alone.
 	// The platform accepts the token when its signature verifies against the issuer's JWKS and it carries an `email` claim.
 	// The referenced registration must exist, or the connector write is rejected with `400`.
 	EndUserSignIn *WidgetSignIn `json:"end_user_sign_in,omitempty"`
@@ -9554,7 +9554,7 @@ type CreateWidgetConnectorConfiguration struct {
 	// Example: ["tool_calls"]
 	HiddenOutputTypes *[]AgentOutputType `json:"hidden_output_types,omitempty"`
 
-	// Presentation The presentation configuration the widget client renders, branding, palette, welcome content, suggested prompts.
+	// Presentation The presentation configuration the widget client renders — branding, palette, welcome content, suggested prompts.
 	// Free-form apart from the required `version`; the platform stores it verbatim, serves it back uninterpreted, and caps its total size.
 	// Null-valued keys are accepted but are omitted from responses.
 	// Served to anonymous visitors by the unauthenticated public connector view, so widget clients must treat every value as untrusted data.
@@ -9576,7 +9576,7 @@ type CreateWidgetConnectorConfiguration struct {
 	// Example: ["tool_calls"]
 	RevealedOutputTypes *[]AgentOutputType `json:"revealed_output_types,omitempty"`
 
-	// SessionMetadata Written into every session created through this widget connector, anonymous or signed-in, under `metadata.connector.<connector_id>`, namespaced by the connector's id, so connector-written values never collide with metadata from other writers and expressions can address the entry connector explicitly (e.g. `$.session.metadata.connector.con_abc123.instance`).
+	// SessionMetadata Written into every session created through this widget connector, anonymous or signed-in, under `metadata.connector.<connector_id>` — namespaced by the connector's id, so connector-written values never collide with metadata from other writers and expressions can address the entry connector explicitly (e.g. `$.session.metadata.connector.con_abc123.instance`).
 	// Readable wherever session metadata is readable: instruction templates, `run_condition`, `session_enrichment` references, alias routing rules, and tool `argument_override` expressions.
 	// Not served by the public connector view and not returned on the end-user session object, though values reach the agent's context and may surface in its replies.
 	// Omitted or empty writes no session metadata.
@@ -9785,7 +9785,7 @@ type DiscoverLLMsRequest struct {
 
 // DiscoverLLMsResponse The model configurations discovered by probing the endpoint, most-likely-to-work first.
 type DiscoverLLMsResponse struct {
-	// Candidates Discovered configurations, one per (provider type, model). Candidates that were successfully live-tested (`verified: true`) are listed first. Submit any candidate's fields, together with the same credential you passed in, to `POST /v2/llms` to create the LLM.
+	// Candidates Discovered configurations, one per (provider type, model). Candidates that were successfully live-tested (`verified: true`) are listed first. Submit any candidate's fields — together with the same credential you passed in — to `POST /v2/llms` to create the LLM.
 	Candidates []DiscoveredLLM `json:"candidates"`
 }
 
@@ -9800,7 +9800,7 @@ type DiscoveredLLM struct {
 	// Type The provider type to use when creating this LLM.
 	Type LLMType `json:"type"`
 
-	// Uri The endpoint URI to use when creating this LLM, normalized and rebuilt for this candidate's dialect (for example `…/v1/chat/completions` for `openai-compatible` and `…/v1/responses` for `openai-responses`). Absent for providers whose endpoint is derived from the credential rather than a URL, Anthropic on Bedrock (region-derived) and, where no base URI was supplied, Vertex.
+	// Uri The endpoint URI to use when creating this LLM, normalized and rebuilt for this candidate's dialect (for example `…/v1/chat/completions` for `openai-compatible` and `…/v1/responses` for `openai-responses`). Absent for providers whose endpoint is derived from the credential rather than a URL — Anthropic on Bedrock (region-derived) and, where no base URI was supplied, Vertex.
 	//
 	// Example: https://api.openai.com/v1/chat/completions
 	Uri *string `json:"uri,omitempty"`
@@ -10026,9 +10026,9 @@ type DocumentConversionTool struct {
 	// If the expression fails to compile or evaluate, the tool call returns an error to the agent.
 	//
 	// Examples:
-	//   - `.args + { auth: ("Bearer " + .agent.secrets.token) }`, inject a bearer header
-	//   - `.args | .corpus_key = .session.metadata.corpus_key`, pull a corpus key from session metadata
-	//   - `.args | .query = (.args.query + " " + .session.metadata.query_suffix)`, augment the agent's query
+	//   - `.args + { auth: ("Bearer " + .agent.secrets.token) }` — inject a bearer header
+	//   - `.args | .corpus_key = .session.metadata.corpus_key` — pull a corpus key from session metadata
+	//   - `.args | .query = (.args.query + " " + .session.metadata.query_suffix)` — augment the agent's query
 	//
 	//
 	// Example: .args + { auth: ("Bearer " + .agent.secrets.token) }
@@ -10041,9 +10041,9 @@ type DocumentConversionTool struct {
 	// If the expression fails to compile or evaluate at runtime, the tool call returns an error to the agent so the agent can react.
 	//
 	// Examples:
-	//   - `.results | map({title, url})`, keep only title/url for each result
-	//   - `.items[0:5]`, first 5 items
-	//   - `del(.debug)`, drop a noisy field
+	//   - `.results | map({title, url})` — keep only title/url for each result
+	//   - `.items[0:5]` — first 5 items
+	//   - `del(.debug)` — drop a noisy field
 	//
 	//
 	// Example: .results | map({title, url})
@@ -10161,9 +10161,9 @@ type DocumentConversionToolConfiguration struct {
 	// If the expression fails to compile or evaluate, the tool call returns an error to the agent.
 	//
 	// Examples:
-	//   - `.args + { auth: ("Bearer " + .agent.secrets.token) }`, inject a bearer header
-	//   - `.args | .corpus_key = .session.metadata.corpus_key`, pull a corpus key from session metadata
-	//   - `.args | .query = (.args.query + " " + .session.metadata.query_suffix)`, augment the agent's query
+	//   - `.args + { auth: ("Bearer " + .agent.secrets.token) }` — inject a bearer header
+	//   - `.args | .corpus_key = .session.metadata.corpus_key` — pull a corpus key from session metadata
+	//   - `.args | .query = (.args.query + " " + .session.metadata.query_suffix)` — augment the agent's query
 	//
 	//
 	// Example: .args + { auth: ("Bearer " + .agent.secrets.token) }
@@ -10198,9 +10198,9 @@ type DocumentConversionToolConfiguration struct {
 	// If the expression fails to compile or evaluate at runtime, the tool call returns an error to the agent so the agent can react.
 	//
 	// Examples:
-	//   - `.results | map({title, url})`, keep only title/url for each result
-	//   - `.items[0:5]`, first 5 items
-	//   - `del(.debug)`, drop a noisy field
+	//   - `.results | map({title, url})` — keep only title/url for each result
+	//   - `.items[0:5]` — first 5 items
+	//   - `del(.debug)` — drop a noisy field
 	//
 	//
 	// Example: .results | map({title, url})
@@ -10325,9 +10325,9 @@ type DynamicVectaraTool struct {
 	// If the expression fails to compile or evaluate, the tool call returns an error to the agent.
 	//
 	// Examples:
-	//   - `.args + { auth: ("Bearer " + .agent.secrets.token) }`, inject a bearer header
-	//   - `.args | .corpus_key = .session.metadata.corpus_key`, pull a corpus key from session metadata
-	//   - `.args | .query = (.args.query + " " + .session.metadata.query_suffix)`, augment the agent's query
+	//   - `.args + { auth: ("Bearer " + .agent.secrets.token) }` — inject a bearer header
+	//   - `.args | .corpus_key = .session.metadata.corpus_key` — pull a corpus key from session metadata
+	//   - `.args | .query = (.args.query + " " + .session.metadata.query_suffix)` — augment the agent's query
 	//
 	//
 	// Example: .args + { auth: ("Bearer " + .agent.secrets.token) }
@@ -10340,9 +10340,9 @@ type DynamicVectaraTool struct {
 	// If the expression fails to compile or evaluate at runtime, the tool call returns an error to the agent so the agent can react.
 	//
 	// Examples:
-	//   - `.results | map({title, url})`, keep only title/url for each result
-	//   - `.items[0:5]`, first 5 items
-	//   - `del(.debug)`, drop a noisy field
+	//   - `.results | map({title, url})` — keep only title/url for each result
+	//   - `.items[0:5]` — first 5 items
+	//   - `del(.debug)` — drop a noisy field
 	//
 	//
 	// Example: .results | map({title, url})
@@ -10484,9 +10484,9 @@ type DynamicVectaraToolConfiguration struct {
 	// If the expression fails to compile or evaluate, the tool call returns an error to the agent.
 	//
 	// Examples:
-	//   - `.args + { auth: ("Bearer " + .agent.secrets.token) }`, inject a bearer header
-	//   - `.args | .corpus_key = .session.metadata.corpus_key`, pull a corpus key from session metadata
-	//   - `.args | .query = (.args.query + " " + .session.metadata.query_suffix)`, augment the agent's query
+	//   - `.args + { auth: ("Bearer " + .agent.secrets.token) }` — inject a bearer header
+	//   - `.args | .corpus_key = .session.metadata.corpus_key` — pull a corpus key from session metadata
+	//   - `.args | .query = (.args.query + " " + .session.metadata.query_suffix)` — augment the agent's query
 	//
 	//
 	// Example: .args + { auth: ("Bearer " + .agent.secrets.token) }
@@ -10521,9 +10521,9 @@ type DynamicVectaraToolConfiguration struct {
 	// If the expression fails to compile or evaluate at runtime, the tool call returns an error to the agent so the agent can react.
 	//
 	// Examples:
-	//   - `.results | map({title, url})`, keep only title/url for each result
-	//   - `.items[0:5]`, first 5 items
-	//   - `del(.debug)`, drop a noisy field
+	//   - `.results | map({title, url})` — keep only title/url for each result
+	//   - `.items[0:5]` — first 5 items
+	//   - `del(.debug)` — drop a noisy field
 	//
 	//
 	// Example: .results | map({title, url})
@@ -11120,7 +11120,7 @@ type FluidtopicsSourceConfiguration struct {
 	// ApiKey Fluid Topics API key, sent as an HTTP Bearer authorization token. Requires read access to
 	// the configured content, plus administration scope when incremental runs read dataflow
 	// reports. Generate one in the Fluid Topics administration interface under Integrations, API
-	// keys, see
+	// keys — see
 	// https://doc.fluidtopics.com/r/Fluid-Topics-Configuration-and-Administration-Guide/Configure-a-Fluid-Topics-tenant/Integrations/API-keys.
 	// Encrypted at rest and not returned in responses.
 	ApiKey *string `json:"api_key,omitempty"`
@@ -11669,9 +11669,9 @@ type GetDocumentTextTool struct {
 	// If the expression fails to compile or evaluate, the tool call returns an error to the agent.
 	//
 	// Examples:
-	//   - `.args + { auth: ("Bearer " + .agent.secrets.token) }`, inject a bearer header
-	//   - `.args | .corpus_key = .session.metadata.corpus_key`, pull a corpus key from session metadata
-	//   - `.args | .query = (.args.query + " " + .session.metadata.query_suffix)`, augment the agent's query
+	//   - `.args + { auth: ("Bearer " + .agent.secrets.token) }` — inject a bearer header
+	//   - `.args | .corpus_key = .session.metadata.corpus_key` — pull a corpus key from session metadata
+	//   - `.args | .query = (.args.query + " " + .session.metadata.query_suffix)` — augment the agent's query
 	//
 	//
 	// Example: .args + { auth: ("Bearer " + .agent.secrets.token) }
@@ -11684,9 +11684,9 @@ type GetDocumentTextTool struct {
 	// If the expression fails to compile or evaluate at runtime, the tool call returns an error to the agent so the agent can react.
 	//
 	// Examples:
-	//   - `.results | map({title, url})`, keep only title/url for each result
-	//   - `.items[0:5]`, first 5 items
-	//   - `del(.debug)`, drop a noisy field
+	//   - `.results | map({title, url})` — keep only title/url for each result
+	//   - `.items[0:5]` — first 5 items
+	//   - `del(.debug)` — drop a noisy field
 	//
 	//
 	// Example: .results | map({title, url})
@@ -11804,9 +11804,9 @@ type GetDocumentTextToolConfiguration struct {
 	// If the expression fails to compile or evaluate, the tool call returns an error to the agent.
 	//
 	// Examples:
-	//   - `.args + { auth: ("Bearer " + .agent.secrets.token) }`, inject a bearer header
-	//   - `.args | .corpus_key = .session.metadata.corpus_key`, pull a corpus key from session metadata
-	//   - `.args | .query = (.args.query + " " + .session.metadata.query_suffix)`, augment the agent's query
+	//   - `.args + { auth: ("Bearer " + .agent.secrets.token) }` — inject a bearer header
+	//   - `.args | .corpus_key = .session.metadata.corpus_key` — pull a corpus key from session metadata
+	//   - `.args | .query = (.args.query + " " + .session.metadata.query_suffix)` — augment the agent's query
 	//
 	//
 	// Example: .args + { auth: ("Bearer " + .agent.secrets.token) }
@@ -11841,9 +11841,9 @@ type GetDocumentTextToolConfiguration struct {
 	// If the expression fails to compile or evaluate at runtime, the tool call returns an error to the agent so the agent can react.
 	//
 	// Examples:
-	//   - `.results | map({title, url})`, keep only title/url for each result
-	//   - `.items[0:5]`, first 5 items
-	//   - `del(.debug)`, drop a noisy field
+	//   - `.results | map({title, url})` — keep only title/url for each result
+	//   - `.items[0:5]` — first 5 items
+	//   - `del(.debug)` — drop a noisy field
 	//
 	//
 	// Example: .results | map({title, url})
@@ -11959,7 +11959,7 @@ type GoogleDriveScope struct {
 type GoogleDriveSourceConfiguration struct {
 	// ClientEmail The Google Cloud service account's email address (the `client_email` field of
 	// the service account JSON key). For `shared` scopes, grant this email read access
-	// to each drive or directory you want to ingest.
+	// to each drive or folder you want to ingest.
 	//
 	//
 	// Example: drive-ingest@my-project.iam.gserviceaccount.com
@@ -12230,9 +12230,9 @@ type ImageReadTool struct {
 	// If the expression fails to compile or evaluate, the tool call returns an error to the agent.
 	//
 	// Examples:
-	//   - `.args + { auth: ("Bearer " + .agent.secrets.token) }`, inject a bearer header
-	//   - `.args | .corpus_key = .session.metadata.corpus_key`, pull a corpus key from session metadata
-	//   - `.args | .query = (.args.query + " " + .session.metadata.query_suffix)`, augment the agent's query
+	//   - `.args + { auth: ("Bearer " + .agent.secrets.token) }` — inject a bearer header
+	//   - `.args | .corpus_key = .session.metadata.corpus_key` — pull a corpus key from session metadata
+	//   - `.args | .query = (.args.query + " " + .session.metadata.query_suffix)` — augment the agent's query
 	//
 	//
 	// Example: .args + { auth: ("Bearer " + .agent.secrets.token) }
@@ -12245,9 +12245,9 @@ type ImageReadTool struct {
 	// If the expression fails to compile or evaluate at runtime, the tool call returns an error to the agent so the agent can react.
 	//
 	// Examples:
-	//   - `.results | map({title, url})`, keep only title/url for each result
-	//   - `.items[0:5]`, first 5 items
-	//   - `del(.debug)`, drop a noisy field
+	//   - `.results | map({title, url})` — keep only title/url for each result
+	//   - `.items[0:5]` — first 5 items
+	//   - `del(.debug)` — drop a noisy field
 	//
 	//
 	// Example: .results | map({title, url})
@@ -12365,9 +12365,9 @@ type ImageReadToolConfiguration struct {
 	// If the expression fails to compile or evaluate, the tool call returns an error to the agent.
 	//
 	// Examples:
-	//   - `.args + { auth: ("Bearer " + .agent.secrets.token) }`, inject a bearer header
-	//   - `.args | .corpus_key = .session.metadata.corpus_key`, pull a corpus key from session metadata
-	//   - `.args | .query = (.args.query + " " + .session.metadata.query_suffix)`, augment the agent's query
+	//   - `.args + { auth: ("Bearer " + .agent.secrets.token) }` — inject a bearer header
+	//   - `.args | .corpus_key = .session.metadata.corpus_key` — pull a corpus key from session metadata
+	//   - `.args | .query = (.args.query + " " + .session.metadata.query_suffix)` — augment the agent's query
 	//
 	//
 	// Example: .args + { auth: ("Bearer " + .agent.secrets.token) }
@@ -12402,9 +12402,9 @@ type ImageReadToolConfiguration struct {
 	// If the expression fails to compile or evaluate at runtime, the tool call returns an error to the agent so the agent can react.
 	//
 	// Examples:
-	//   - `.results | map({title, url})`, keep only title/url for each result
-	//   - `.items[0:5]`, first 5 items
-	//   - `del(.debug)`, drop a noisy field
+	//   - `.results | map({title, url})` — keep only title/url for each result
+	//   - `.items[0:5]` — first 5 items
+	//   - `del(.debug)` — drop a noisy field
 	//
 	//
 	// Example: .results | map({title, url})
@@ -12713,9 +12713,9 @@ type InputTokens struct {
 // If the expression fails to compile or evaluate, the tool call returns an error to the agent.
 //
 // Examples:
-//   - `.args + { auth: ("Bearer " + .agent.secrets.token) }`, inject a bearer header
-//   - `.args | .corpus_key = .session.metadata.corpus_key`, pull a corpus key from session metadata
-//   - `.args | .query = (.args.query + " " + .session.metadata.query_suffix)`, augment the agent's query
+//   - `.args + { auth: ("Bearer " + .agent.secrets.token) }` — inject a bearer header
+//   - `.args | .corpus_key = .session.metadata.corpus_key` — pull a corpus key from session metadata
+//   - `.args | .query = (.args.query + " " + .session.metadata.query_suffix)` — augment the agent's query
 //
 // Example: .args + { auth: ("Bearer " + .agent.secrets.token) }
 type InputTransform = string
@@ -12999,7 +12999,7 @@ type Job struct {
 
 	// Progress Live progress of a running job.
 	//
-	// Present only while the job is running, and only when retrieving a single job by ID; `listJobs` never populates it. Absence does not indicate failure, read `state` for job health. The counters describe the corpus rebuild the job runs, so a job that drives no rebuild reports nothing here.
+	// Present only while the job is running, and only when retrieving a single job by ID; `listJobs` never populates it. Absence does not indicate failure — read `state` for job health. The counters describe the corpus rebuild the job runs, so a job that drives no rebuild reports nothing here.
 	//
 	// `pages_pending_import`, `imports_in_flight` and `import_batches_submitted` describe incremental import, which is not enabled for every rebuild. When it is not in use all three report 0 for the whole rebuild, which means "not applicable" rather than "nothing left to do".
 	Progress *JobProgress `json:"progress,omitempty"`
@@ -13019,7 +13019,7 @@ type JobType string
 
 // JobProgress Live progress of a running job.
 //
-// Present only while the job is running, and only when retrieving a single job by ID; `listJobs` never populates it. Absence does not indicate failure, read `state` for job health. The counters describe the corpus rebuild the job runs, so a job that drives no rebuild reports nothing here.
+// Present only while the job is running, and only when retrieving a single job by ID; `listJobs` never populates it. Absence does not indicate failure — read `state` for job health. The counters describe the corpus rebuild the job runs, so a job that drives no rebuild reports nothing here.
 //
 // `pages_pending_import`, `imports_in_flight` and `import_batches_submitted` describe incremental import, which is not enabled for every rebuild. When it is not in use all three report 0 for the whole rebuild, which means "not applicable" rather than "nothing left to do".
 type JobProgress struct {
@@ -13398,9 +13398,9 @@ type LambdaTool struct {
 	// If the expression fails to compile or evaluate, the tool call returns an error to the agent.
 	//
 	// Examples:
-	//   - `.args + { auth: ("Bearer " + .agent.secrets.token) }`, inject a bearer header
-	//   - `.args | .corpus_key = .session.metadata.corpus_key`, pull a corpus key from session metadata
-	//   - `.args | .query = (.args.query + " " + .session.metadata.query_suffix)`, augment the agent's query
+	//   - `.args + { auth: ("Bearer " + .agent.secrets.token) }` — inject a bearer header
+	//   - `.args | .corpus_key = .session.metadata.corpus_key` — pull a corpus key from session metadata
+	//   - `.args | .query = (.args.query + " " + .session.metadata.query_suffix)` — augment the agent's query
 	//
 	//
 	// Example: .args + { auth: ("Bearer " + .agent.secrets.token) }
@@ -13413,9 +13413,9 @@ type LambdaTool struct {
 	// If the expression fails to compile or evaluate at runtime, the tool call returns an error to the agent so the agent can react.
 	//
 	// Examples:
-	//   - `.results | map({title, url})`, keep only title/url for each result
-	//   - `.items[0:5]`, first 5 items
-	//   - `del(.debug)`, drop a noisy field
+	//   - `.results | map({title, url})` — keep only title/url for each result
+	//   - `.items[0:5]` — first 5 items
+	//   - `del(.debug)` — drop a noisy field
 	//
 	//
 	// Example: .results | map({title, url})
@@ -13600,9 +13600,9 @@ type LambdaToolConfiguration struct {
 	// If the expression fails to compile or evaluate, the tool call returns an error to the agent.
 	//
 	// Examples:
-	//   - `.args + { auth: ("Bearer " + .agent.secrets.token) }`, inject a bearer header
-	//   - `.args | .corpus_key = .session.metadata.corpus_key`, pull a corpus key from session metadata
-	//   - `.args | .query = (.args.query + " " + .session.metadata.query_suffix)`, augment the agent's query
+	//   - `.args + { auth: ("Bearer " + .agent.secrets.token) }` — inject a bearer header
+	//   - `.args | .corpus_key = .session.metadata.corpus_key` — pull a corpus key from session metadata
+	//   - `.args | .query = (.args.query + " " + .session.metadata.query_suffix)` — augment the agent's query
 	//
 	//
 	// Example: .args + { auth: ("Bearer " + .agent.secrets.token) }
@@ -13637,9 +13637,9 @@ type LambdaToolConfiguration struct {
 	// If the expression fails to compile or evaluate at runtime, the tool call returns an error to the agent so the agent can react.
 	//
 	// Examples:
-	//   - `.results | map({title, url})`, keep only title/url for each result
-	//   - `.items[0:5]`, first 5 items
-	//   - `del(.debug)`, drop a noisy field
+	//   - `.results | map({title, url})` — keep only title/url for each result
+	//   - `.items[0:5]` — first 5 items
+	//   - `del(.debug)` — drop a noisy field
 	//
 	//
 	// Example: .results | map({title, url})
@@ -14143,9 +14143,9 @@ type McpTool struct {
 	// If the expression fails to compile or evaluate, the tool call returns an error to the agent.
 	//
 	// Examples:
-	//   - `.args + { auth: ("Bearer " + .agent.secrets.token) }`, inject a bearer header
-	//   - `.args | .corpus_key = .session.metadata.corpus_key`, pull a corpus key from session metadata
-	//   - `.args | .query = (.args.query + " " + .session.metadata.query_suffix)`, augment the agent's query
+	//   - `.args + { auth: ("Bearer " + .agent.secrets.token) }` — inject a bearer header
+	//   - `.args | .corpus_key = .session.metadata.corpus_key` — pull a corpus key from session metadata
+	//   - `.args | .query = (.args.query + " " + .session.metadata.query_suffix)` — augment the agent's query
 	//
 	//
 	// Example: .args + { auth: ("Bearer " + .agent.secrets.token) }
@@ -14158,9 +14158,9 @@ type McpTool struct {
 	// If the expression fails to compile or evaluate at runtime, the tool call returns an error to the agent so the agent can react.
 	//
 	// Examples:
-	//   - `.results | map({title, url})`, keep only title/url for each result
-	//   - `.items[0:5]`, first 5 items
-	//   - `del(.debug)`, drop a noisy field
+	//   - `.results | map({title, url})` — keep only title/url for each result
+	//   - `.items[0:5]` — first 5 items
+	//   - `del(.debug)` — drop a noisy field
 	//
 	//
 	// Example: .results | map({title, url})
@@ -14323,9 +14323,9 @@ type McpToolConfiguration struct {
 	// If the expression fails to compile or evaluate, the tool call returns an error to the agent.
 	//
 	// Examples:
-	//   - `.args + { auth: ("Bearer " + .agent.secrets.token) }`, inject a bearer header
-	//   - `.args | .corpus_key = .session.metadata.corpus_key`, pull a corpus key from session metadata
-	//   - `.args | .query = (.args.query + " " + .session.metadata.query_suffix)`, augment the agent's query
+	//   - `.args + { auth: ("Bearer " + .agent.secrets.token) }` — inject a bearer header
+	//   - `.args | .corpus_key = .session.metadata.corpus_key` — pull a corpus key from session metadata
+	//   - `.args | .query = (.args.query + " " + .session.metadata.query_suffix)` — augment the agent's query
 	//
 	//
 	// Example: .args + { auth: ("Bearer " + .agent.secrets.token) }
@@ -14360,9 +14360,9 @@ type McpToolConfiguration struct {
 	// If the expression fails to compile or evaluate at runtime, the tool call returns an error to the agent so the agent can react.
 	//
 	// Examples:
-	//   - `.results | map({title, url})`, keep only title/url for each result
-	//   - `.items[0:5]`, first 5 items
-	//   - `del(.debug)`, drop a noisy field
+	//   - `.results | map({title, url})` — keep only title/url for each result
+	//   - `.items[0:5]` — first 5 items
+	//   - `del(.debug)` — drop a noisy field
 	//
 	//
 	// Example: .results | map({title, url})
@@ -14559,9 +14559,9 @@ type MyGoogleDriveScope struct {
 	// Type Example: my_drive
 	Type string `json:"type"`
 
-	// Url Optional URL of a directory within the user's My Drive
+	// Url Optional URL of a folder within the user's My Drive
 	// (`https://drive.google.com/drive/folders/<folder_id>`) to narrow ingestion to that
-	// subtree. The connector walks all descendant subdirectories and indexes every file within.
+	// subtree. The connector walks all descendant subfolders and indexes every file within.
 	// If omitted, every accessible file in the user's My Drive is enumerated.
 	//
 	//
@@ -14611,13 +14611,13 @@ type NextStep struct {
 	// }
 	// ```
 	//
-	// - `$.agent.key`, `$.agent.name`, `$.agent.description`, `$.agent.metadata.<key>`, the agent
-	// - `$.session.key`, `$.session.name`, `$.session.description`, `$.session.metadata.<key>`, the session
-	// - `$.currentDate`, the evaluation time, ISO 8601
-	// - `$.inputs.user.latest.text`, `$.inputs.user.latest.artifacts[i].<field>`, the session's most recent user input and the files uploaded or shared with it; each file has the fields of its artifact reference, including the `purpose` a sharer gave. `text` is absent when the input has none, `artifacts` is an empty array when it has no files, and `$.inputs.user.latest` is absent before the session's first user input
-	// - `$.tools.<tool_config_name>.outputs.latest.<field>`, latest tool output fields, present only for tools that produced output
-	// - `$.output.text`, agent text output (when output_parser is `default`)
-	// - `$.output.<field>`, agent structured output fields (when output_parser is `structured`)
+	// - `$.agent.key`, `$.agent.name`, `$.agent.description`, `$.agent.metadata.<key>` — the agent
+	// - `$.session.key`, `$.session.name`, `$.session.description`, `$.session.metadata.<key>` — the session
+	// - `$.currentDate` — the evaluation time, ISO 8601
+	// - `$.inputs.user.latest.text`, `$.inputs.user.latest.artifacts[i].<field>` — the session's most recent user input and the files uploaded or shared with it; each file has the fields of its artifact reference, including the `purpose` a sharer gave. `text` is absent when the input has none, `artifacts` is an empty array when it has no files, and `$.inputs.user.latest` is absent before the session's first user input
+	// - `$.tools.<tool_config_name>.outputs.latest.<field>` — latest tool output fields, present only for tools that produced output
+	// - `$.output.text` — agent text output (when output_parser is `default`)
+	// - `$.output.<field>` — agent structured output fields (when output_parser is `structured`)
 	//
 	//
 	// Example: get('$.output.intent') == 'sales'
@@ -14952,9 +14952,9 @@ type OutputTraceSpan struct {
 // If the expression fails to compile or evaluate at runtime, the tool call returns an error to the agent so the agent can react.
 //
 // Examples:
-//   - `.results | map({title, url})`, keep only title/url for each result
-//   - `.items[0:5]`, first 5 items
-//   - `del(.debug)`, drop a noisy field
+//   - `.results | map({title, url})` — keep only title/url for each result
+//   - `.items[0:5]` — first 5 items
+//   - `del(.debug)` — drop a noisy field
 //
 // Example: .results | map({title, url})
 type OutputTransform = string
@@ -14970,7 +14970,7 @@ type PercentileEntry struct {
 	// Label The stable identifier for this percentile (e.g. `p50`, `p99`).
 	Label string `json:"label"`
 
-	// Value The numeric value, the percentile rank on the descriptor, the aggregated value on a response point.
+	// Value The numeric value — the percentile rank on the descriptor, the aggregated value on a response point.
 	Value float64 `json:"value"`
 }
 
@@ -15056,7 +15056,7 @@ type PercentilesMetricSeries struct {
 
 // Pipeline A pipeline is an automated data flow. It sends all data from a source system to an agent
 // for the agent to act on per its instructions. Each source record creates a new agent
-// session. The agent has full autonomy to decide what to do with each piece of data, index
+// session. The agent has full autonomy to decide what to do with each piece of data — index
 // it into a corpus, extract structured information, route it, or discard it.
 //
 // This is distinct from an **agent schedule**, which is a recurring single execution of an
@@ -15349,8 +15349,8 @@ type Prompt struct {
 	Name string `json:"name"`
 }
 
-// PublicConnector The public view of a connector that fronts an end-user surface, served unauthenticated to the embed snippet.
-// End-user sessions are created on the addressed alias, `/v2/agent_aliases/{alias_key}/end_user_sessions`, naming this connector in the request body; the embed snippet carries the alias key and connector id it needs, and this view serves the `customer_id` that visitor minting (`POST /v2/visitors`) is addressed to.
+// PublicConnector The public view of a connector that fronts an end-user surface, served unauthenticated to the embed snippet by `GET /v2/agent_aliases/{alias_key}/connectors/{connector_id}/public`.
+// End-user sessions are created on the addressed alias — `/v2/agent_aliases/{alias_key}/end_user_sessions` — naming this connector in the request body; the embed snippet carries the alias key and connector id it needs, and this view serves the `customer_id` that visitor minting (`POST /v2/visitors`) is addressed to.
 // Session attributes such as idle lifetime are reported on the session object returned by the end-user session create endpoint.
 type PublicConnector struct {
 	// CustomerId The unique identifier of the customer the connector belongs to, presented as the `X-Customer-Id` header when minting a visitor identity through `POST /v2/visitors`.
@@ -15358,11 +15358,11 @@ type PublicConnector struct {
 	// Example: 1234567890
 	CustomerId int64 `json:"customer_id"`
 
-	// EndUserSignIn The sign-in affordance of the public connector view. Identifies the identity provider the widget authenticates users against by its issuer URL, the `iss` claim of the tokens the host page supplies, never by the internal registration id.
+	// EndUserSignIn The sign-in affordance of the public connector view. Identifies the identity provider the widget authenticates users against by its issuer URL — the `iss` claim of the tokens the host page supplies — never by the internal registration id.
 	// The host page obtains a token from this issuer and the widget presents it as the bearer credential on end-user session requests.
 	EndUserSignIn *PublicSignIn `json:"end_user_sign_in,omitempty"`
 
-	// Presentation The presentation configuration the widget client renders, branding, palette, welcome content, suggested prompts.
+	// Presentation The presentation configuration the widget client renders — branding, palette, welcome content, suggested prompts.
 	// Free-form apart from the required `version`; the platform stores it verbatim, serves it back uninterpreted, and caps its total size.
 	// Null-valued keys are accepted but are omitted from responses.
 	// Served to anonymous visitors by the unauthenticated public connector view, so widget clients must treat every value as untrusted data.
@@ -15377,7 +15377,7 @@ type PublicConnector struct {
 	PublicAccess bool `json:"public_access"`
 }
 
-// PublicSignIn The sign-in affordance of the public connector view. Identifies the identity provider the widget authenticates users against by its issuer URL, the `iss` claim of the tokens the host page supplies, never by the internal registration id.
+// PublicSignIn The sign-in affordance of the public connector view. Identifies the identity provider the widget authenticates users against by its issuer URL — the `iss` claim of the tokens the host page supplies — never by the internal registration id.
 // The host page obtains a token from this issuer and the widget presents it as the bearer credential on end-user session requests.
 type PublicSignIn struct {
 	// Issuer The issuer URL of the identity provider, exactly as it appears in the `iss` claim of its tokens.
@@ -15433,7 +15433,7 @@ type QueryCorpusRequest struct {
 		// Offset The number of results to skip. Use this for pagination.
 		Offset *int32 `json:"offset,omitempty"`
 
-		// Reranker Reranks the results of the search. Rerankers improve the order of search results. By default, the search uses the reranker selected for the customer's plan. To disable reranking, set the reranker `type` to `"none"`.
+		// Reranker Reranks the results of the search. Rerankers improve the order of search results. By default, the search uses the most powerful reranker available to the customer's plan. To disable reranking, set the reranker `type` to `"none"`.
 		Reranker *SearchReranker `json:"reranker,omitempty"`
 
 		// Semantics Indicates whether to consider a query against this corpus as a query or a response.
@@ -15783,7 +15783,7 @@ type ReplaceAgentRequest struct {
 	ToolConfigurations map[string]AgentToolConfiguration `json:"tool_configurations"`
 
 	// ToolOutputOffloading Controls how large tool outputs are kept from overwhelming the agent context window.
-	// Tool outputs are inspected as they are produced. A small output is always passed through unchanged. A larger output is handled in one of two cases: when the output on its own is big enough to dominate the context, or when adding it to the conversation would leave too little room for the agent to continue. In either case the output is handled according to `mode`, stored as an artifact and replaced with a compact reference, or truncated in place with the head and tail preserved and the middle omitted. When stored as an artifact, the agent is expected to have artifact_read, artifact_grep, or artifact_jq configured so it can retrieve the full content on demand.
+	// Tool outputs are inspected as they are produced. A small output is always passed through unchanged. A larger output is handled in one of two cases: when the output on its own is big enough to dominate the context, or when adding it to the conversation would leave too little room for the agent to continue. In either case the output is handled according to `mode` — stored as an artifact and replaced with a compact reference, or truncated in place with the head and tail preserved and the middle omitted. When stored as an artifact, the agent is expected to have artifact_read, artifact_grep, or artifact_jq configured so it can retrieve the full content on demand.
 	// All fields are optional; omitted fields fall back to defaults.
 	ToolOutputOffloading *ToolOutputOffloadingConfiguration `json:"tool_output_offloading,omitempty"`
 
@@ -15806,7 +15806,7 @@ type ReplaceAgentSecretsRequest struct {
 type ReplaceAliasPolicyRequest struct {
 	// Policy A routing policy. The `type` discriminator determines which fields apply:
 	//
-	// * `routed`, evaluates ordered rules. The policy selects the first rule whose `match` expression evaluates to true. The selected rule's `targets` are then used (one agent for `single`, hashed by `partition_by` for `weighted`). A rule with omitted `match` is a catch-all that always matches. It must be the last rule. The platform rejects any rule placed after a catch-all as unreachable.
+	// * `routed` — evaluates ordered rules. The policy selects the first rule whose `match` expression evaluates to true. The selected rule's `targets` are then used (one agent for `single`, hashed by `partition_by` for `weighted`). A rule with omitted `match` is a catch-all that always matches. It must be the last rule. The platform rejects any rule placed after a catch-all as unreachable.
 	//
 	// Most use cases (direct, weighted/canary, conditional, conditional+canary) collapse into `routed`.
 	Policy AliasPolicy `json:"policy"`
@@ -15976,10 +15976,10 @@ type RewrittenQueryWarning string
 // RoutedAliasPolicy Evaluates ordered rules against the session context. The policy selects the first rule whose `match` expression evaluates to true. The selected rule's `targets` shape determines what runs. `single` routes directly to one agent. `weighted` picks one of several agents by hashing the rule's `partition_by` expression. A rule with no `match` always matches (catch-all). It must be the last rule. The platform rejects any rule placed after a catch-all as unreachable.
 //
 // This single shape covers:
-// - Direct routing, one rule, single target.
-// - Weighted or canary rollouts, one rule, weighted targets.
-// - Conditional routing, multiple rules with matches.
-// - Conditional plus canary, multiple rules, each independently single or weighted.
+// - Direct routing — one rule, single target.
+// - Weighted or canary rollouts — one rule, weighted targets.
+// - Conditional routing — multiple rules with matches.
+// - Conditional plus canary — multiple rules, each independently single or weighted.
 type RoutedAliasPolicy struct {
 	// Rules Ordered routing rules. The policy evaluates rules top-to-bottom and selects the first rule whose `match` expression evaluates to true. Include at least one rule with no `match` (a catch-all) to guarantee a fallback target.
 	Rules []AliasRule `json:"rules"`
@@ -15991,8 +15991,8 @@ type Row = []Cell
 
 // RuleTargets The shape of a rule's targets. The `type` discriminator selects which fields apply:
 //
-// * `single`, a direct route to one agent. No weight, no partition function.
-// * `weighted`, a weighted selection among several agents. Requires a `partition_by` userfn expression that names what to hash on. Different rules can use different partition functions.
+// * `single` — a direct route to one agent. No weight, no partition function.
+// * `weighted` — a weighted selection among several agents. Requires a `partition_by` userfn expression that names what to hash on. Different rules can use different partition functions.
 type RuleTargets struct {
 	union json.RawMessage
 }
@@ -16234,7 +16234,7 @@ type SearchCorporaParameters struct {
 	// Offset The number of results to skip. Use this for pagination.
 	Offset *int32 `json:"offset,omitempty"`
 
-	// Reranker Reranks the results of the search. Rerankers improve the order of search results. By default, the search uses the reranker selected for the customer's plan. To disable reranking, set the reranker `type` to `"none"`.
+	// Reranker Reranks the results of the search. Rerankers improve the order of search results. By default, the search uses the most powerful reranker available to the customer's plan. To disable reranking, set the reranker `type` to `"none"`.
 	Reranker *SearchReranker `json:"reranker,omitempty"`
 }
 
@@ -16282,7 +16282,7 @@ type SearchParameters struct {
 	// Offset The number of results to skip. Use this for pagination.
 	Offset *int32 `json:"offset,omitempty"`
 
-	// Reranker Reranks the results of the search. Rerankers improve the order of search results. By default, the search uses the reranker selected for the customer's plan. To disable reranking, set the reranker `type` to `"none"`.
+	// Reranker Reranks the results of the search. Rerankers improve the order of search results. By default, the search uses the most powerful reranker available to the customer's plan. To disable reranking, set the reranker `type` to `"none"`.
 	Reranker *SearchReranker `json:"reranker,omitempty"`
 }
 
@@ -16291,7 +16291,7 @@ type SearchParameters struct {
 // Example: doc.id
 type SearchParametersMaxBy string
 
-// SearchReranker Reranks the results of the search. Rerankers improve the order of search results. By default, the search uses the reranker selected for the customer's plan. To disable reranking, set the reranker `type` to `"none"`.
+// SearchReranker Reranks the results of the search. Rerankers improve the order of search results. By default, the search uses the most powerful reranker available to the customer's plan. To disable reranking, set the reranker `type` to `"none"`.
 type SearchReranker struct {
 	union json.RawMessage
 }
@@ -16511,16 +16511,16 @@ type SessionInterruptedEvent struct {
 }
 
 // SharedGoogleDriveScope Ingests from a Google Workspace shared drive. Add the service account (`client_email`) as
-// a member of the shared drive, or of the linked directory, with at least Viewer access. This
+// a member of the shared drive, or of the linked folder, with at least Viewer access. This
 // scope does not require domain-wide delegation.
 type SharedGoogleDriveScope struct {
 	// Type Example: shared
 	Type string `json:"type"`
 
-	// Url URL of the directory to ingest. Use a shared drive's root URL
+	// Url URL of the folder to ingest. Use a shared drive's root URL
 	// (`https://drive.google.com/drive/folders/<drive_id>`) to enumerate the entire drive.
-	// Use any subdirectory URL (`https://drive.google.com/drive/folders/<folder_id>`) to scope
-	// ingestion to that subtree. The connector walks every descendant subdirectory beneath the
+	// Use any subfolder URL (`https://drive.google.com/drive/folders/<folder_id>`) to scope
+	// ingestion to that subtree. The connector walks every descendant subfolder beneath the
 	// linked target.
 	//
 	//
@@ -16541,7 +16541,7 @@ type SharepointSourceConfiguration struct {
 	// DriveId The ID of a specific document library. If omitted, the default document library is used.
 	DriveId *string `json:"drive_id,omitempty"`
 
-	// FolderPath Optional directory path to scope ingestion to a subdirectory.
+	// FolderPath Optional folder path to scope ingestion to a subdirectory.
 	//
 	// Example: /Contracts/2026
 	FolderPath *string `json:"folder_path,omitempty"`
@@ -17148,9 +17148,9 @@ type SubAgentTool struct {
 	// If the expression fails to compile or evaluate, the tool call returns an error to the agent.
 	//
 	// Examples:
-	//   - `.args + { auth: ("Bearer " + .agent.secrets.token) }`, inject a bearer header
-	//   - `.args | .corpus_key = .session.metadata.corpus_key`, pull a corpus key from session metadata
-	//   - `.args | .query = (.args.query + " " + .session.metadata.query_suffix)`, augment the agent's query
+	//   - `.args + { auth: ("Bearer " + .agent.secrets.token) }` — inject a bearer header
+	//   - `.args | .corpus_key = .session.metadata.corpus_key` — pull a corpus key from session metadata
+	//   - `.args | .query = (.args.query + " " + .session.metadata.query_suffix)` — augment the agent's query
 	//
 	//
 	// Example: .args + { auth: ("Bearer " + .agent.secrets.token) }
@@ -17163,9 +17163,9 @@ type SubAgentTool struct {
 	// If the expression fails to compile or evaluate at runtime, the tool call returns an error to the agent so the agent can react.
 	//
 	// Examples:
-	//   - `.results | map({title, url})`, keep only title/url for each result
-	//   - `.items[0:5]`, first 5 items
-	//   - `del(.debug)`, drop a noisy field
+	//   - `.results | map({title, url})` — keep only title/url for each result
+	//   - `.items[0:5]` — first 5 items
+	//   - `del(.debug)` — drop a noisy field
 	//
 	//
 	// Example: .results | map({title, url})
@@ -17315,9 +17315,9 @@ type SubAgentToolConfiguration struct {
 	// If the expression fails to compile or evaluate, the tool call returns an error to the agent.
 	//
 	// Examples:
-	//   - `.args + { auth: ("Bearer " + .agent.secrets.token) }`, inject a bearer header
-	//   - `.args | .corpus_key = .session.metadata.corpus_key`, pull a corpus key from session metadata
-	//   - `.args | .query = (.args.query + " " + .session.metadata.query_suffix)`, augment the agent's query
+	//   - `.args + { auth: ("Bearer " + .agent.secrets.token) }` — inject a bearer header
+	//   - `.args | .corpus_key = .session.metadata.corpus_key` — pull a corpus key from session metadata
+	//   - `.args | .query = (.args.query + " " + .session.metadata.query_suffix)` — augment the agent's query
 	//
 	//
 	// Example: .args + { auth: ("Bearer " + .agent.secrets.token) }
@@ -17352,9 +17352,9 @@ type SubAgentToolConfiguration struct {
 	// If the expression fails to compile or evaluate at runtime, the tool call returns an error to the agent so the agent can react.
 	//
 	// Examples:
-	//   - `.results | map({title, url})`, keep only title/url for each result
-	//   - `.items[0:5]`, first 5 items
-	//   - `del(.debug)`, drop a noisy field
+	//   - `.results | map({title, url})` — keep only title/url for each result
+	//   - `.items[0:5]` — first 5 items
+	//   - `del(.debug)` — drop a noisy field
 	//
 	//
 	// Example: .results | map({title, url})
@@ -17432,10 +17432,10 @@ type SurfaceDescription struct {
 	// Example: con_slack_support
 	Id *string `json:"id,omitempty"`
 
-	// Include When true, the agent is told which listeners, surfaces currently streaming this session, will see this turn's response.
+	// Include When true, the agent is told which listeners — surfaces currently streaming this session — will see this turn's response.
 	Include *bool `json:"include,omitempty"`
 
-	// Type The kind of surface the input came from, so the agent knows where its reply will be seen and can shape it for that surface, a free-form label, not a fixed set. Connectors send "slack", "gchat", or "zoom"; API callers may send a label describing their own surface. Treated as "api" when omitted.
+	// Type The kind of surface the input came from, so the agent knows where its reply will be seen and can shape it for that surface — a free-form label, not a fixed set. Connectors send "slack", "gchat", or "zoom"; API callers may send a label describing their own surface. Treated as "api" when omitted.
 	//
 	// Example: slack
 	Type *string `json:"type,omitempty"`
@@ -17678,7 +17678,7 @@ type TestLambdaToolRequest struct {
 	// Example: {"order_count":10,"total_revenue":500}
 	TestInput map[string]interface{} `json:"test_input"`
 
-	// TimeoutSeconds Maximum execution time in seconds for this test. Overrides `execution_configuration` if specified. When omitted, the supplied `execution_configuration` timeout applies in full, up to 21600 seconds, and a request with none runs at 30 seconds. A budget longer than 300 seconds requires `stream_response` to be true; a non-streaming request with a larger budget is rejected.
+	// TimeoutSeconds Maximum execution time in seconds for this test. Overrides `execution_configuration` if specified. When omitted, the supplied `execution_configuration` timeout applies in full — up to 21600 seconds — and a request with none runs at 30 seconds. A budget longer than 300 seconds requires `stream_response` to be true; a non-streaming request with a larger budget is rejected.
 	//
 	// Example: 10
 	TimeoutSeconds *int `json:"timeout_seconds,omitempty"`
@@ -17851,7 +17851,7 @@ type TestToolRequest struct {
 	// Example: {"agent":{"metadata":{"ticket_api_base":"https://tickets.example.com/api/v1/"},"secrets":{"ticket_api_token":"test-token"}},"session":{"metadata":{"tenant_corpus":"kb"}}}
 	TestContext *TestLambdaToolContext `json:"test_context,omitempty"`
 
-	// TimeoutSeconds Maximum execution time in seconds for this test. Overrides `execution_configuration` if specified. When omitted, the tool's stored `execution_configuration` timeout applies in full, up to 21600 seconds, and a tool with none runs at 30 seconds. A budget longer than 300 seconds requires `stream_response` to be true; a non-streaming request with a larger budget is rejected.
+	// TimeoutSeconds Maximum execution time in seconds for this test. Overrides `execution_configuration` if specified. When omitted, the tool's stored `execution_configuration` timeout applies in full — up to 21600 seconds — and a tool with none runs at 30 seconds. A budget longer than 300 seconds requires `stream_response` to be true; a non-streaming request with a larger budget is rejected.
 	//
 	// Example: 10
 	TimeoutSeconds *int `json:"timeout_seconds,omitempty"`
@@ -18043,7 +18043,7 @@ type Tool struct {
 	union json.RawMessage
 }
 
-// ToolActivityEvent A sideband event emitted by a tool during its execution (streaming only, not stored). Always falls between the tool's tool_input and tool_output events for the same tool_call_id. Polymorphic on `activity_type`, see GenericToolActivityEvent (free-form text) and SubAgentToolActivityEvent (relayed inner AgentEvent).
+// ToolActivityEvent A sideband event emitted by a tool during its execution (streaming only, not stored). Always falls between the tool's tool_input and tool_output events for the same tool_call_id. Polymorphic on `activity_type` — see GenericToolActivityEvent (free-form text) and SubAgentToolActivityEvent (relayed inner AgentEvent).
 type ToolActivityEvent struct {
 	union json.RawMessage
 }
@@ -18116,9 +18116,9 @@ type ToolBase struct {
 	// If the expression fails to compile or evaluate, the tool call returns an error to the agent.
 	//
 	// Examples:
-	//   - `.args + { auth: ("Bearer " + .agent.secrets.token) }`, inject a bearer header
-	//   - `.args | .corpus_key = .session.metadata.corpus_key`, pull a corpus key from session metadata
-	//   - `.args | .query = (.args.query + " " + .session.metadata.query_suffix)`, augment the agent's query
+	//   - `.args + { auth: ("Bearer " + .agent.secrets.token) }` — inject a bearer header
+	//   - `.args | .corpus_key = .session.metadata.corpus_key` — pull a corpus key from session metadata
+	//   - `.args | .query = (.args.query + " " + .session.metadata.query_suffix)` — augment the agent's query
 	//
 	//
 	// Example: .args + { auth: ("Bearer " + .agent.secrets.token) }
@@ -18131,9 +18131,9 @@ type ToolBase struct {
 	// If the expression fails to compile or evaluate at runtime, the tool call returns an error to the agent so the agent can react.
 	//
 	// Examples:
-	//   - `.results | map({title, url})`, keep only title/url for each result
-	//   - `.items[0:5]`, first 5 items
-	//   - `del(.debug)`, drop a noisy field
+	//   - `.results | map({title, url})` — keep only title/url for each result
+	//   - `.items[0:5]` — first 5 items
+	//   - `del(.debug)` — drop a noisy field
 	//
 	//
 	// Example: .results | map({title, url})
@@ -18244,9 +18244,9 @@ type ToolConfigurationBase struct {
 	// If the expression fails to compile or evaluate, the tool call returns an error to the agent.
 	//
 	// Examples:
-	//   - `.args + { auth: ("Bearer " + .agent.secrets.token) }`, inject a bearer header
-	//   - `.args | .corpus_key = .session.metadata.corpus_key`, pull a corpus key from session metadata
-	//   - `.args | .query = (.args.query + " " + .session.metadata.query_suffix)`, augment the agent's query
+	//   - `.args + { auth: ("Bearer " + .agent.secrets.token) }` — inject a bearer header
+	//   - `.args | .corpus_key = .session.metadata.corpus_key` — pull a corpus key from session metadata
+	//   - `.args | .query = (.args.query + " " + .session.metadata.query_suffix)` — augment the agent's query
 	//
 	//
 	// Example: .args + { auth: ("Bearer " + .agent.secrets.token) }
@@ -18281,9 +18281,9 @@ type ToolConfigurationBase struct {
 	// If the expression fails to compile or evaluate at runtime, the tool call returns an error to the agent so the agent can react.
 	//
 	// Examples:
-	//   - `.results | map({title, url})`, keep only title/url for each result
-	//   - `.items[0:5]`, first 5 items
-	//   - `del(.debug)`, drop a noisy field
+	//   - `.results | map({title, url})` — keep only title/url for each result
+	//   - `.items[0:5]` — first 5 items
+	//   - `del(.debug)` — drop a noisy field
 	//
 	//
 	// Example: .results | map({title, url})
@@ -18349,9 +18349,9 @@ type ToolConfigurationReference struct {
 	// If the expression fails to compile or evaluate, the tool call returns an error to the agent.
 	//
 	// Examples:
-	//   - `.args + { auth: ("Bearer " + .agent.secrets.token) }`, inject a bearer header
-	//   - `.args | .corpus_key = .session.metadata.corpus_key`, pull a corpus key from session metadata
-	//   - `.args | .query = (.args.query + " " + .session.metadata.query_suffix)`, augment the agent's query
+	//   - `.args + { auth: ("Bearer " + .agent.secrets.token) }` — inject a bearer header
+	//   - `.args | .corpus_key = .session.metadata.corpus_key` — pull a corpus key from session metadata
+	//   - `.args | .query = (.args.query + " " + .session.metadata.query_suffix)` — augment the agent's query
 	//
 	//
 	// Example: .args + { auth: ("Bearer " + .agent.secrets.token) }
@@ -18386,9 +18386,9 @@ type ToolConfigurationReference struct {
 	// If the expression fails to compile or evaluate at runtime, the tool call returns an error to the agent so the agent can react.
 	//
 	// Examples:
-	//   - `.results | map({title, url})`, keep only title/url for each result
-	//   - `.items[0:5]`, first 5 items
-	//   - `del(.debug)`, drop a noisy field
+	//   - `.results | map({title, url})` — keep only title/url for each result
+	//   - `.items[0:5]` — first 5 items
+	//   - `del(.debug)` — drop a noisy field
 	//
 	//
 	// Example: .results | map({title, url})
@@ -18430,10 +18430,10 @@ type ToolId = string
 
 // ToolInputEvent An event representing input to a tool call.
 type ToolInputEvent struct {
-	// ArgumentOverridePaths Dot-notation leaf paths supplied by the tool configuration's argument overrides rather than by the agent, for example `api_key`,
+	// ArgumentOverridePaths Dot-notation leaf paths supplied by the tool configuration's argument overrides rather than by the agent — for example `api_key`,
 	// `config.auth.token`, or `items[0]`. These paths are frozen on the input event so that the agent's view of its own past tool calls stays
 	// stable when the tool configuration changes: overrides are excluded from replayed calls regardless of how the override has evolved since.
-	// Only the paths are frozen here; the resolved values at those paths are not, they are recomputed against the live session at each launch
+	// Only the paths are frozen here; the resolved values at those paths are not — they are recomputed against the live session at each launch
 	// and recorded on the corresponding `ToolOutputEvent.resolved_argument_overrides`.
 	ArgumentOverridePaths *[]string `json:"argument_override_paths,omitempty"`
 
@@ -18497,8 +18497,8 @@ type ToolOutputEvent struct {
 	OutputWrapped *bool `json:"output_wrapped,omitempty"`
 
 	// ResolvedArgumentOverrides The values the tool configuration's argument overrides contributed to this call, keyed by the paths in
-	// `ToolInputEvent.argument_override_paths`. `$ref` overrides are resolved against the session, agent secrets,
-	// session metadata, and prior tool outputs, with secret values masked as `****`. Literal overrides appear as-is.
+	// `ToolInputEvent.argument_override_paths`. `$ref` overrides are resolved against the session — agent secrets,
+	// session metadata, and prior tool outputs — with secret values masked as `****`. Literal overrides appear as-is.
 	//
 	// Overlay these onto `ToolInputEvent.tool_input` at the matching paths to see exactly what the tool received.
 	//
@@ -18539,7 +18539,7 @@ type ToolOutputEvent struct {
 }
 
 // ToolOutputOffloadingConfiguration Controls how large tool outputs are kept from overwhelming the agent context window.
-// Tool outputs are inspected as they are produced. A small output is always passed through unchanged. A larger output is handled in one of two cases: when the output on its own is big enough to dominate the context, or when adding it to the conversation would leave too little room for the agent to continue. In either case the output is handled according to `mode`, stored as an artifact and replaced with a compact reference, or truncated in place with the head and tail preserved and the middle omitted. When stored as an artifact, the agent is expected to have artifact_read, artifact_grep, or artifact_jq configured so it can retrieve the full content on demand.
+// Tool outputs are inspected as they are produced. A small output is always passed through unchanged. A larger output is handled in one of two cases: when the output on its own is big enough to dominate the context, or when adding it to the conversation would leave too little room for the agent to continue. In either case the output is handled according to `mode` — stored as an artifact and replaced with a compact reference, or truncated in place with the head and tail preserved and the middle omitted. When stored as an artifact, the agent is expected to have artifact_read, artifact_grep, or artifact_jq configured so it can retrieve the full content on demand.
 // All fields are optional; omitted fields fall back to defaults.
 type ToolOutputOffloadingConfiguration struct {
 	// ContextPercentage The fraction of the model's context window that a single tool output is allowed to occupy before it is considered large enough to offload on its own. The platform converts the fraction to a byte threshold using a bytes-per-token ratio for the model, then clamps it between `min_threshold_bytes` and `max_threshold_bytes`, so for very large context models this percentage is usually dominated by `max_threshold_bytes`, and for very small context models it is dominated by `min_threshold_bytes`.
@@ -18783,7 +18783,7 @@ type UpdateAgentAliasRequest struct {
 type UpdateAgentConnectorRequest struct {
 	// Configuration Write view of a connector's configuration, supplied on update. Discriminated by `type`, which must equal the connector's stored type.
 	// Slack, Google Chat, and Zoom configurations are supplied in full and replace the stored configuration wholesale, exactly as on create; caller-omitted platform-generated fields (such as the Zoom `connector_token`) are preserved.
-	// A widget configuration is the exception: it updates partially, so a supplied field replaces the stored one while an omitted field keeps it, see `UpdateWidgetConnectorConfiguration`.
+	// A widget configuration is the exception: it updates partially, so a supplied field replaces the stored one while an omitted field keeps it — see `UpdateWidgetConnectorConfiguration`.
 	Configuration *UpdateConnectorConfiguration `json:"configuration,omitempty"`
 
 	// Description A detailed description of what this connector does.
@@ -18807,7 +18807,7 @@ type UpdateAgentConnectorRequest struct {
 	Name *string `json:"name,omitempty"`
 }
 
-// UpdateAgentIdentityRequest Updates the agent's identity. All fields are optional, only provided fields change.
+// UpdateAgentIdentityRequest Updates the agent's identity. All fields are optional — only provided fields change.
 //
 // Setting `mode` to `manual` freezes roles. The platform no longer recomputes roles when the agent's tool configuration changes.
 //
@@ -18898,7 +18898,7 @@ type UpdateAgentRequest struct {
 	ToolConfigurations *map[string]AgentToolConfiguration `json:"tool_configurations,omitempty"`
 
 	// ToolOutputOffloading Controls how large tool outputs are kept from overwhelming the agent context window.
-	// Tool outputs are inspected as they are produced. A small output is always passed through unchanged. A larger output is handled in one of two cases: when the output on its own is big enough to dominate the context, or when adding it to the conversation would leave too little room for the agent to continue. In either case the output is handled according to `mode`, stored as an artifact and replaced with a compact reference, or truncated in place with the head and tail preserved and the middle omitted. When stored as an artifact, the agent is expected to have artifact_read, artifact_grep, or artifact_jq configured so it can retrieve the full content on demand.
+	// Tool outputs are inspected as they are produced. A small output is always passed through unchanged. A larger output is handled in one of two cases: when the output on its own is big enough to dominate the context, or when adding it to the conversation would leave too little room for the agent to continue. In either case the output is handled according to `mode` — stored as an artifact and replaced with a compact reference, or truncated in place with the head and tail preserved and the middle omitted. When stored as an artifact, the agent is expected to have artifact_read, artifact_grep, or artifact_jq configured so it can retrieve the full content on demand.
 	// All fields are optional; omitted fields fall back to defaults.
 	ToolOutputOffloading *ToolOutputOffloadingConfiguration `json:"tool_output_offloading,omitempty"`
 }
@@ -19181,7 +19181,7 @@ type UpdateConfluenceSourceConfiguration = BaseConfluenceSourceConfiguration
 
 // UpdateConnectorConfiguration Write view of a connector's configuration, supplied on update. Discriminated by `type`, which must equal the connector's stored type.
 // Slack, Google Chat, and Zoom configurations are supplied in full and replace the stored configuration wholesale, exactly as on create; caller-omitted platform-generated fields (such as the Zoom `connector_token`) are preserved.
-// A widget configuration is the exception: it updates partially, so a supplied field replaces the stored one while an omitted field keeps it, see `UpdateWidgetConnectorConfiguration`.
+// A widget configuration is the exception: it updates partially, so a supplied field replaces the stored one while an omitted field keeps it — see `UpdateWidgetConnectorConfiguration`.
 type UpdateConnectorConfiguration struct {
 	union json.RawMessage
 }
@@ -19907,7 +19907,7 @@ type UpdateWebSourceConfiguration struct {
 	PagesSource *WebPagesSource `json:"pages_source,omitempty"`
 
 	// RequestsPerSecond Maximum sustained requests per second, applied to each concurrent fetch
-	// independently, the worst-case rate against a host is this value multiplied by
+	// independently — the worst-case rate against a host is this value multiplied by
 	// `max_concurrent_fetches`.
 	RequestsPerSecond *float64 `json:"requests_per_second,omitempty"`
 
@@ -19949,7 +19949,7 @@ type UpdateWidgetConnectorConfiguration struct {
 	// Example: ["tool_calls"]
 	HiddenOutputTypes *[]AgentOutputType `json:"hidden_output_types,omitempty"`
 
-	// Presentation The presentation configuration the widget client renders, branding, palette, welcome content, suggested prompts.
+	// Presentation The presentation configuration the widget client renders — branding, palette, welcome content, suggested prompts.
 	// Free-form apart from the required `version`; the platform stores it verbatim, serves it back uninterpreted, and caps its total size.
 	// Null-valued keys are accepted but are omitted from responses.
 	// Served to anonymous visitors by the unauthenticated public connector view, so widget clients must treat every value as untrusted data.

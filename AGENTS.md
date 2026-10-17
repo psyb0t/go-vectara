@@ -40,7 +40,6 @@ make sec       # gitleaks, govulncheck, semgrep
 - Use Vectara's public `vectara-oas-v2.yaml` spec.
 - `HallucinationCorrectionRequest.query` has an invalid boolean `required: false`. The patch tool removes this property keyword before generation.
 - `JsonSchemaObject.additionalProperties` gets `x-go-name: AllowsAdditionalProperties` to avoid colliding with the generator's `AdditionalProperties` map. Preserve its JSON key and unknown keyword roundtrip behavior.
-- The patch tool also normalizes description punctuation and filesystem terms and removes promotional wording. Keep this prose cleanup separate from schemas and examples, preserving URLs and inline code.
 - The patch tool replaces the spec's dummy Slack bot token example with a placeholder. GitHub push protection rejects the original value in generated comments, so keep that replacement.
 - The client is split because the full spec produces a large source file. Remove stale split output through the generation script rather than editing generated files.
 - The server is `https://api.vectara.io`. Generated paths include `/v2`; do not append it to the base URL.

@@ -6,7 +6,6 @@ package main
 import (
 	"os"
 	"regexp"
-	"strings"
 
 	"gopkg.in/yaml.v3"
 )
@@ -20,7 +19,6 @@ const (
 	// bot token, which the generator copies into doc comments.
 	slackExample     = `xoxb-\d{10}-\d{13}-[a-z]{24}`
 	slackPlaceholder = "xoxb-EXAMPLE-BOT-TOKEN"
-	proseWords       = "`[^`]*`|https?://\\S+|\\b([Ff]older|[Ss]ubfolder)s?\\b"
 )
 
 func main() {
@@ -39,14 +37,6 @@ func main() {
 		"properties", "query",
 	))
 	renameAdditionalProperties(&document)
-
-	words := regexp.MustCompile(strings.Join([]string{
-		proseWords,
-		" ?[—–] ?",
-		"most powerful reranker available to",
-		"comprehensive",
-	}, "|"))
-	normalizeDescriptions(&document, words)
 
 	fixed, err := yaml.Marshal(&document)
 	if err != nil {
@@ -133,58 +123,4 @@ func renameAdditionalProperties(document *yaml.Node) {
 			},
 		)
 	}
-}
-
-// Only descriptions and summaries become generated documentation. Keep wire
-// schemas, examples, URLs and inline identifiers intact during prose cleanup.
-func normalizeDescriptions(node *yaml.Node, words *regexp.Regexp) {
-	if node.Kind != yaml.MappingNode {
-		for _, child := range node.Content {
-			normalizeDescriptions(child, words)
-		}
-
-		return
-	}
-
-	for i := 0; i+1 < len(node.Content); i += pairSize {
-		key, value := node.Content[i], node.Content[i+1]
-		switch key.Value {
-		case "example", "examples", "default", "enum", "const":
-			continue
-		}
-
-		if (key.Value == "description" || key.Value == "summary") &&
-			value.Kind == yaml.ScalarNode {
-			value.Value = normalizeProse(value.Value, words)
-		}
-
-		normalizeDescriptions(value, words)
-	}
-}
-
-func normalizeProse(text string, words *regexp.Regexp) string {
-	replacer := strings.NewReplacer(
-		"Subfolders", "Subdirectories", "subfolders", "subdirectories",
-		"Subfolder", "Subdirectory", "subfolder", "subdirectory",
-		"Folders", "Directories", "folders", "directories",
-		"Folder", "Directory", "folder", "directory",
-		"most powerful reranker available to", "reranker selected for",
-		"comprehensive", "detailed",
-	)
-
-	return words.ReplaceAllStringFunc(text, func(word string) string {
-		if strings.HasPrefix(word, "`") || strings.HasPrefix(word, "http") {
-			return word
-		}
-
-		if strings.Contains(word, "—") {
-			return ", "
-		}
-
-		if strings.Contains(word, "–") {
-			return " to "
-		}
-
-		return replacer.Replace(word)
-	})
 }

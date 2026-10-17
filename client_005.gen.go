@@ -15,6 +15,98 @@ import (
 	openapi_types "github.com/oapi-codegen/runtime/types"
 )
 
+// DeleteEndUserAliasRoutedSessionWithResponse Delete end user session for alias
+//
+// Permanently deletes a session the caller owns, addressed by the alias it was created through. Returns 403 if the session belongs to a different principal. This action cannot be undone.
+// An administrator calling this operation is bound to the sessions it owns like every other caller; the operator endpoints are the administrative view of an alias's sessions.
+// Anonymous widget visitors authenticate by presenting `X-Visitor-Id` instead of an `Authorization` credential; the platform mints an identity holding `agent_end_user` on the addressed alias, which satisfies this operation's role requirement.
+//
+// Returns a wrapper object for the known response body format(s).
+//
+// Corresponds with DELETE /v2/agent_aliases/{alias_key}/end_user_sessions/{session_key} (the `DeleteEndUserAliasRoutedSession` operationId).
+func (c *ClientWithResponses) DeleteEndUserAliasRoutedSessionWithResponse(ctx context.Context, aliasKey AgentAliasKey, sessionKey AgentSessionKey, params *DeleteEndUserAliasRoutedSessionParams, reqEditors ...RequestEditorFn) (*DeleteEndUserAliasRoutedSessionResponse, error) {
+	rsp, err := c.DeleteEndUserAliasRoutedSession(ctx, aliasKey, sessionKey, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDeleteEndUserAliasRoutedSessionResponse(rsp)
+}
+
+// GetEndUserAliasRoutedSessionWithResponse Get end user session for alias
+//
+// Returns a session the caller owns, addressed by the alias it was created through. Returns 403 if the session belongs to a different principal.
+// An administrator calling this operation is bound to the sessions it owns like every other caller; the operator endpoints are the administrative view of an alias's sessions.
+// Anonymous widget visitors authenticate by presenting `X-Visitor-Id` instead of an `Authorization` credential; the platform mints an identity holding `agent_end_user` on the addressed alias, which satisfies this operation's role requirement.
+//
+// Returns a wrapper object for the known response body format(s).
+//
+// Corresponds with GET /v2/agent_aliases/{alias_key}/end_user_sessions/{session_key} (the `GetEndUserAliasRoutedSession` operationId).
+func (c *ClientWithResponses) GetEndUserAliasRoutedSessionWithResponse(ctx context.Context, aliasKey AgentAliasKey, sessionKey AgentSessionKey, params *GetEndUserAliasRoutedSessionParams, reqEditors ...RequestEditorFn) (*GetEndUserAliasRoutedSessionResponse, error) {
+	rsp, err := c.GetEndUserAliasRoutedSession(ctx, aliasKey, sessionKey, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetEndUserAliasRoutedSessionResponse(rsp)
+}
+
+// ListEndUserAliasRoutedEventsWithResponse List end user events for alias
+//
+// Lists the visible events in a session the caller owns, addressed by the alias it was created through, with optional pagination.
+// An administrator calling this operation is bound to the sessions it owns like every other caller; the operator endpoints are the administrative view of an alias's sessions.
+// Returns 403 if the session belongs to a different principal. The response only includes event types curated as end-user-safe.
+// Anonymous widget visitors authenticate by presenting `X-Visitor-Id` instead of an `Authorization` credential; the platform mints an identity holding `agent_end_user` on the addressed alias, which satisfies this operation's role requirement.
+//
+// Returns a wrapper object for the known response body format(s).
+//
+// Corresponds with GET /v2/agent_aliases/{alias_key}/end_user_sessions/{session_key}/events (the `ListEndUserAliasRoutedEvents` operationId).
+func (c *ClientWithResponses) ListEndUserAliasRoutedEventsWithResponse(ctx context.Context, aliasKey AgentAliasKey, sessionKey AgentSessionKey, params *ListEndUserAliasRoutedEventsParams, reqEditors ...RequestEditorFn) (*ListEndUserAliasRoutedEventsResponse, error) {
+	rsp, err := c.ListEndUserAliasRoutedEvents(ctx, aliasKey, sessionKey, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListEndUserAliasRoutedEventsResponse(rsp)
+}
+
+// CreateEndUserAliasRoutedInputWithBodyWithResponse Create end user input for alias
+//
+// Sends a message, an interrupt, or a client tool output to a session the caller owns, addressed by the alias it was created through.
+// An administrator calling this operation is bound to the sessions it owns like every other caller; the operator endpoints are the administrative view of an alias's sessions.
+// Returns 403 if the session belongs to a different principal.
+// The response is projected to the caller's end-user visibility — see `EndUserEvent`.
+// Anonymous widget visitors authenticate by presenting `X-Visitor-Id` instead of an `Authorization` credential; the platform mints an identity holding `agent_end_user` on the addressed alias, which satisfies this operation's role requirement.
+// Returns `429` when the caller reaches its hourly event cap.
+//
+// Takes any type of body and a specified content type, and returns a wrapper object for the known response body format(s).
+//
+// Corresponds with POST /v2/agent_aliases/{alias_key}/end_user_sessions/{session_key}/events (the `CreateEndUserAliasRoutedInput` operationId).
+func (c *ClientWithResponses) CreateEndUserAliasRoutedInputWithBodyWithResponse(ctx context.Context, aliasKey AgentAliasKey, sessionKey AgentSessionKey, params *CreateEndUserAliasRoutedInputParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateEndUserAliasRoutedInputResponse, error) {
+	rsp, err := c.CreateEndUserAliasRoutedInputWithBody(ctx, aliasKey, sessionKey, params, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateEndUserAliasRoutedInputResponse(rsp)
+}
+
+// CreateEndUserAliasRoutedInputWithResponse Create end user input for alias
+//
+// Sends a message, an interrupt, or a client tool output to a session the caller owns, addressed by the alias it was created through.
+// An administrator calling this operation is bound to the sessions it owns like every other caller; the operator endpoints are the administrative view of an alias's sessions.
+// Returns 403 if the session belongs to a different principal.
+// The response is projected to the caller's end-user visibility — see `EndUserEvent`.
+// Anonymous widget visitors authenticate by presenting `X-Visitor-Id` instead of an `Authorization` credential; the platform mints an identity holding `agent_end_user` on the addressed alias, which satisfies this operation's role requirement.
+// Returns `429` when the caller reaches its hourly event cap.
+//
+// Takes a body of the `application/json` content type, and returns a wrapper object for the known response body format(s).
+//
+// Corresponds with POST /v2/agent_aliases/{alias_key}/end_user_sessions/{session_key}/events (the `CreateEndUserAliasRoutedInput` operationId).
+func (c *ClientWithResponses) CreateEndUserAliasRoutedInputWithResponse(ctx context.Context, aliasKey AgentAliasKey, sessionKey AgentSessionKey, params *CreateEndUserAliasRoutedInputParams, body CreateEndUserAliasRoutedInputJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateEndUserAliasRoutedInputResponse, error) {
+	rsp, err := c.CreateEndUserAliasRoutedInput(ctx, aliasKey, sessionKey, params, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateEndUserAliasRoutedInputResponse(rsp)
+}
+
 // ReplaceAgentAliasPolicyWithBodyWithResponse Replace an alias's routing policy
 //
 // Replaces the alias's routing policy and stickiness configuration in one atomic operation. The replacement is whole-object. Partial merging is not supported.
@@ -1484,7 +1576,7 @@ func (c *ClientWithResponses) SubscribeA2aV03TaskWithResponse(ctx context.Contex
 //
 // Lists the API keys the caller can access. The response shows the corpora each key can access and with what permissions.
 //
-// Callers with the `corpus_administrator`, `administrator`, or `owner` role list every API key in the account. Users holding only other roles must set `api_key_role` to `personal` and receive only their own personal key; machine credentials, API keys, app clients, and service accounts, without one of those three roles cannot list keys at all.
+// Callers with the `corpus_administrator`, `administrator`, or `owner` role list every API key in the account. Users holding only other roles must set `api_key_role` to `personal` and receive only their own personal key; machine credentials — API keys, app clients, and service accounts — without one of those three roles cannot list keys at all.
 //
 // Returns a wrapper object for the known response body format(s).
 //
@@ -1501,7 +1593,7 @@ func (c *ClientWithResponses) ListApiKeysWithResponse(ctx context.Context, param
 //
 // Creates an API key. You can bind the key to one or more corpora. A `personal` key has the same permissions as its owner; any other key carries exactly the roles assigned to it with `api_roles`, `corpus_roles`, and `agent_roles`.
 //
-// Callers with the `corpus_administrator`, `administrator`, or `owner` role create any API key. Callers holding only other roles must set `api_key_role` to `personal`. Only a user can create a personal API key; a request authenticated with a machine credential, an API key, app client, or service account, receives a `403` error.
+// Callers with the `corpus_administrator`, `administrator`, or `owner` role create any API key. Callers holding only other roles must set `api_key_role` to `personal`. Only a user can create a personal API key; a request authenticated with a machine credential — an API key, app client, or service account — receives a `403` error.
 //
 // :::note
 // For more information about the different types of API keys, see [API Key Management](/docs/security/authentication/api-key-management).
@@ -1522,7 +1614,7 @@ func (c *ClientWithResponses) CreateApiKeyWithBodyWithResponse(ctx context.Conte
 //
 // Creates an API key. You can bind the key to one or more corpora. A `personal` key has the same permissions as its owner; any other key carries exactly the roles assigned to it with `api_roles`, `corpus_roles`, and `agent_roles`.
 //
-// Callers with the `corpus_administrator`, `administrator`, or `owner` role create any API key. Callers holding only other roles must set `api_key_role` to `personal`. Only a user can create a personal API key; a request authenticated with a machine credential, an API key, app client, or service account, receives a `403` error.
+// Callers with the `corpus_administrator`, `administrator`, or `owner` role create any API key. Callers holding only other roles must set `api_key_role` to `personal`. Only a user can create a personal API key; a request authenticated with a machine credential — an API key, app client, or service account — receives a `403` error.
 //
 // :::note
 // For more information about the different types of API keys, see [API Key Management](/docs/security/authentication/api-key-management).
@@ -1543,7 +1635,7 @@ func (c *ClientWithResponses) CreateApiKeyWithResponse(ctx context.Context, para
 //
 // Deletes an API key. Delete a key when it is no longer needed or when it is compromised.
 //
-// Users that hold none of the `corpus_administrator`, `administrator`, or `owner` roles can only delete their own personal API key; a key that exists but belongs to another user returns a `404` error. Machine credentials, API keys, app clients, and service accounts, without one of those three roles cannot call this operation.
+// Users that hold none of the `corpus_administrator`, `administrator`, or `owner` roles can only delete their own personal API key; a key that exists but belongs to another user returns a `404` error. Machine credentials — API keys, app clients, and service accounts — without one of those three roles cannot call this operation.
 //
 // Returns a wrapper object for the known response body format(s).
 //
@@ -1560,7 +1652,7 @@ func (c *ClientWithResponses) DeleteApiKeyWithResponse(ctx context.Context, apiK
 //
 // Returns an API key. The response shows the corpora the key can access and with what permissions.
 //
-// Users that hold none of the `corpus_administrator`, `administrator`, or `owner` roles can only get their own personal API key; a key that exists but belongs to another user returns a `404` error. Machine credentials, API keys, app clients, and service accounts, without one of those three roles cannot call this operation.
+// Users that hold none of the `corpus_administrator`, `administrator`, or `owner` roles can only get their own personal API key; a key that exists but belongs to another user returns a `404` error. Machine credentials — API keys, app clients, and service accounts — without one of those three roles cannot call this operation.
 //
 // Returns a wrapper object for the known response body format(s).
 //
@@ -1577,7 +1669,7 @@ func (c *ClientWithResponses) GetApiKeyWithResponse(ctx context.Context, apiKeyI
 //
 // Updates an API key. Enable or disable the key to temporarily remove access without deleting the key. This is useful for maintenance windows, or when your team no longer requires access to a specific corpus.
 //
-// Users that hold none of the `corpus_administrator`, `administrator`, or `owner` roles can only update their own personal API key; a key that exists but belongs to another user returns a `404` error. Machine credentials, API keys, app clients, and service accounts, without one of those three roles cannot call this operation.
+// Users that hold none of the `corpus_administrator`, `administrator`, or `owner` roles can only update their own personal API key; a key that exists but belongs to another user returns a `404` error. Machine credentials — API keys, app clients, and service accounts — without one of those three roles cannot call this operation.
 //
 // Takes any type of body and a specified content type, and returns a wrapper object for the known response body format(s).
 //
@@ -1594,7 +1686,7 @@ func (c *ClientWithResponses) UpdateApiKeyWithBodyWithResponse(ctx context.Conte
 //
 // Updates an API key. Enable or disable the key to temporarily remove access without deleting the key. This is useful for maintenance windows, or when your team no longer requires access to a specific corpus.
 //
-// Users that hold none of the `corpus_administrator`, `administrator`, or `owner` roles can only update their own personal API key; a key that exists but belongs to another user returns a `404` error. Machine credentials, API keys, app clients, and service accounts, without one of those three roles cannot call this operation.
+// Users that hold none of the `corpus_administrator`, `administrator`, or `owner` roles can only update their own personal API key; a key that exists but belongs to another user returns a `404` error. Machine credentials — API keys, app clients, and service accounts — without one of those three roles cannot call this operation.
 //
 // Takes a body of the `application/json` content type, and returns a wrapper object for the known response body format(s).
 //
@@ -2249,8 +2341,8 @@ func (c *ClientWithResponses) BulkUpdateCorpusDocumentMetadataWithResponse(ctx c
 // By default, the platform uses **sentence-based chunking**, which provides optimal retrieval accuracy for most datasets.
 //
 // For larger documents or performance-tuned ingestion, you can explicitly set a `chunking_strategy`:
-// - `sentence_chunking_strategy`, creates one chunk per sentence (default).
-// - `max_chars_chunking_strategy`, creates larger chunks up to a specified character limit (`max_chars_per_chunk`), balancing retrieval speed with contextual coherence.
+// - `sentence_chunking_strategy` — creates one chunk per sentence (default).
+// - `max_chars_chunking_strategy` — creates larger chunks up to a specified character limit (`max_chars_per_chunk`), balancing retrieval speed with contextual coherence.
 //
 // For content that mixes prose with code, set `preserve_code_blocks: true` on either strategy to emit markdown code blocks as their own chunks, prefixed with the section title, while the surrounding prose is chunked by the strategy as usual. Example: `{"type":"max_chars_chunking_strategy","max_chars_per_chunk":1024,"preserve_code_blocks":true}`
 //
@@ -2300,8 +2392,8 @@ func (c *ClientWithResponses) CreateCorpusDocumentWithBodyWithResponse(ctx conte
 // By default, the platform uses **sentence-based chunking**, which provides optimal retrieval accuracy for most datasets.
 //
 // For larger documents or performance-tuned ingestion, you can explicitly set a `chunking_strategy`:
-// - `sentence_chunking_strategy`, creates one chunk per sentence (default).
-// - `max_chars_chunking_strategy`, creates larger chunks up to a specified character limit (`max_chars_per_chunk`), balancing retrieval speed with contextual coherence.
+// - `sentence_chunking_strategy` — creates one chunk per sentence (default).
+// - `max_chars_chunking_strategy` — creates larger chunks up to a specified character limit (`max_chars_per_chunk`), balancing retrieval speed with contextual coherence.
 //
 // For content that mixes prose with code, set `preserve_code_blocks: true` on either strategy to emit markdown code blocks as their own chunks, prefixed with the section title, while the surrounding prose is chunked by the strategy as usual. Example: `{"type":"max_chars_chunking_strategy","max_chars_per_chunk":1024,"preserve_code_blocks":true}`
 //
@@ -2776,7 +2868,7 @@ func (c *ClientWithResponses) SearchCorpusWithResponse(ctx context.Context, corp
 //
 // `generation.prompt_template` (string, optional) - A custom prompt template in JSON format that defines the system and user messages for the LLM. Use this to customize the behavior of the model beyond the preset. The template can include Velocity templates with variables such as `$vectaraQueryResults` to reference retrieved search results. For more information, see [Custom prompts](/docs/prompts/vectara-prompt-engine).
 //
-// `generation.max_used_search_results` (integer, optional) - The maximum number of top search results to send to the LLM for summarization. A higher value can create a more detailed summary but can increase response time. **Default**: 5.
+// `generation.max_used_search_results` (integer, optional) - The maximum number of top search results to send to the LLM for summarization. A higher value can create a more comprehensive summary but can increase response time. **Default**: 5.
 //
 // :::caution
 // A value that is too high can prevent the model from generating a response.
@@ -2959,7 +3051,7 @@ func (c *ClientWithResponses) QueryCorpusWithBodyWithResponse(ctx context.Contex
 //
 // `generation.prompt_template` (string, optional) - A custom prompt template in JSON format that defines the system and user messages for the LLM. Use this to customize the behavior of the model beyond the preset. The template can include Velocity templates with variables such as `$vectaraQueryResults` to reference retrieved search results. For more information, see [Custom prompts](/docs/prompts/vectara-prompt-engine).
 //
-// `generation.max_used_search_results` (integer, optional) - The maximum number of top search results to send to the LLM for summarization. A higher value can create a more detailed summary but can increase response time. **Default**: 5.
+// `generation.max_used_search_results` (integer, optional) - The maximum number of top search results to send to the LLM for summarization. A higher value can create a more comprehensive summary but can increase response time. **Default**: 5.
 //
 // :::caution
 // A value that is too high can prevent the model from generating a response.
@@ -4113,7 +4205,7 @@ func (c *ClientWithResponses) ListLLMsWithResponse(ctx context.Context, params *
 //
 // ```
 //
-// ### Google Vertex AI (Gemini), Service Account
+// ### Google Vertex AI (Gemini) — Service Account
 //
 // **Type:** `vertex-ai`
 // **Models:** gemini-2.5-pro, gemini-2.5-flash
@@ -4134,7 +4226,7 @@ func (c *ClientWithResponses) ListLLMsWithResponse(ctx context.Context, params *
 //
 // ```
 //
-// ### Google AI Studio (Gemini), API Key
+// ### Google AI Studio (Gemini) — API Key
 //
 // **Type:** `vertex-ai`
 // **Models:** gemini-2.5-pro, gemini-2.5-flash
@@ -4155,7 +4247,7 @@ func (c *ClientWithResponses) ListLLMsWithResponse(ctx context.Context, params *
 //
 // ```
 //
-// The `uri` field is flexible, you can provide a base URI or a full URL copied from Google docs
+// The `uri` field is flexible — you can provide a base URI or a full URL copied from Google docs
 // (including model path and `:generateContent` suffix). The platform normalizes it automatically.
 //
 // ### Custom OpenAI-Compatible
@@ -4285,7 +4377,7 @@ func (c *ClientWithResponses) CreateLLMWithBodyWithResponse(ctx context.Context,
 //
 // ```
 //
-// ### Google Vertex AI (Gemini), Service Account
+// ### Google Vertex AI (Gemini) — Service Account
 //
 // **Type:** `vertex-ai`
 // **Models:** gemini-2.5-pro, gemini-2.5-flash
@@ -4306,7 +4398,7 @@ func (c *ClientWithResponses) CreateLLMWithBodyWithResponse(ctx context.Context,
 //
 // ```
 //
-// ### Google AI Studio (Gemini), API Key
+// ### Google AI Studio (Gemini) — API Key
 //
 // **Type:** `vertex-ai`
 // **Models:** gemini-2.5-pro, gemini-2.5-flash
@@ -4327,7 +4419,7 @@ func (c *ClientWithResponses) CreateLLMWithBodyWithResponse(ctx context.Context,
 //
 // ```
 //
-// The `uri` field is flexible, you can provide a base URI or a full URL copied from Google docs
+// The `uri` field is flexible — you can provide a base URI or a full URL copied from Google docs
 // (including model path and `:generateContent` suffix). The platform normalizes it automatically.
 //
 // ### Custom OpenAI-Compatible
@@ -4512,7 +4604,7 @@ func (c *ClientWithResponses) CreateChatCompletionWithResponse(ctx context.Conte
 //
 // Nothing is persisted. Combine a returned candidate with a `name` and the credential you supplied here and submit it to `POST /v2/llms`.
 //
-// Discovery live-tests at most three models per detected endpoint, with both OpenAI dialects probed, at most six upstream generation calls, and returns every usable model the endpoint advertises.
+// Discovery live-tests at most three models per detected endpoint — with both OpenAI dialects probed, at most six upstream generation calls — and returns every usable model the endpoint advertises.
 //
 // Takes any type of body and a specified content type, and returns a wrapper object for the known response body format(s).
 //
@@ -4531,7 +4623,7 @@ func (c *ClientWithResponses) DiscoverLLMsWithBodyWithResponse(ctx context.Conte
 //
 // Nothing is persisted. Combine a returned candidate with a `name` and the credential you supplied here and submit it to `POST /v2/llms`.
 //
-// Discovery live-tests at most three models per detected endpoint, with both OpenAI dialects probed, at most six upstream generation calls, and returns every usable model the endpoint advertises.
+// Discovery live-tests at most three models per detected endpoint — with both OpenAI dialects probed, at most six upstream generation calls — and returns every usable model the endpoint advertises.
 //
 // Takes a body of the `application/json` content type, and returns a wrapper object for the known response body format(s).
 //
@@ -4966,7 +5058,7 @@ func (c *ClientWithResponses) CancelPipelineRunWithResponse(ctx context.Context,
 
 // ListPipelineRunEventsWithResponse List pipeline run events
 //
-// Lists the timeline of events for a pipeline run, keyed by `run_id`. Events report what the run did, records discovered, records processed, agent sessions created, dead letters, watermark advances, and lifecycle transitions. The terminal `run_completed` event is present once a run finishes. A run that ended abruptly surfaces as `failed`. The event agrees with the run's `status` field, which is the authoritative terminal signal.
+// Lists the timeline of events for a pipeline run, keyed by `run_id`. Events report what the run did — records discovered, records processed, agent sessions created, dead letters, watermark advances, and lifecycle transitions. The terminal `run_completed` event is present once a run finishes. A run that ended abruptly surfaces as `failed`. The event agrees with the run's `status` field, which is the authoritative terminal signal.
 //
 // Returns a wrapper object for the known response body format(s).
 //
@@ -5691,9 +5783,9 @@ func (c *ClientWithResponses) ResetUserPasswordWithResponse(ctx context.Context,
 // Mints the anonymous identity a widget visitor presents as `X-Visitor-Id` on `/v2/agent_aliases/{alias_key}/end_user_sessions` requests, naming a connector in the session create body.
 // No credential is required. The `X-Customer-Id` header carries the `customer_id` served by the public connector view; the minted id is scoped to that customer and authenticates the same visitor on any of the customer's widgets that admit anonymous visitors.
 //
-// Call this only when the client holds no visitor id. The id never expires, store it durably; it is the only proof of ownership of the sessions it creates, and a repeat call mints a fresh identity that owns none of the previous identity's sessions.
+// Call this only when the client holds no visitor id. The id never expires — store it durably; it is the only proof of ownership of the sessions it creates, and a repeat call mints a fresh identity that owns none of the previous identity's sessions.
 //
-// Returns `404` when the customer does not exist, is disabled, or has no enabled widget connector that admits anonymous visitors, one indistinguishable refusal, so the endpoint confirms nothing about which customer ids exist.
+// Returns `404` when the customer does not exist, is disabled, or has no enabled widget connector that admits anonymous visitors — one indistinguishable refusal, so the endpoint confirms nothing about which customer ids exist.
 //
 // Returns a wrapper object for the known response body format(s).
 //
@@ -6076,15 +6168,15 @@ func ParseDeleteAgentConnectorResponse(rsp *http.Response) (*DeleteAgentConnecto
 	return response, nil
 }
 
-// ParseGetPublicConnectorResponse parses an HTTP response from a GetPublicConnectorWithResponse call
-func ParseGetPublicConnectorResponse(rsp *http.Response) (*GetPublicConnectorResponse, error) {
+// ParseGetLegacyPublicConnectorResponse parses an HTTP response from a GetLegacyPublicConnectorWithResponse call
+func ParseGetLegacyPublicConnectorResponse(rsp *http.Response) (*GetLegacyPublicConnectorResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &GetPublicConnectorResponse{
+	response := &GetLegacyPublicConnectorResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -6164,6 +6256,46 @@ func ParseUpdateAgentConnectorResponse(rsp *http.Response) (*UpdateAgentConnecto
 			return nil, err
 		}
 		response.JSON409 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetPublicConnectorResponse parses an HTTP response from a GetPublicConnectorWithResponse call
+func ParseGetPublicConnectorResponse(rsp *http.Response) (*GetPublicConnectorResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetPublicConnectorResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest PublicConnector
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest Error
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest NotFoundError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
 
 	}
 

@@ -79,7 +79,6 @@ make generate
 - `scripts/fetch-spec.sh` downloads `https://docs.vectara.com/vectara-oas-v2.yaml` to `api/openapi.yaml`.
 - `scripts/patch-spec.sh` runs `go tool patch-spec` to write `api/openapi.fixed.yaml`, removing invalid `required: false` from `HallucinationCorrectionRequest.query`. OpenAPI 3.0 requires a list of required properties on the containing object instead.
 - The patch names `JsonSchemaObject.additionalProperties` as `AllowsAdditionalProperties` in Go, avoiding a collision with the generator's unknown-fields map. The JSON key and unknown keyword handling stay intact.
-- The patch also normalizes description punctuation and filesystem terms and removes promotional wording from generated comments. It preserves URLs, inline code, schemas and examples.
 - The patch replaces the spec's dummy Slack bot token example with `xoxb-EXAMPLE-BOT-TOKEN`, because GitHub push protection rejects commits that contain the original value.
 - oapi-codegen runs with `config.yaml` over the full patched spec. The config maps unformatted `number` fields to `float64` and resolves generated type-name collisions.
 - `scripts/split-gen.sh` splits the large output into `client_*.gen.go` files.

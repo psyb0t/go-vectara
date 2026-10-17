@@ -3580,9 +3580,9 @@ type ClientWithResponsesInterface interface {
 	// Creates an alias. An alias maps a public name to one or more underlying agents under a configurable policy. When you create a session through an alias (via `POST /v2/agent_aliases/{alias_key}/sessions`), the alias's policy selects the underlying agent that runs the session.
 	//
 	// Common patterns:
-	// - **Direct alias**, a `routed` policy with one rule and one target. Identical in behavior to invoking the agent directly.
-	// - **Canary rollout**, a `routed` policy with one rule and multiple weighted targets (e.g. 90% v1, 10% v2).
-	// - **Tenant routing**, a `routed` policy with multiple rules, each matching on session metadata (e.g. `session.metadata.tenant`).
+	// - **Direct alias** — a `routed` policy with one rule and one target. Identical in behavior to invoking the agent directly.
+	// - **Canary rollout** — a `routed` policy with one rule and multiple weighted targets (e.g. 90% v1, 10% v2).
+	// - **Tenant routing** — a `routed` policy with multiple rules, each matching on session metadata (e.g. `session.metadata.tenant`).
 	//
 	// Takes any type of body and a specified content type, and returns a wrapper object for the known response body format(s).
 	//
@@ -3594,9 +3594,9 @@ type ClientWithResponsesInterface interface {
 	// Creates an alias. An alias maps a public name to one or more underlying agents under a configurable policy. When you create a session through an alias (via `POST /v2/agent_aliases/{alias_key}/sessions`), the alias's policy selects the underlying agent that runs the session.
 	//
 	// Common patterns:
-	// - **Direct alias**, a `routed` policy with one rule and one target. Identical in behavior to invoking the agent directly.
-	// - **Canary rollout**, a `routed` policy with one rule and multiple weighted targets (e.g. 90% v1, 10% v2).
-	// - **Tenant routing**, a `routed` policy with multiple rules, each matching on session metadata (e.g. `session.metadata.tenant`).
+	// - **Direct alias** — a `routed` policy with one rule and one target. Identical in behavior to invoking the agent directly.
+	// - **Canary rollout** — a `routed` policy with one rule and multiple weighted targets (e.g. 90% v1, 10% v2).
+	// - **Tenant routing** — a `routed` policy with multiple rules, each matching on session metadata (e.g. `session.metadata.tenant`).
 	//
 	// Takes a body of the `application/json` content type, and returns a wrapper object for the known response body format(s).
 	//
@@ -3675,22 +3675,26 @@ type ClientWithResponsesInterface interface {
 	// Corresponds with DELETE /v2/agent_aliases/{alias_key}/connectors/{connector_id} (the `DeleteAgentConnector` operationId).
 	DeleteAgentConnectorWithResponse(ctx context.Context, aliasKey AgentAliasKey, connectorId ConnectorId, params *DeleteAgentConnectorParams, reqEditors ...RequestEditorFn) (*DeleteAgentConnectorResponse, error)
 
-	// GetPublicConnectorWithResponse Get public connector
+	// GetLegacyPublicConnectorWithResponse Get public connector (legacy path)
+	//
+	// Deprecated: read the public view from `GET /v2/agent_aliases/{alias_key}/connectors/{connector_id}/public`. This path serves the same view while embeds already deployed move to that path; it is then repurposed as the authenticated operator read of the full connector.
 	//
 	// The public view of a connector, served unauthenticated to the embed snippet. The snippet carries the alias key and the connector's globally unique id, which expose no agent or customer identifier.
 	// Returns the `customer_id` visitor minting is addressed to, the `presentation` to render, whether anonymous visitors are admitted (`public_access`), and the sign-in configuration when the widget offers one.
 	//
 	// A read with no side effects: minting an anonymous visitor id is a separate call, `POST /v2/visitors`, so a returning visitor who already holds an id only reads this view.
-	// The view tells the client how to authenticate: `public_access` true, mint or present a visitor id; `end_user_sign_in` present, sign the user in through the referenced issuer. A widget may offer both, and the two follow-up calls do not depend on each other.
+	// The view tells the client how to authenticate: `public_access` true — mint or present a visitor id; `end_user_sign_in` present — sign the user in through the referenced issuer. A widget may offer both, and the two follow-up calls do not depend on each other.
 	//
 	// This operation serves only the public projection; operators read the full connector, configuration included, from the connector list.
 	//
-	// Serves connectors that front an end-user surface, today, widget connectors. Returns `404` if the connector does not exist on the addressed alias, is a channel connector with no end-user surface (Slack, Google Chat, or Zoom), is disabled, or belongs to a disabled customer.
+	// Serves connectors that front an end-user surface — today, widget connectors. Returns `404` if the connector does not exist on the addressed alias, is a channel connector with no end-user surface (Slack, Google Chat, or Zoom), is disabled, or belongs to a disabled customer.
 	//
 	// Returns a wrapper object for the known response body format(s).
 	//
-	// Corresponds with GET /v2/agent_aliases/{alias_key}/connectors/{connector_id} (the `GetPublicConnector` operationId).
-	GetPublicConnectorWithResponse(ctx context.Context, aliasKey AgentAliasKey, connectorId ConnectorId, params *GetPublicConnectorParams, reqEditors ...RequestEditorFn) (*GetPublicConnectorResponse, error)
+	// Corresponds with GET /v2/agent_aliases/{alias_key}/connectors/{connector_id} (the `GetLegacyPublicConnector` operationId).
+	//
+	// Deprecated: this operation has been marked as deprecated upstream, but no `x-deprecated-reason` was set
+	GetLegacyPublicConnectorWithResponse(ctx context.Context, aliasKey AgentAliasKey, connectorId ConnectorId, params *GetLegacyPublicConnectorParams, reqEditors ...RequestEditorFn) (*GetLegacyPublicConnectorResponse, error)
 
 	// UpdateAgentConnectorWithBodyWithResponse Update agent connector
 	//
@@ -3709,6 +3713,23 @@ type ClientWithResponsesInterface interface {
 	//
 	// Corresponds with PATCH /v2/agent_aliases/{alias_key}/connectors/{connector_id} (the `UpdateAgentConnector` operationId).
 	UpdateAgentConnectorWithResponse(ctx context.Context, aliasKey AgentAliasKey, connectorId ConnectorId, params *UpdateAgentConnectorParams, body UpdateAgentConnectorJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateAgentConnectorResponse, error)
+
+	// GetPublicConnectorWithResponse Get public connector
+	//
+	// The public view of a connector, served unauthenticated to the embed snippet. The snippet carries the alias key and the connector's globally unique id, which expose no agent or customer identifier.
+	// Returns the `customer_id` visitor minting is addressed to, the `presentation` to render, whether anonymous visitors are admitted (`public_access`), and the sign-in configuration when the widget offers one.
+	//
+	// A read with no side effects: minting an anonymous visitor id is a separate call, `POST /v2/visitors`, so a returning visitor who already holds an id only reads this view.
+	// The view tells the client how to authenticate: `public_access` true — mint or present a visitor id; `end_user_sign_in` present — sign the user in through the referenced issuer. A widget may offer both, and the two follow-up calls do not depend on each other.
+	//
+	// This operation serves only the public projection; operators read the full connector, configuration included, from the connector list.
+	//
+	// Serves connectors that front an end-user surface — today, widget connectors. Returns `404` if the connector does not exist on the addressed alias, is a channel connector with no end-user surface (Slack, Google Chat, or Zoom), is disabled, or belongs to a disabled customer.
+	//
+	// Returns a wrapper object for the known response body format(s).
+	//
+	// Corresponds with GET /v2/agent_aliases/{alias_key}/connectors/{connector_id}/public (the `GetPublicConnector` operationId).
+	GetPublicConnectorWithResponse(ctx context.Context, aliasKey AgentAliasKey, connectorId ConnectorId, params *GetPublicConnectorParams, reqEditors ...RequestEditorFn) (*GetPublicConnectorResponse, error)
 
 	// ListEndUserAliasRoutedSessionsWithResponse List end user sessions for alias
 	//
@@ -3789,7 +3810,7 @@ type ClientWithResponsesInterface interface {
 	// Sends a message, an interrupt, or a client tool output to a session the caller owns, addressed by the alias it was created through.
 	// An administrator calling this operation is bound to the sessions it owns like every other caller; the operator endpoints are the administrative view of an alias's sessions.
 	// Returns 403 if the session belongs to a different principal.
-	// The response is projected to the caller's end-user visibility, see `EndUserEvent`.
+	// The response is projected to the caller's end-user visibility — see `EndUserEvent`.
 	// Anonymous widget visitors authenticate by presenting `X-Visitor-Id` instead of an `Authorization` credential; the platform mints an identity holding `agent_end_user` on the addressed alias, which satisfies this operation's role requirement.
 	// Returns `429` when the caller reaches its hourly event cap.
 	//
@@ -3803,7 +3824,7 @@ type ClientWithResponsesInterface interface {
 	// Sends a message, an interrupt, or a client tool output to a session the caller owns, addressed by the alias it was created through.
 	// An administrator calling this operation is bound to the sessions it owns like every other caller; the operator endpoints are the administrative view of an alias's sessions.
 	// Returns 403 if the session belongs to a different principal.
-	// The response is projected to the caller's end-user visibility, see `EndUserEvent`.
+	// The response is projected to the caller's end-user visibility — see `EndUserEvent`.
 	// Anonymous widget visitors authenticate by presenting `X-Visitor-Id` instead of an `Authorization` credential; the platform mints an identity holding `agent_end_user` on the addressed alias, which satisfies this operation's role requirement.
 	// Returns `429` when the caller reaches its hourly event cap.
 	//
@@ -4763,7 +4784,7 @@ type ClientWithResponsesInterface interface {
 	//
 	// Lists the API keys the caller can access. The response shows the corpora each key can access and with what permissions.
 	//
-	// Callers with the `corpus_administrator`, `administrator`, or `owner` role list every API key in the account. Users holding only other roles must set `api_key_role` to `personal` and receive only their own personal key; machine credentials, API keys, app clients, and service accounts, without one of those three roles cannot list keys at all.
+	// Callers with the `corpus_administrator`, `administrator`, or `owner` role list every API key in the account. Users holding only other roles must set `api_key_role` to `personal` and receive only their own personal key; machine credentials — API keys, app clients, and service accounts — without one of those three roles cannot list keys at all.
 	//
 	// Returns a wrapper object for the known response body format(s).
 	//
@@ -4774,7 +4795,7 @@ type ClientWithResponsesInterface interface {
 	//
 	// Creates an API key. You can bind the key to one or more corpora. A `personal` key has the same permissions as its owner; any other key carries exactly the roles assigned to it with `api_roles`, `corpus_roles`, and `agent_roles`.
 	//
-	// Callers with the `corpus_administrator`, `administrator`, or `owner` role create any API key. Callers holding only other roles must set `api_key_role` to `personal`. Only a user can create a personal API key; a request authenticated with a machine credential, an API key, app client, or service account, receives a `403` error.
+	// Callers with the `corpus_administrator`, `administrator`, or `owner` role create any API key. Callers holding only other roles must set `api_key_role` to `personal`. Only a user can create a personal API key; a request authenticated with a machine credential — an API key, app client, or service account — receives a `403` error.
 	//
 	// :::note
 	// For more information about the different types of API keys, see [API Key Management](/docs/security/authentication/api-key-management).
@@ -4789,7 +4810,7 @@ type ClientWithResponsesInterface interface {
 	//
 	// Creates an API key. You can bind the key to one or more corpora. A `personal` key has the same permissions as its owner; any other key carries exactly the roles assigned to it with `api_roles`, `corpus_roles`, and `agent_roles`.
 	//
-	// Callers with the `corpus_administrator`, `administrator`, or `owner` role create any API key. Callers holding only other roles must set `api_key_role` to `personal`. Only a user can create a personal API key; a request authenticated with a machine credential, an API key, app client, or service account, receives a `403` error.
+	// Callers with the `corpus_administrator`, `administrator`, or `owner` role create any API key. Callers holding only other roles must set `api_key_role` to `personal`. Only a user can create a personal API key; a request authenticated with a machine credential — an API key, app client, or service account — receives a `403` error.
 	//
 	// :::note
 	// For more information about the different types of API keys, see [API Key Management](/docs/security/authentication/api-key-management).
@@ -4804,7 +4825,7 @@ type ClientWithResponsesInterface interface {
 	//
 	// Deletes an API key. Delete a key when it is no longer needed or when it is compromised.
 	//
-	// Users that hold none of the `corpus_administrator`, `administrator`, or `owner` roles can only delete their own personal API key; a key that exists but belongs to another user returns a `404` error. Machine credentials, API keys, app clients, and service accounts, without one of those three roles cannot call this operation.
+	// Users that hold none of the `corpus_administrator`, `administrator`, or `owner` roles can only delete their own personal API key; a key that exists but belongs to another user returns a `404` error. Machine credentials — API keys, app clients, and service accounts — without one of those three roles cannot call this operation.
 	//
 	// Returns a wrapper object for the known response body format(s).
 	//
@@ -4815,7 +4836,7 @@ type ClientWithResponsesInterface interface {
 	//
 	// Returns an API key. The response shows the corpora the key can access and with what permissions.
 	//
-	// Users that hold none of the `corpus_administrator`, `administrator`, or `owner` roles can only get their own personal API key; a key that exists but belongs to another user returns a `404` error. Machine credentials, API keys, app clients, and service accounts, without one of those three roles cannot call this operation.
+	// Users that hold none of the `corpus_administrator`, `administrator`, or `owner` roles can only get their own personal API key; a key that exists but belongs to another user returns a `404` error. Machine credentials — API keys, app clients, and service accounts — without one of those three roles cannot call this operation.
 	//
 	// Returns a wrapper object for the known response body format(s).
 	//
@@ -4826,7 +4847,7 @@ type ClientWithResponsesInterface interface {
 	//
 	// Updates an API key. Enable or disable the key to temporarily remove access without deleting the key. This is useful for maintenance windows, or when your team no longer requires access to a specific corpus.
 	//
-	// Users that hold none of the `corpus_administrator`, `administrator`, or `owner` roles can only update their own personal API key; a key that exists but belongs to another user returns a `404` error. Machine credentials, API keys, app clients, and service accounts, without one of those three roles cannot call this operation.
+	// Users that hold none of the `corpus_administrator`, `administrator`, or `owner` roles can only update their own personal API key; a key that exists but belongs to another user returns a `404` error. Machine credentials — API keys, app clients, and service accounts — without one of those three roles cannot call this operation.
 	//
 	// Takes any type of body and a specified content type, and returns a wrapper object for the known response body format(s).
 	//
@@ -4837,7 +4858,7 @@ type ClientWithResponsesInterface interface {
 	//
 	// Updates an API key. Enable or disable the key to temporarily remove access without deleting the key. This is useful for maintenance windows, or when your team no longer requires access to a specific corpus.
 	//
-	// Users that hold none of the `corpus_administrator`, `administrator`, or `owner` roles can only update their own personal API key; a key that exists but belongs to another user returns a `404` error. Machine credentials, API keys, app clients, and service accounts, without one of those three roles cannot call this operation.
+	// Users that hold none of the `corpus_administrator`, `administrator`, or `owner` roles can only update their own personal API key; a key that exists but belongs to another user returns a `404` error. Machine credentials — API keys, app clients, and service accounts — without one of those three roles cannot call this operation.
 	//
 	// Takes a body of the `application/json` content type, and returns a wrapper object for the known response body format(s).
 	//
@@ -5303,8 +5324,8 @@ type ClientWithResponsesInterface interface {
 	// By default, the platform uses **sentence-based chunking**, which provides optimal retrieval accuracy for most datasets.
 	//
 	// For larger documents or performance-tuned ingestion, you can explicitly set a `chunking_strategy`:
-	// - `sentence_chunking_strategy`, creates one chunk per sentence (default).
-	// - `max_chars_chunking_strategy`, creates larger chunks up to a specified character limit (`max_chars_per_chunk`), balancing retrieval speed with contextual coherence.
+	// - `sentence_chunking_strategy` — creates one chunk per sentence (default).
+	// - `max_chars_chunking_strategy` — creates larger chunks up to a specified character limit (`max_chars_per_chunk`), balancing retrieval speed with contextual coherence.
 	//
 	// For content that mixes prose with code, set `preserve_code_blocks: true` on either strategy to emit markdown code blocks as their own chunks, prefixed with the section title, while the surrounding prose is chunked by the strategy as usual. Example: `{"type":"max_chars_chunking_strategy","max_chars_per_chunk":1024,"preserve_code_blocks":true}`
 	//
@@ -5348,8 +5369,8 @@ type ClientWithResponsesInterface interface {
 	// By default, the platform uses **sentence-based chunking**, which provides optimal retrieval accuracy for most datasets.
 	//
 	// For larger documents or performance-tuned ingestion, you can explicitly set a `chunking_strategy`:
-	// - `sentence_chunking_strategy`, creates one chunk per sentence (default).
-	// - `max_chars_chunking_strategy`, creates larger chunks up to a specified character limit (`max_chars_per_chunk`), balancing retrieval speed with contextual coherence.
+	// - `sentence_chunking_strategy` — creates one chunk per sentence (default).
+	// - `max_chars_chunking_strategy` — creates larger chunks up to a specified character limit (`max_chars_per_chunk`), balancing retrieval speed with contextual coherence.
 	//
 	// For content that mixes prose with code, set `preserve_code_blocks: true` on either strategy to emit markdown code blocks as their own chunks, prefixed with the section title, while the surrounding prose is chunked by the strategy as usual. Example: `{"type":"max_chars_chunking_strategy","max_chars_per_chunk":1024,"preserve_code_blocks":true}`
 	//
@@ -5731,7 +5752,7 @@ type ClientWithResponsesInterface interface {
 	//
 	// `generation.prompt_template` (string, optional) - A custom prompt template in JSON format that defines the system and user messages for the LLM. Use this to customize the behavior of the model beyond the preset. The template can include Velocity templates with variables such as `$vectaraQueryResults` to reference retrieved search results. For more information, see [Custom prompts](/docs/prompts/vectara-prompt-engine).
 	//
-	// `generation.max_used_search_results` (integer, optional) - The maximum number of top search results to send to the LLM for summarization. A higher value can create a more detailed summary but can increase response time. **Default**: 5.
+	// `generation.max_used_search_results` (integer, optional) - The maximum number of top search results to send to the LLM for summarization. A higher value can create a more comprehensive summary but can increase response time. **Default**: 5.
 	//
 	// :::caution
 	// A value that is too high can prevent the model from generating a response.
@@ -5899,7 +5920,7 @@ type ClientWithResponsesInterface interface {
 	//
 	// `generation.prompt_template` (string, optional) - A custom prompt template in JSON format that defines the system and user messages for the LLM. Use this to customize the behavior of the model beyond the preset. The template can include Velocity templates with variables such as `$vectaraQueryResults` to reference retrieved search results. For more information, see [Custom prompts](/docs/prompts/vectara-prompt-engine).
 	//
-	// `generation.max_used_search_results` (integer, optional) - The maximum number of top search results to send to the LLM for summarization. A higher value can create a more detailed summary but can increase response time. **Default**: 5.
+	// `generation.max_used_search_results` (integer, optional) - The maximum number of top search results to send to the LLM for summarization. A higher value can create a more comprehensive summary but can increase response time. **Default**: 5.
 	//
 	// :::caution
 	// A value that is too high can prevent the model from generating a response.
@@ -6761,7 +6782,7 @@ type ClientWithResponsesInterface interface {
 	// }
 	// ```
 	//
-	// ### Google Vertex AI (Gemini), Service Account
+	// ### Google Vertex AI (Gemini) — Service Account
 	//
 	// **Type:** `vertex-ai`
 	// **Models:** gemini-2.5-pro, gemini-2.5-flash
@@ -6780,7 +6801,7 @@ type ClientWithResponsesInterface interface {
 	// }
 	// ```
 	//
-	// ### Google AI Studio (Gemini), API Key
+	// ### Google AI Studio (Gemini) — API Key
 	//
 	// **Type:** `vertex-ai`
 	// **Models:** gemini-2.5-pro, gemini-2.5-flash
@@ -6799,7 +6820,7 @@ type ClientWithResponsesInterface interface {
 	// }
 	// ```
 	//
-	// The `uri` field is flexible, you can provide a base URI or a full URL copied from Google docs
+	// The `uri` field is flexible — you can provide a base URI or a full URL copied from Google docs
 	// (including model path and `:generateContent` suffix). The platform normalizes it automatically.
 	//
 	// ### Custom OpenAI-Compatible
@@ -6913,7 +6934,7 @@ type ClientWithResponsesInterface interface {
 	// }
 	// ```
 	//
-	// ### Google Vertex AI (Gemini), Service Account
+	// ### Google Vertex AI (Gemini) — Service Account
 	//
 	// **Type:** `vertex-ai`
 	// **Models:** gemini-2.5-pro, gemini-2.5-flash
@@ -6932,7 +6953,7 @@ type ClientWithResponsesInterface interface {
 	// }
 	// ```
 	//
-	// ### Google AI Studio (Gemini), API Key
+	// ### Google AI Studio (Gemini) — API Key
 	//
 	// **Type:** `vertex-ai`
 	// **Models:** gemini-2.5-pro, gemini-2.5-flash
@@ -6951,7 +6972,7 @@ type ClientWithResponsesInterface interface {
 	// }
 	// ```
 	//
-	// The `uri` field is flexible, you can provide a base URI or a full URL copied from Google docs
+	// The `uri` field is flexible — you can provide a base URI or a full URL copied from Google docs
 	// (including model path and `:generateContent` suffix). The platform normalizes it automatically.
 	//
 	// ### Custom OpenAI-Compatible
@@ -7104,7 +7125,7 @@ type ClientWithResponsesInterface interface {
 	//
 	// Nothing is persisted. Combine a returned candidate with a `name` and the credential you supplied here and submit it to `POST /v2/llms`.
 	//
-	// Discovery live-tests at most three models per detected endpoint, with both OpenAI dialects probed, at most six upstream generation calls, and returns every usable model the endpoint advertises.
+	// Discovery live-tests at most three models per detected endpoint — with both OpenAI dialects probed, at most six upstream generation calls — and returns every usable model the endpoint advertises.
 	//
 	// Takes any type of body and a specified content type, and returns a wrapper object for the known response body format(s).
 	//
@@ -7117,7 +7138,7 @@ type ClientWithResponsesInterface interface {
 	//
 	// Nothing is persisted. Combine a returned candidate with a `name` and the credential you supplied here and submit it to `POST /v2/llms`.
 	//
-	// Discovery live-tests at most three models per detected endpoint, with both OpenAI dialects probed, at most six upstream generation calls, and returns every usable model the endpoint advertises.
+	// Discovery live-tests at most three models per detected endpoint — with both OpenAI dialects probed, at most six upstream generation calls — and returns every usable model the endpoint advertises.
 	//
 	// Takes a body of the `application/json` content type, and returns a wrapper object for the known response body format(s).
 	//
@@ -7396,7 +7417,7 @@ type ClientWithResponsesInterface interface {
 
 	// ListPipelineRunEventsWithResponse List pipeline run events
 	//
-	// Lists the timeline of events for a pipeline run, keyed by `run_id`. Events report what the run did, records discovered, records processed, agent sessions created, dead letters, watermark advances, and lifecycle transitions. The terminal `run_completed` event is present once a run finishes. A run that ended abruptly surfaces as `failed`. The event agrees with the run's `status` field, which is the authoritative terminal signal.
+	// Lists the timeline of events for a pipeline run, keyed by `run_id`. Events report what the run did — records discovered, records processed, agent sessions created, dead letters, watermark advances, and lifecycle transitions. The terminal `run_completed` event is present once a run finishes. A run that ended abruptly surfaces as `failed`. The event agrees with the run's `status` field, which is the authoritative terminal signal.
 	//
 	// Returns a wrapper object for the known response body format(s).
 	//
@@ -7869,9 +7890,9 @@ type ClientWithResponsesInterface interface {
 	// Mints the anonymous identity a widget visitor presents as `X-Visitor-Id` on `/v2/agent_aliases/{alias_key}/end_user_sessions` requests, naming a connector in the session create body.
 	// No credential is required. The `X-Customer-Id` header carries the `customer_id` served by the public connector view; the minted id is scoped to that customer and authenticates the same visitor on any of the customer's widgets that admit anonymous visitors.
 	//
-	// Call this only when the client holds no visitor id. The id never expires, store it durably; it is the only proof of ownership of the sessions it creates, and a repeat call mints a fresh identity that owns none of the previous identity's sessions.
+	// Call this only when the client holds no visitor id. The id never expires — store it durably; it is the only proof of ownership of the sessions it creates, and a repeat call mints a fresh identity that owns none of the previous identity's sessions.
 	//
-	// Returns `404` when the customer does not exist, is disabled, or has no enabled widget connector that admits anonymous visitors, one indistinguishable refusal, so the endpoint confirms nothing about which customer ids exist.
+	// Returns `404` when the customer does not exist, is disabled, or has no enabled widget connector that admits anonymous visitors — one indistinguishable refusal, so the endpoint confirms nothing about which customer ids exist.
 	//
 	// Returns a wrapper object for the known response body format(s).
 	//
@@ -8382,7 +8403,7 @@ func (r DeleteAgentConnectorResponse) ContentType() string {
 	return ""
 }
 
-type GetPublicConnectorResponse struct {
+type GetLegacyPublicConnectorResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	// JSON200 the response for an HTTP 200 `application/json` response
@@ -8394,27 +8415,27 @@ type GetPublicConnectorResponse struct {
 }
 
 // GetJSON200 returns the response for an HTTP 200 `application/json` response
-func (r GetPublicConnectorResponse) GetJSON200() *PublicConnector {
+func (r GetLegacyPublicConnectorResponse) GetJSON200() *PublicConnector {
 	return r.JSON200
 }
 
 // GetJSON403 returns the response for an HTTP 403 `application/json` response
-func (r GetPublicConnectorResponse) GetJSON403() *Error {
+func (r GetLegacyPublicConnectorResponse) GetJSON403() *Error {
 	return r.JSON403
 }
 
 // GetJSON404 returns the response for an HTTP 404 `application/json` response
-func (r GetPublicConnectorResponse) GetJSON404() *NotFoundError {
+func (r GetLegacyPublicConnectorResponse) GetJSON404() *NotFoundError {
 	return r.JSON404
 }
 
 // GetBody returns the raw response body bytes
-func (r GetPublicConnectorResponse) GetBody() []byte {
+func (r GetLegacyPublicConnectorResponse) GetBody() []byte {
 	return r.Body
 }
 
 // Status returns HTTPResponse.Status
-func (r GetPublicConnectorResponse) Status() string {
+func (r GetLegacyPublicConnectorResponse) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -8422,7 +8443,7 @@ func (r GetPublicConnectorResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r GetPublicConnectorResponse) StatusCode() int {
+func (r GetLegacyPublicConnectorResponse) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -8430,7 +8451,7 @@ func (r GetPublicConnectorResponse) StatusCode() int {
 }
 
 // ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
-func (r GetPublicConnectorResponse) ContentType() string {
+func (r GetLegacyPublicConnectorResponse) ContentType() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Header.Get("Content-Type")
 	}
@@ -8500,6 +8521,61 @@ func (r UpdateAgentConnectorResponse) StatusCode() int {
 
 // ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
 func (r UpdateAgentConnectorResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
+type GetPublicConnectorResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	// JSON200 the response for an HTTP 200 `application/json` response
+	JSON200 *PublicConnector
+	// JSON403 the response for an HTTP 403 `application/json` response
+	JSON403 *Error
+	// JSON404 the response for an HTTP 404 `application/json` response
+	JSON404 *NotFoundError
+}
+
+// GetJSON200 returns the response for an HTTP 200 `application/json` response
+func (r GetPublicConnectorResponse) GetJSON200() *PublicConnector {
+	return r.JSON200
+}
+
+// GetJSON403 returns the response for an HTTP 403 `application/json` response
+func (r GetPublicConnectorResponse) GetJSON403() *Error {
+	return r.JSON403
+}
+
+// GetJSON404 returns the response for an HTTP 404 `application/json` response
+func (r GetPublicConnectorResponse) GetJSON404() *NotFoundError {
+	return r.JSON404
+}
+
+// GetBody returns the raw response body bytes
+func (r GetPublicConnectorResponse) GetBody() []byte {
+	return r.Body
+}
+
+// Status returns HTTPResponse.Status
+func (r GetPublicConnectorResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetPublicConnectorResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r GetPublicConnectorResponse) ContentType() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Header.Get("Content-Type")
 	}
@@ -19668,9 +19744,9 @@ func (c *ClientWithResponses) ListAgentAliasesWithResponse(ctx context.Context, 
 // Creates an alias. An alias maps a public name to one or more underlying agents under a configurable policy. When you create a session through an alias (via `POST /v2/agent_aliases/{alias_key}/sessions`), the alias's policy selects the underlying agent that runs the session.
 //
 // Common patterns:
-// - **Direct alias**, a `routed` policy with one rule and one target. Identical in behavior to invoking the agent directly.
-// - **Canary rollout**, a `routed` policy with one rule and multiple weighted targets (e.g. 90% v1, 10% v2).
-// - **Tenant routing**, a `routed` policy with multiple rules, each matching on session metadata (e.g. `session.metadata.tenant`).
+// - **Direct alias** — a `routed` policy with one rule and one target. Identical in behavior to invoking the agent directly.
+// - **Canary rollout** — a `routed` policy with one rule and multiple weighted targets (e.g. 90% v1, 10% v2).
+// - **Tenant routing** — a `routed` policy with multiple rules, each matching on session metadata (e.g. `session.metadata.tenant`).
 //
 // Takes any type of body and a specified content type, and returns a wrapper object for the known response body format(s).
 //
@@ -19688,9 +19764,9 @@ func (c *ClientWithResponses) CreateAgentAliasWithBodyWithResponse(ctx context.C
 // Creates an alias. An alias maps a public name to one or more underlying agents under a configurable policy. When you create a session through an alias (via `POST /v2/agent_aliases/{alias_key}/sessions`), the alias's policy selects the underlying agent that runs the session.
 //
 // Common patterns:
-// - **Direct alias**, a `routed` policy with one rule and one target. Identical in behavior to invoking the agent directly.
-// - **Canary rollout**, a `routed` policy with one rule and multiple weighted targets (e.g. 90% v1, 10% v2).
-// - **Tenant routing**, a `routed` policy with multiple rules, each matching on session metadata (e.g. `session.metadata.tenant`).
+// - **Direct alias** — a `routed` policy with one rule and one target. Identical in behavior to invoking the agent directly.
+// - **Canary rollout** — a `routed` policy with one rule and multiple weighted targets (e.g. 90% v1, 10% v2).
+// - **Tenant routing** — a `routed` policy with multiple rules, each matching on session metadata (e.g. `session.metadata.tenant`).
 //
 // Takes a body of the `application/json` content type, and returns a wrapper object for the known response body format(s).
 //
@@ -19823,27 +19899,31 @@ func (c *ClientWithResponses) DeleteAgentConnectorWithResponse(ctx context.Conte
 	return ParseDeleteAgentConnectorResponse(rsp)
 }
 
-// GetPublicConnectorWithResponse Get public connector
+// GetLegacyPublicConnectorWithResponse Get public connector (legacy path)
+//
+// Deprecated: read the public view from `GET /v2/agent_aliases/{alias_key}/connectors/{connector_id}/public`. This path serves the same view while embeds already deployed move to that path; it is then repurposed as the authenticated operator read of the full connector.
 //
 // The public view of a connector, served unauthenticated to the embed snippet. The snippet carries the alias key and the connector's globally unique id, which expose no agent or customer identifier.
 // Returns the `customer_id` visitor minting is addressed to, the `presentation` to render, whether anonymous visitors are admitted (`public_access`), and the sign-in configuration when the widget offers one.
 //
 // A read with no side effects: minting an anonymous visitor id is a separate call, `POST /v2/visitors`, so a returning visitor who already holds an id only reads this view.
-// The view tells the client how to authenticate: `public_access` true, mint or present a visitor id; `end_user_sign_in` present, sign the user in through the referenced issuer. A widget may offer both, and the two follow-up calls do not depend on each other.
+// The view tells the client how to authenticate: `public_access` true — mint or present a visitor id; `end_user_sign_in` present — sign the user in through the referenced issuer. A widget may offer both, and the two follow-up calls do not depend on each other.
 //
 // This operation serves only the public projection; operators read the full connector, configuration included, from the connector list.
 //
-// Serves connectors that front an end-user surface, today, widget connectors. Returns `404` if the connector does not exist on the addressed alias, is a channel connector with no end-user surface (Slack, Google Chat, or Zoom), is disabled, or belongs to a disabled customer.
+// Serves connectors that front an end-user surface — today, widget connectors. Returns `404` if the connector does not exist on the addressed alias, is a channel connector with no end-user surface (Slack, Google Chat, or Zoom), is disabled, or belongs to a disabled customer.
 //
 // Returns a wrapper object for the known response body format(s).
 //
-// Corresponds with GET /v2/agent_aliases/{alias_key}/connectors/{connector_id} (the `GetPublicConnector` operationId).
-func (c *ClientWithResponses) GetPublicConnectorWithResponse(ctx context.Context, aliasKey AgentAliasKey, connectorId ConnectorId, params *GetPublicConnectorParams, reqEditors ...RequestEditorFn) (*GetPublicConnectorResponse, error) {
-	rsp, err := c.GetPublicConnector(ctx, aliasKey, connectorId, params, reqEditors...)
+// Corresponds with GET /v2/agent_aliases/{alias_key}/connectors/{connector_id} (the `GetLegacyPublicConnector` operationId).
+//
+// Deprecated: this operation has been marked as deprecated upstream, but no `x-deprecated-reason` was set
+func (c *ClientWithResponses) GetLegacyPublicConnectorWithResponse(ctx context.Context, aliasKey AgentAliasKey, connectorId ConnectorId, params *GetLegacyPublicConnectorParams, reqEditors ...RequestEditorFn) (*GetLegacyPublicConnectorResponse, error) {
+	rsp, err := c.GetLegacyPublicConnector(ctx, aliasKey, connectorId, params, reqEditors...)
 	if err != nil {
 		return nil, err
 	}
-	return ParseGetPublicConnectorResponse(rsp)
+	return ParseGetLegacyPublicConnectorResponse(rsp)
 }
 
 // UpdateAgentConnectorWithBodyWithResponse Update agent connector
@@ -19874,6 +19954,29 @@ func (c *ClientWithResponses) UpdateAgentConnectorWithResponse(ctx context.Conte
 		return nil, err
 	}
 	return ParseUpdateAgentConnectorResponse(rsp)
+}
+
+// GetPublicConnectorWithResponse Get public connector
+//
+// The public view of a connector, served unauthenticated to the embed snippet. The snippet carries the alias key and the connector's globally unique id, which expose no agent or customer identifier.
+// Returns the `customer_id` visitor minting is addressed to, the `presentation` to render, whether anonymous visitors are admitted (`public_access`), and the sign-in configuration when the widget offers one.
+//
+// A read with no side effects: minting an anonymous visitor id is a separate call, `POST /v2/visitors`, so a returning visitor who already holds an id only reads this view.
+// The view tells the client how to authenticate: `public_access` true — mint or present a visitor id; `end_user_sign_in` present — sign the user in through the referenced issuer. A widget may offer both, and the two follow-up calls do not depend on each other.
+//
+// This operation serves only the public projection; operators read the full connector, configuration included, from the connector list.
+//
+// Serves connectors that front an end-user surface — today, widget connectors. Returns `404` if the connector does not exist on the addressed alias, is a channel connector with no end-user surface (Slack, Google Chat, or Zoom), is disabled, or belongs to a disabled customer.
+//
+// Returns a wrapper object for the known response body format(s).
+//
+// Corresponds with GET /v2/agent_aliases/{alias_key}/connectors/{connector_id}/public (the `GetPublicConnector` operationId).
+func (c *ClientWithResponses) GetPublicConnectorWithResponse(ctx context.Context, aliasKey AgentAliasKey, connectorId ConnectorId, params *GetPublicConnectorParams, reqEditors ...RequestEditorFn) (*GetPublicConnectorResponse, error) {
+	rsp, err := c.GetPublicConnector(ctx, aliasKey, connectorId, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetPublicConnectorResponse(rsp)
 }
 
 // ListEndUserAliasRoutedSessionsWithResponse List end user sessions for alias
@@ -19932,96 +20035,4 @@ func (c *ClientWithResponses) CreateEndUserAliasRoutedSessionWithResponse(ctx co
 		return nil, err
 	}
 	return ParseCreateEndUserAliasRoutedSessionResponse(rsp)
-}
-
-// DeleteEndUserAliasRoutedSessionWithResponse Delete end user session for alias
-//
-// Permanently deletes a session the caller owns, addressed by the alias it was created through. Returns 403 if the session belongs to a different principal. This action cannot be undone.
-// An administrator calling this operation is bound to the sessions it owns like every other caller; the operator endpoints are the administrative view of an alias's sessions.
-// Anonymous widget visitors authenticate by presenting `X-Visitor-Id` instead of an `Authorization` credential; the platform mints an identity holding `agent_end_user` on the addressed alias, which satisfies this operation's role requirement.
-//
-// Returns a wrapper object for the known response body format(s).
-//
-// Corresponds with DELETE /v2/agent_aliases/{alias_key}/end_user_sessions/{session_key} (the `DeleteEndUserAliasRoutedSession` operationId).
-func (c *ClientWithResponses) DeleteEndUserAliasRoutedSessionWithResponse(ctx context.Context, aliasKey AgentAliasKey, sessionKey AgentSessionKey, params *DeleteEndUserAliasRoutedSessionParams, reqEditors ...RequestEditorFn) (*DeleteEndUserAliasRoutedSessionResponse, error) {
-	rsp, err := c.DeleteEndUserAliasRoutedSession(ctx, aliasKey, sessionKey, params, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseDeleteEndUserAliasRoutedSessionResponse(rsp)
-}
-
-// GetEndUserAliasRoutedSessionWithResponse Get end user session for alias
-//
-// Returns a session the caller owns, addressed by the alias it was created through. Returns 403 if the session belongs to a different principal.
-// An administrator calling this operation is bound to the sessions it owns like every other caller; the operator endpoints are the administrative view of an alias's sessions.
-// Anonymous widget visitors authenticate by presenting `X-Visitor-Id` instead of an `Authorization` credential; the platform mints an identity holding `agent_end_user` on the addressed alias, which satisfies this operation's role requirement.
-//
-// Returns a wrapper object for the known response body format(s).
-//
-// Corresponds with GET /v2/agent_aliases/{alias_key}/end_user_sessions/{session_key} (the `GetEndUserAliasRoutedSession` operationId).
-func (c *ClientWithResponses) GetEndUserAliasRoutedSessionWithResponse(ctx context.Context, aliasKey AgentAliasKey, sessionKey AgentSessionKey, params *GetEndUserAliasRoutedSessionParams, reqEditors ...RequestEditorFn) (*GetEndUserAliasRoutedSessionResponse, error) {
-	rsp, err := c.GetEndUserAliasRoutedSession(ctx, aliasKey, sessionKey, params, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseGetEndUserAliasRoutedSessionResponse(rsp)
-}
-
-// ListEndUserAliasRoutedEventsWithResponse List end user events for alias
-//
-// Lists the visible events in a session the caller owns, addressed by the alias it was created through, with optional pagination.
-// An administrator calling this operation is bound to the sessions it owns like every other caller; the operator endpoints are the administrative view of an alias's sessions.
-// Returns 403 if the session belongs to a different principal. The response only includes event types curated as end-user-safe.
-// Anonymous widget visitors authenticate by presenting `X-Visitor-Id` instead of an `Authorization` credential; the platform mints an identity holding `agent_end_user` on the addressed alias, which satisfies this operation's role requirement.
-//
-// Returns a wrapper object for the known response body format(s).
-//
-// Corresponds with GET /v2/agent_aliases/{alias_key}/end_user_sessions/{session_key}/events (the `ListEndUserAliasRoutedEvents` operationId).
-func (c *ClientWithResponses) ListEndUserAliasRoutedEventsWithResponse(ctx context.Context, aliasKey AgentAliasKey, sessionKey AgentSessionKey, params *ListEndUserAliasRoutedEventsParams, reqEditors ...RequestEditorFn) (*ListEndUserAliasRoutedEventsResponse, error) {
-	rsp, err := c.ListEndUserAliasRoutedEvents(ctx, aliasKey, sessionKey, params, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseListEndUserAliasRoutedEventsResponse(rsp)
-}
-
-// CreateEndUserAliasRoutedInputWithBodyWithResponse Create end user input for alias
-//
-// Sends a message, an interrupt, or a client tool output to a session the caller owns, addressed by the alias it was created through.
-// An administrator calling this operation is bound to the sessions it owns like every other caller; the operator endpoints are the administrative view of an alias's sessions.
-// Returns 403 if the session belongs to a different principal.
-// The response is projected to the caller's end-user visibility, see `EndUserEvent`.
-// Anonymous widget visitors authenticate by presenting `X-Visitor-Id` instead of an `Authorization` credential; the platform mints an identity holding `agent_end_user` on the addressed alias, which satisfies this operation's role requirement.
-// Returns `429` when the caller reaches its hourly event cap.
-//
-// Takes any type of body and a specified content type, and returns a wrapper object for the known response body format(s).
-//
-// Corresponds with POST /v2/agent_aliases/{alias_key}/end_user_sessions/{session_key}/events (the `CreateEndUserAliasRoutedInput` operationId).
-func (c *ClientWithResponses) CreateEndUserAliasRoutedInputWithBodyWithResponse(ctx context.Context, aliasKey AgentAliasKey, sessionKey AgentSessionKey, params *CreateEndUserAliasRoutedInputParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateEndUserAliasRoutedInputResponse, error) {
-	rsp, err := c.CreateEndUserAliasRoutedInputWithBody(ctx, aliasKey, sessionKey, params, contentType, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseCreateEndUserAliasRoutedInputResponse(rsp)
-}
-
-// CreateEndUserAliasRoutedInputWithResponse Create end user input for alias
-//
-// Sends a message, an interrupt, or a client tool output to a session the caller owns, addressed by the alias it was created through.
-// An administrator calling this operation is bound to the sessions it owns like every other caller; the operator endpoints are the administrative view of an alias's sessions.
-// Returns 403 if the session belongs to a different principal.
-// The response is projected to the caller's end-user visibility, see `EndUserEvent`.
-// Anonymous widget visitors authenticate by presenting `X-Visitor-Id` instead of an `Authorization` credential; the platform mints an identity holding `agent_end_user` on the addressed alias, which satisfies this operation's role requirement.
-// Returns `429` when the caller reaches its hourly event cap.
-//
-// Takes a body of the `application/json` content type, and returns a wrapper object for the known response body format(s).
-//
-// Corresponds with POST /v2/agent_aliases/{alias_key}/end_user_sessions/{session_key}/events (the `CreateEndUserAliasRoutedInput` operationId).
-func (c *ClientWithResponses) CreateEndUserAliasRoutedInputWithResponse(ctx context.Context, aliasKey AgentAliasKey, sessionKey AgentSessionKey, params *CreateEndUserAliasRoutedInputParams, body CreateEndUserAliasRoutedInputJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateEndUserAliasRoutedInputResponse, error) {
-	rsp, err := c.CreateEndUserAliasRoutedInput(ctx, aliasKey, sessionKey, params, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseCreateEndUserAliasRoutedInputResponse(rsp)
 }

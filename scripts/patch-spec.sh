@@ -1,7 +1,6 @@
 #!/bin/bash
 # Removes the invalid property-level required: false flag using the YAML-aware
 # tool in internal/cmd/patch-spec. The query property remains optional.
-# Also normalizes generated documentation prose without changing wire schemas.
 # Renames JsonSchemaObject.additionalProperties in Go to avoid the generator's
 # unknown-field map name. The JSON key stays additionalProperties.
 # Replaces the spec's dummy Slack bot token example, which GitHub push

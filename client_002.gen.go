@@ -20,8 +20,8 @@ import (
 // UpsertGlossaryEntriesRequest Request to upsert entries into a glossary in bulk. Entries with existing terms are updated; new terms are inserted.
 // The platform rebuilds the glossary index after the upsert. Agents use the updated glossary after the rebuild completes.
 type UpsertGlossaryEntriesRequest struct {
-	// Entries A map of terms to their expanded forms. Keys are terms (1 to 200 characters);
-	// values are expansions (1 to 1000 characters).
+	// Entries A map of terms to their expanded forms. Keys are terms (1–200 characters);
+	// values are expansions (1–1000 characters).
 	//
 	//
 	// Example: {"k8s":"Kubernetes","tf":"Terraform"}
@@ -487,9 +487,9 @@ type WebGetTool struct {
 	// If the expression fails to compile or evaluate, the tool call returns an error to the agent.
 	//
 	// Examples:
-	//   - `.args + { auth: ("Bearer " + .agent.secrets.token) }`, inject a bearer header
-	//   - `.args | .corpus_key = .session.metadata.corpus_key`, pull a corpus key from session metadata
-	//   - `.args | .query = (.args.query + " " + .session.metadata.query_suffix)`, augment the agent's query
+	//   - `.args + { auth: ("Bearer " + .agent.secrets.token) }` — inject a bearer header
+	//   - `.args | .corpus_key = .session.metadata.corpus_key` — pull a corpus key from session metadata
+	//   - `.args | .query = (.args.query + " " + .session.metadata.query_suffix)` — augment the agent's query
 	//
 	//
 	// Example: .args + { auth: ("Bearer " + .agent.secrets.token) }
@@ -502,9 +502,9 @@ type WebGetTool struct {
 	// If the expression fails to compile or evaluate at runtime, the tool call returns an error to the agent so the agent can react.
 	//
 	// Examples:
-	//   - `.results | map({title, url})`, keep only title/url for each result
-	//   - `.items[0:5]`, first 5 items
-	//   - `del(.debug)`, drop a noisy field
+	//   - `.results | map({title, url})` — keep only title/url for each result
+	//   - `.items[0:5]` — first 5 items
+	//   - `del(.debug)` — drop a noisy field
 	//
 	//
 	// Example: .results | map({title, url})
@@ -622,9 +622,9 @@ type WebGetToolConfiguration struct {
 	// If the expression fails to compile or evaluate, the tool call returns an error to the agent.
 	//
 	// Examples:
-	//   - `.args + { auth: ("Bearer " + .agent.secrets.token) }`, inject a bearer header
-	//   - `.args | .corpus_key = .session.metadata.corpus_key`, pull a corpus key from session metadata
-	//   - `.args | .query = (.args.query + " " + .session.metadata.query_suffix)`, augment the agent's query
+	//   - `.args + { auth: ("Bearer " + .agent.secrets.token) }` — inject a bearer header
+	//   - `.args | .corpus_key = .session.metadata.corpus_key` — pull a corpus key from session metadata
+	//   - `.args | .query = (.args.query + " " + .session.metadata.query_suffix)` — augment the agent's query
 	//
 	//
 	// Example: .args + { auth: ("Bearer " + .agent.secrets.token) }
@@ -659,9 +659,9 @@ type WebGetToolConfiguration struct {
 	// If the expression fails to compile or evaluate at runtime, the tool call returns an error to the agent so the agent can react.
 	//
 	// Examples:
-	//   - `.results | map({title, url})`, keep only title/url for each result
-	//   - `.items[0:5]`, first 5 items
-	//   - `del(.debug)`, drop a noisy field
+	//   - `.results | map({title, url})` — keep only title/url for each result
+	//   - `.items[0:5]` — first 5 items
+	//   - `del(.debug)` — drop a noisy field
 	//
 	//
 	// Example: .results | map({title, url})
@@ -860,9 +860,9 @@ type WebSearchTool struct {
 	// If the expression fails to compile or evaluate, the tool call returns an error to the agent.
 	//
 	// Examples:
-	//   - `.args + { auth: ("Bearer " + .agent.secrets.token) }`, inject a bearer header
-	//   - `.args | .corpus_key = .session.metadata.corpus_key`, pull a corpus key from session metadata
-	//   - `.args | .query = (.args.query + " " + .session.metadata.query_suffix)`, augment the agent's query
+	//   - `.args + { auth: ("Bearer " + .agent.secrets.token) }` — inject a bearer header
+	//   - `.args | .corpus_key = .session.metadata.corpus_key` — pull a corpus key from session metadata
+	//   - `.args | .query = (.args.query + " " + .session.metadata.query_suffix)` — augment the agent's query
 	//
 	//
 	// Example: .args + { auth: ("Bearer " + .agent.secrets.token) }
@@ -875,9 +875,9 @@ type WebSearchTool struct {
 	// If the expression fails to compile or evaluate at runtime, the tool call returns an error to the agent so the agent can react.
 	//
 	// Examples:
-	//   - `.results | map({title, url})`, keep only title/url for each result
-	//   - `.items[0:5]`, first 5 items
-	//   - `del(.debug)`, drop a noisy field
+	//   - `.results | map({title, url})` — keep only title/url for each result
+	//   - `.items[0:5]` — first 5 items
+	//   - `del(.debug)` — drop a noisy field
 	//
 	//
 	// Example: .results | map({title, url})
@@ -995,9 +995,9 @@ type WebSearchToolConfiguration struct {
 	// If the expression fails to compile or evaluate, the tool call returns an error to the agent.
 	//
 	// Examples:
-	//   - `.args + { auth: ("Bearer " + .agent.secrets.token) }`, inject a bearer header
-	//   - `.args | .corpus_key = .session.metadata.corpus_key`, pull a corpus key from session metadata
-	//   - `.args | .query = (.args.query + " " + .session.metadata.query_suffix)`, augment the agent's query
+	//   - `.args + { auth: ("Bearer " + .agent.secrets.token) }` — inject a bearer header
+	//   - `.args | .corpus_key = .session.metadata.corpus_key` — pull a corpus key from session metadata
+	//   - `.args | .query = (.args.query + " " + .session.metadata.query_suffix)` — augment the agent's query
 	//
 	//
 	// Example: .args + { auth: ("Bearer " + .agent.secrets.token) }
@@ -1032,9 +1032,9 @@ type WebSearchToolConfiguration struct {
 	// If the expression fails to compile or evaluate at runtime, the tool call returns an error to the agent so the agent can react.
 	//
 	// Examples:
-	//   - `.results | map({title, url})`, keep only title/url for each result
-	//   - `.items[0:5]`, first 5 items
-	//   - `del(.debug)`, drop a noisy field
+	//   - `.results | map({title, url})` — keep only title/url for each result
+	//   - `.items[0:5]` — first 5 items
+	//   - `del(.debug)` — drop a noisy field
 	//
 	//
 	// Example: .results | map({title, url})
@@ -1126,7 +1126,7 @@ type WebSourceConfiguration struct {
 	PagesSource WebPagesSource `json:"pages_source"`
 
 	// RequestsPerSecond Maximum sustained requests per second, applied to each concurrent fetch
-	// independently, the worst-case rate against a host is this value multiplied by
+	// independently — the worst-case rate against a host is this value multiplied by
 	// `max_concurrent_fetches`.
 	RequestsPerSecond *float64 `json:"requests_per_second,omitempty"`
 
@@ -1199,7 +1199,7 @@ type WidgetConnectorConfiguration struct {
 
 	// EndUserSignIn Enables the widget's sign-in affordance and names the identity provider it authenticates users against.
 	// The host page supplies a token minted by the referenced trusted token issuer, and the widget presents it as the bearer credential on end-user session requests.
-	// The platform verifies the token by its `iss` claim against the globally-unique issuer registration, never against this connector, so the token stands on its own: it signs the caller in as an end user across the customer's aliases, not this widget's alone.
+	// The platform verifies the token by its `iss` claim against the globally-unique issuer registration — never against this connector — so the token stands on its own: it signs the caller in as an end user across the customer's aliases, not this widget's alone.
 	// The platform accepts the token when its signature verifies against the issuer's JWKS and it carries an `email` claim.
 	// The referenced registration must exist, or the connector write is rejected with `400`.
 	EndUserSignIn *WidgetSignIn `json:"end_user_sign_in,omitempty"`
@@ -1209,7 +1209,7 @@ type WidgetConnectorConfiguration struct {
 	// Example: ["tool_calls"]
 	HiddenOutputTypes *[]AgentOutputType `json:"hidden_output_types,omitempty"`
 
-	// Presentation The presentation configuration the widget client renders, branding, palette, welcome content, suggested prompts.
+	// Presentation The presentation configuration the widget client renders — branding, palette, welcome content, suggested prompts.
 	// Free-form apart from the required `version`; the platform stores it verbatim, serves it back uninterpreted, and caps its total size.
 	// Null-valued keys are accepted but are omitted from responses.
 	// Served to anonymous visitors by the unauthenticated public connector view, so widget clients must treat every value as untrusted data.
@@ -1231,7 +1231,7 @@ type WidgetConnectorConfiguration struct {
 	// Example: ["tool_calls"]
 	RevealedOutputTypes *[]AgentOutputType `json:"revealed_output_types,omitempty"`
 
-	// SessionMetadata Written into every session created through this widget connector, anonymous or signed-in, under `metadata.connector.<connector_id>`, namespaced by the connector's id, so connector-written values never collide with metadata from other writers and expressions can address the entry connector explicitly (e.g. `$.session.metadata.connector.con_abc123.instance`).
+	// SessionMetadata Written into every session created through this widget connector, anonymous or signed-in, under `metadata.connector.<connector_id>` — namespaced by the connector's id, so connector-written values never collide with metadata from other writers and expressions can address the entry connector explicitly (e.g. `$.session.metadata.connector.con_abc123.instance`).
 	// Readable wherever session metadata is readable: instruction templates, `run_condition`, `session_enrichment` references, alias routing rules, and tool `argument_override` expressions.
 	// Not served by the public connector view and not returned on the end-user session object, though values reach the agent's context and may surface in its replies.
 	// Omitted or empty writes no session metadata.
@@ -1252,7 +1252,7 @@ type WidgetConnectorConfiguration struct {
 	Type string `json:"type"`
 }
 
-// WidgetPresentation The presentation configuration the widget client renders, branding, palette, welcome content, suggested prompts.
+// WidgetPresentation The presentation configuration the widget client renders — branding, palette, welcome content, suggested prompts.
 // Free-form apart from the required `version`; the platform stores it verbatim, serves it back uninterpreted, and caps its total size.
 // Null-valued keys are accepted but are omitted from responses.
 // Served to anonymous visitors by the unauthenticated public connector view, so widget clients must treat every value as untrusted data.
@@ -1269,7 +1269,7 @@ type WidgetPresentation struct {
 
 // WidgetSignIn Enables the widget's sign-in affordance and names the identity provider it authenticates users against.
 // The host page supplies a token minted by the referenced trusted token issuer, and the widget presents it as the bearer credential on end-user session requests.
-// The platform verifies the token by its `iss` claim against the globally-unique issuer registration, never against this connector, so the token stands on its own: it signs the caller in as an end user across the customer's aliases, not this widget's alone.
+// The platform verifies the token by its `iss` claim against the globally-unique issuer registration — never against this connector — so the token stands on its own: it signs the caller in as an end user across the customer's aliases, not this widget's alone.
 // The platform accepts the token when its signature verifies against the issuer's JWKS and it carries an `email` claim.
 // The referenced registration must exist, or the connector write is rejected with `400`.
 type WidgetSignIn struct {
@@ -1703,8 +1703,8 @@ type DeleteAgentConnectorParams struct {
 	RequestTimeoutMillis *RequestTimeoutMillis `json:"Request-Timeout-Millis,omitempty"`
 }
 
-// GetPublicConnectorParams defines parameters for GetPublicConnector.
-type GetPublicConnectorParams struct {
+// GetLegacyPublicConnectorParams defines parameters for GetLegacyPublicConnector.
+type GetLegacyPublicConnectorParams struct {
 	// RequestTimeout The platform makes a best effort to complete the request in the specified seconds, or it times out.
 	RequestTimeout *RequestTimeout `json:"Request-Timeout,omitempty"`
 
@@ -1714,6 +1714,15 @@ type GetPublicConnectorParams struct {
 
 // UpdateAgentConnectorParams defines parameters for UpdateAgentConnector.
 type UpdateAgentConnectorParams struct {
+	// RequestTimeout The platform makes a best effort to complete the request in the specified seconds, or it times out.
+	RequestTimeout *RequestTimeout `json:"Request-Timeout,omitempty"`
+
+	// RequestTimeoutMillis The platform makes a best effort to complete the request in the specified milliseconds, or it times out.
+	RequestTimeoutMillis *RequestTimeoutMillis `json:"Request-Timeout-Millis,omitempty"`
+}
+
+// GetPublicConnectorParams defines parameters for GetPublicConnector.
+type GetPublicConnectorParams struct {
 	// RequestTimeout The platform makes a best effort to complete the request in the specified seconds, or it times out.
 	RequestTimeout *RequestTimeout `json:"Request-Timeout,omitempty"`
 
@@ -3049,7 +3058,7 @@ type GetFilterAttributeStatsParams struct {
 	// MetadataFilter Optional metadata filter expression to pre-filter documents or parts before computing statistics. Uses the same SQL-style filter syntax as query operations. When provided, statistics reflect only the filtered subset of the corpus.
 	MetadataFilter *string `form:"metadata_filter,omitempty" json:"metadata_filter,omitempty"`
 
-	// FuzzyMatch Term that narrows the returned values of text attributes. A distinct value is returned only when it contains the term, ignoring letter case and non-alphanumeric characters on both sides, for example, '10k' matches the values '10-K', '10K', and 'FY24 10-K'. Values of numeric and boolean attributes are not affected. The term must contain at least one alphanumeric character.
+	// FuzzyMatch Term that narrows the returned values of text attributes. A distinct value is returned only when it contains the term, ignoring letter case and non-alphanumeric characters on both sides — for example, '10k' matches the values '10-K', '10K', and 'FY24 10-K'. Values of numeric and boolean attributes are not affected. The term must contain at least one alphanumeric character.
 	FuzzyMatch *string `form:"fuzzy_match,omitempty" json:"fuzzy_match,omitempty"`
 
 	// MaxValues Maximum number of distinct values to return per field in the 'values' array, ordered by occurrence count (descending).
@@ -18712,9 +18721,9 @@ type ClientInterface interface {
 	// Creates an alias. An alias maps a public name to one or more underlying agents under a configurable policy. When you create a session through an alias (via `POST /v2/agent_aliases/{alias_key}/sessions`), the alias's policy selects the underlying agent that runs the session.
 	//
 	// Common patterns:
-	// - **Direct alias**, a `routed` policy with one rule and one target. Identical in behavior to invoking the agent directly.
-	// - **Canary rollout**, a `routed` policy with one rule and multiple weighted targets (e.g. 90% v1, 10% v2).
-	// - **Tenant routing**, a `routed` policy with multiple rules, each matching on session metadata (e.g. `session.metadata.tenant`).
+	// - **Direct alias** — a `routed` policy with one rule and one target. Identical in behavior to invoking the agent directly.
+	// - **Canary rollout** — a `routed` policy with one rule and multiple weighted targets (e.g. 90% v1, 10% v2).
+	// - **Tenant routing** — a `routed` policy with multiple rules, each matching on session metadata (e.g. `session.metadata.tenant`).
 	//
 	// Takes any type of body and a specified content type.
 	//
@@ -18726,9 +18735,9 @@ type ClientInterface interface {
 	// Creates an alias. An alias maps a public name to one or more underlying agents under a configurable policy. When you create a session through an alias (via `POST /v2/agent_aliases/{alias_key}/sessions`), the alias's policy selects the underlying agent that runs the session.
 	//
 	// Common patterns:
-	// - **Direct alias**, a `routed` policy with one rule and one target. Identical in behavior to invoking the agent directly.
-	// - **Canary rollout**, a `routed` policy with one rule and multiple weighted targets (e.g. 90% v1, 10% v2).
-	// - **Tenant routing**, a `routed` policy with multiple rules, each matching on session metadata (e.g. `session.metadata.tenant`).
+	// - **Direct alias** — a `routed` policy with one rule and one target. Identical in behavior to invoking the agent directly.
+	// - **Canary rollout** — a `routed` policy with one rule and multiple weighted targets (e.g. 90% v1, 10% v2).
+	// - **Tenant routing** — a `routed` policy with multiple rules, each matching on session metadata (e.g. `session.metadata.tenant`).
 	//
 	// Takes a body of the `application/json` content type.
 	//
@@ -18799,20 +18808,24 @@ type ClientInterface interface {
 	// Corresponds with DELETE /v2/agent_aliases/{alias_key}/connectors/{connector_id} (the `DeleteAgentConnector` operationId).
 	DeleteAgentConnector(ctx context.Context, aliasKey AgentAliasKey, connectorId ConnectorId, params *DeleteAgentConnectorParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// GetPublicConnector Get public connector
+	// GetLegacyPublicConnector Get public connector (legacy path)
+	//
+	// Deprecated: read the public view from `GET /v2/agent_aliases/{alias_key}/connectors/{connector_id}/public`. This path serves the same view while embeds already deployed move to that path; it is then repurposed as the authenticated operator read of the full connector.
 	//
 	// The public view of a connector, served unauthenticated to the embed snippet. The snippet carries the alias key and the connector's globally unique id, which expose no agent or customer identifier.
 	// Returns the `customer_id` visitor minting is addressed to, the `presentation` to render, whether anonymous visitors are admitted (`public_access`), and the sign-in configuration when the widget offers one.
 	//
 	// A read with no side effects: minting an anonymous visitor id is a separate call, `POST /v2/visitors`, so a returning visitor who already holds an id only reads this view.
-	// The view tells the client how to authenticate: `public_access` true, mint or present a visitor id; `end_user_sign_in` present, sign the user in through the referenced issuer. A widget may offer both, and the two follow-up calls do not depend on each other.
+	// The view tells the client how to authenticate: `public_access` true — mint or present a visitor id; `end_user_sign_in` present — sign the user in through the referenced issuer. A widget may offer both, and the two follow-up calls do not depend on each other.
 	//
 	// This operation serves only the public projection; operators read the full connector, configuration included, from the connector list.
 	//
-	// Serves connectors that front an end-user surface, today, widget connectors. Returns `404` if the connector does not exist on the addressed alias, is a channel connector with no end-user surface (Slack, Google Chat, or Zoom), is disabled, or belongs to a disabled customer.
+	// Serves connectors that front an end-user surface — today, widget connectors. Returns `404` if the connector does not exist on the addressed alias, is a channel connector with no end-user surface (Slack, Google Chat, or Zoom), is disabled, or belongs to a disabled customer.
 	//
-	// Corresponds with GET /v2/agent_aliases/{alias_key}/connectors/{connector_id} (the `GetPublicConnector` operationId).
-	GetPublicConnector(ctx context.Context, aliasKey AgentAliasKey, connectorId ConnectorId, params *GetPublicConnectorParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// Corresponds with GET /v2/agent_aliases/{alias_key}/connectors/{connector_id} (the `GetLegacyPublicConnector` operationId).
+	//
+	// Deprecated: this operation has been marked as deprecated upstream, but no `x-deprecated-reason` was set
+	GetLegacyPublicConnector(ctx context.Context, aliasKey AgentAliasKey, connectorId ConnectorId, params *GetLegacyPublicConnectorParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// UpdateAgentConnectorWithBody Update agent connector
 	//
@@ -18831,6 +18844,21 @@ type ClientInterface interface {
 	//
 	// Corresponds with PATCH /v2/agent_aliases/{alias_key}/connectors/{connector_id} (the `UpdateAgentConnector` operationId).
 	UpdateAgentConnector(ctx context.Context, aliasKey AgentAliasKey, connectorId ConnectorId, params *UpdateAgentConnectorParams, body UpdateAgentConnectorJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetPublicConnector Get public connector
+	//
+	// The public view of a connector, served unauthenticated to the embed snippet. The snippet carries the alias key and the connector's globally unique id, which expose no agent or customer identifier.
+	// Returns the `customer_id` visitor minting is addressed to, the `presentation` to render, whether anonymous visitors are admitted (`public_access`), and the sign-in configuration when the widget offers one.
+	//
+	// A read with no side effects: minting an anonymous visitor id is a separate call, `POST /v2/visitors`, so a returning visitor who already holds an id only reads this view.
+	// The view tells the client how to authenticate: `public_access` true — mint or present a visitor id; `end_user_sign_in` present — sign the user in through the referenced issuer. A widget may offer both, and the two follow-up calls do not depend on each other.
+	//
+	// This operation serves only the public projection; operators read the full connector, configuration included, from the connector list.
+	//
+	// Serves connectors that front an end-user surface — today, widget connectors. Returns `404` if the connector does not exist on the addressed alias, is a channel connector with no end-user surface (Slack, Google Chat, or Zoom), is disabled, or belongs to a disabled customer.
+	//
+	// Corresponds with GET /v2/agent_aliases/{alias_key}/connectors/{connector_id}/public (the `GetPublicConnector` operationId).
+	GetPublicConnector(ctx context.Context, aliasKey AgentAliasKey, connectorId ConnectorId, params *GetPublicConnectorParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ListEndUserAliasRoutedSessions List end user sessions for alias
 	//
@@ -18903,7 +18931,7 @@ type ClientInterface interface {
 	// Sends a message, an interrupt, or a client tool output to a session the caller owns, addressed by the alias it was created through.
 	// An administrator calling this operation is bound to the sessions it owns like every other caller; the operator endpoints are the administrative view of an alias's sessions.
 	// Returns 403 if the session belongs to a different principal.
-	// The response is projected to the caller's end-user visibility, see `EndUserEvent`.
+	// The response is projected to the caller's end-user visibility — see `EndUserEvent`.
 	// Anonymous widget visitors authenticate by presenting `X-Visitor-Id` instead of an `Authorization` credential; the platform mints an identity holding `agent_end_user` on the addressed alias, which satisfies this operation's role requirement.
 	// Returns `429` when the caller reaches its hourly event cap.
 	//
@@ -18917,7 +18945,7 @@ type ClientInterface interface {
 	// Sends a message, an interrupt, or a client tool output to a session the caller owns, addressed by the alias it was created through.
 	// An administrator calling this operation is bound to the sessions it owns like every other caller; the operator endpoints are the administrative view of an alias's sessions.
 	// Returns 403 if the session belongs to a different principal.
-	// The response is projected to the caller's end-user visibility, see `EndUserEvent`.
+	// The response is projected to the caller's end-user visibility — see `EndUserEvent`.
 	// Anonymous widget visitors authenticate by presenting `X-Visitor-Id` instead of an `Authorization` credential; the platform mints an identity holding `agent_end_user` on the addressed alias, which satisfies this operation's role requirement.
 	// Returns `429` when the caller reaches its hourly event cap.
 	//
@@ -19783,7 +19811,7 @@ type ClientInterface interface {
 	//
 	// Lists the API keys the caller can access. The response shows the corpora each key can access and with what permissions.
 	//
-	// Callers with the `corpus_administrator`, `administrator`, or `owner` role list every API key in the account. Users holding only other roles must set `api_key_role` to `personal` and receive only their own personal key; machine credentials, API keys, app clients, and service accounts, without one of those three roles cannot list keys at all.
+	// Callers with the `corpus_administrator`, `administrator`, or `owner` role list every API key in the account. Users holding only other roles must set `api_key_role` to `personal` and receive only their own personal key; machine credentials — API keys, app clients, and service accounts — without one of those three roles cannot list keys at all.
 	//
 	// Corresponds with GET /v2/api_keys (the `ListApiKeys` operationId).
 	ListApiKeys(ctx context.Context, params *ListApiKeysParams, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -19792,7 +19820,7 @@ type ClientInterface interface {
 	//
 	// Creates an API key. You can bind the key to one or more corpora. A `personal` key has the same permissions as its owner; any other key carries exactly the roles assigned to it with `api_roles`, `corpus_roles`, and `agent_roles`.
 	//
-	// Callers with the `corpus_administrator`, `administrator`, or `owner` role create any API key. Callers holding only other roles must set `api_key_role` to `personal`. Only a user can create a personal API key; a request authenticated with a machine credential, an API key, app client, or service account, receives a `403` error.
+	// Callers with the `corpus_administrator`, `administrator`, or `owner` role create any API key. Callers holding only other roles must set `api_key_role` to `personal`. Only a user can create a personal API key; a request authenticated with a machine credential — an API key, app client, or service account — receives a `403` error.
 	//
 	// :::note
 	// For more information about the different types of API keys, see [API Key Management](/docs/security/authentication/api-key-management).
@@ -19807,7 +19835,7 @@ type ClientInterface interface {
 	//
 	// Creates an API key. You can bind the key to one or more corpora. A `personal` key has the same permissions as its owner; any other key carries exactly the roles assigned to it with `api_roles`, `corpus_roles`, and `agent_roles`.
 	//
-	// Callers with the `corpus_administrator`, `administrator`, or `owner` role create any API key. Callers holding only other roles must set `api_key_role` to `personal`. Only a user can create a personal API key; a request authenticated with a machine credential, an API key, app client, or service account, receives a `403` error.
+	// Callers with the `corpus_administrator`, `administrator`, or `owner` role create any API key. Callers holding only other roles must set `api_key_role` to `personal`. Only a user can create a personal API key; a request authenticated with a machine credential — an API key, app client, or service account — receives a `403` error.
 	//
 	// :::note
 	// For more information about the different types of API keys, see [API Key Management](/docs/security/authentication/api-key-management).
@@ -19822,7 +19850,7 @@ type ClientInterface interface {
 	//
 	// Deletes an API key. Delete a key when it is no longer needed or when it is compromised.
 	//
-	// Users that hold none of the `corpus_administrator`, `administrator`, or `owner` roles can only delete their own personal API key; a key that exists but belongs to another user returns a `404` error. Machine credentials, API keys, app clients, and service accounts, without one of those three roles cannot call this operation.
+	// Users that hold none of the `corpus_administrator`, `administrator`, or `owner` roles can only delete their own personal API key; a key that exists but belongs to another user returns a `404` error. Machine credentials — API keys, app clients, and service accounts — without one of those three roles cannot call this operation.
 	//
 	// Corresponds with DELETE /v2/api_keys/{api_key_id} (the `DeleteApiKey` operationId).
 	DeleteApiKey(ctx context.Context, apiKeyId string, params *DeleteApiKeyParams, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -19831,7 +19859,7 @@ type ClientInterface interface {
 	//
 	// Returns an API key. The response shows the corpora the key can access and with what permissions.
 	//
-	// Users that hold none of the `corpus_administrator`, `administrator`, or `owner` roles can only get their own personal API key; a key that exists but belongs to another user returns a `404` error. Machine credentials, API keys, app clients, and service accounts, without one of those three roles cannot call this operation.
+	// Users that hold none of the `corpus_administrator`, `administrator`, or `owner` roles can only get their own personal API key; a key that exists but belongs to another user returns a `404` error. Machine credentials — API keys, app clients, and service accounts — without one of those three roles cannot call this operation.
 	//
 	// Corresponds with GET /v2/api_keys/{api_key_id} (the `GetApiKey` operationId).
 	GetApiKey(ctx context.Context, apiKeyId string, params *GetApiKeyParams, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -19840,7 +19868,7 @@ type ClientInterface interface {
 	//
 	// Updates an API key. Enable or disable the key to temporarily remove access without deleting the key. This is useful for maintenance windows, or when your team no longer requires access to a specific corpus.
 	//
-	// Users that hold none of the `corpus_administrator`, `administrator`, or `owner` roles can only update their own personal API key; a key that exists but belongs to another user returns a `404` error. Machine credentials, API keys, app clients, and service accounts, without one of those three roles cannot call this operation.
+	// Users that hold none of the `corpus_administrator`, `administrator`, or `owner` roles can only update their own personal API key; a key that exists but belongs to another user returns a `404` error. Machine credentials — API keys, app clients, and service accounts — without one of those three roles cannot call this operation.
 	//
 	// Takes any type of body and a specified content type.
 	//
@@ -19851,7 +19879,7 @@ type ClientInterface interface {
 	//
 	// Updates an API key. Enable or disable the key to temporarily remove access without deleting the key. This is useful for maintenance windows, or when your team no longer requires access to a specific corpus.
 	//
-	// Users that hold none of the `corpus_administrator`, `administrator`, or `owner` roles can only update their own personal API key; a key that exists but belongs to another user returns a `404` error. Machine credentials, API keys, app clients, and service accounts, without one of those three roles cannot call this operation.
+	// Users that hold none of the `corpus_administrator`, `administrator`, or `owner` roles can only update their own personal API key; a key that exists but belongs to another user returns a `404` error. Machine credentials — API keys, app clients, and service accounts — without one of those three roles cannot call this operation.
 	//
 	// Takes a body of the `application/json` content type.
 	//
@@ -20287,8 +20315,8 @@ type ClientInterface interface {
 	// By default, the platform uses **sentence-based chunking**, which provides optimal retrieval accuracy for most datasets.
 	//
 	// For larger documents or performance-tuned ingestion, you can explicitly set a `chunking_strategy`:
-	// - `sentence_chunking_strategy`, creates one chunk per sentence (default).
-	// - `max_chars_chunking_strategy`, creates larger chunks up to a specified character limit (`max_chars_per_chunk`), balancing retrieval speed with contextual coherence.
+	// - `sentence_chunking_strategy` — creates one chunk per sentence (default).
+	// - `max_chars_chunking_strategy` — creates larger chunks up to a specified character limit (`max_chars_per_chunk`), balancing retrieval speed with contextual coherence.
 	//
 	// For content that mixes prose with code, set `preserve_code_blocks: true` on either strategy to emit markdown code blocks as their own chunks, prefixed with the section title, while the surrounding prose is chunked by the strategy as usual. Example: `{"type":"max_chars_chunking_strategy","max_chars_per_chunk":1024,"preserve_code_blocks":true}`
 	//
@@ -20332,8 +20360,8 @@ type ClientInterface interface {
 	// By default, the platform uses **sentence-based chunking**, which provides optimal retrieval accuracy for most datasets.
 	//
 	// For larger documents or performance-tuned ingestion, you can explicitly set a `chunking_strategy`:
-	// - `sentence_chunking_strategy`, creates one chunk per sentence (default).
-	// - `max_chars_chunking_strategy`, creates larger chunks up to a specified character limit (`max_chars_per_chunk`), balancing retrieval speed with contextual coherence.
+	// - `sentence_chunking_strategy` — creates one chunk per sentence (default).
+	// - `max_chars_chunking_strategy` — creates larger chunks up to a specified character limit (`max_chars_per_chunk`), balancing retrieval speed with contextual coherence.
 	//
 	// For content that mixes prose with code, set `preserve_code_blocks: true` on either strategy to emit markdown code blocks as their own chunks, prefixed with the section title, while the surrounding prose is chunked by the strategy as usual. Example: `{"type":"max_chars_chunking_strategy","max_chars_per_chunk":1024,"preserve_code_blocks":true}`
 	//
@@ -20705,7 +20733,7 @@ type ClientInterface interface {
 	//
 	// `generation.prompt_template` (string, optional) - A custom prompt template in JSON format that defines the system and user messages for the LLM. Use this to customize the behavior of the model beyond the preset. The template can include Velocity templates with variables such as `$vectaraQueryResults` to reference retrieved search results. For more information, see [Custom prompts](/docs/prompts/vectara-prompt-engine).
 	//
-	// `generation.max_used_search_results` (integer, optional) - The maximum number of top search results to send to the LLM for summarization. A higher value can create a more detailed summary but can increase response time. **Default**: 5.
+	// `generation.max_used_search_results` (integer, optional) - The maximum number of top search results to send to the LLM for summarization. A higher value can create a more comprehensive summary but can increase response time. **Default**: 5.
 	//
 	// :::caution
 	// A value that is too high can prevent the model from generating a response.
@@ -20873,7 +20901,7 @@ type ClientInterface interface {
 	//
 	// `generation.prompt_template` (string, optional) - A custom prompt template in JSON format that defines the system and user messages for the LLM. Use this to customize the behavior of the model beyond the preset. The template can include Velocity templates with variables such as `$vectaraQueryResults` to reference retrieved search results. For more information, see [Custom prompts](/docs/prompts/vectara-prompt-engine).
 	//
-	// `generation.max_used_search_results` (integer, optional) - The maximum number of top search results to send to the LLM for summarization. A higher value can create a more detailed summary but can increase response time. **Default**: 5.
+	// `generation.max_used_search_results` (integer, optional) - The maximum number of top search results to send to the LLM for summarization. A higher value can create a more comprehensive summary but can increase response time. **Default**: 5.
 	//
 	// :::caution
 	// A value that is too high can prevent the model from generating a response.
@@ -21703,7 +21731,7 @@ type ClientInterface interface {
 	// }
 	// ```
 	//
-	// ### Google Vertex AI (Gemini), Service Account
+	// ### Google Vertex AI (Gemini) — Service Account
 	//
 	// **Type:** `vertex-ai`
 	// **Models:** gemini-2.5-pro, gemini-2.5-flash
@@ -21722,7 +21750,7 @@ type ClientInterface interface {
 	// }
 	// ```
 	//
-	// ### Google AI Studio (Gemini), API Key
+	// ### Google AI Studio (Gemini) — API Key
 	//
 	// **Type:** `vertex-ai`
 	// **Models:** gemini-2.5-pro, gemini-2.5-flash
@@ -21741,7 +21769,7 @@ type ClientInterface interface {
 	// }
 	// ```
 	//
-	// The `uri` field is flexible, you can provide a base URI or a full URL copied from Google docs
+	// The `uri` field is flexible — you can provide a base URI or a full URL copied from Google docs
 	// (including model path and `:generateContent` suffix). The platform normalizes it automatically.
 	//
 	// ### Custom OpenAI-Compatible
@@ -21855,7 +21883,7 @@ type ClientInterface interface {
 	// }
 	// ```
 	//
-	// ### Google Vertex AI (Gemini), Service Account
+	// ### Google Vertex AI (Gemini) — Service Account
 	//
 	// **Type:** `vertex-ai`
 	// **Models:** gemini-2.5-pro, gemini-2.5-flash
@@ -21874,7 +21902,7 @@ type ClientInterface interface {
 	// }
 	// ```
 	//
-	// ### Google AI Studio (Gemini), API Key
+	// ### Google AI Studio (Gemini) — API Key
 	//
 	// **Type:** `vertex-ai`
 	// **Models:** gemini-2.5-pro, gemini-2.5-flash
@@ -21893,7 +21921,7 @@ type ClientInterface interface {
 	// }
 	// ```
 	//
-	// The `uri` field is flexible, you can provide a base URI or a full URL copied from Google docs
+	// The `uri` field is flexible — you can provide a base URI or a full URL copied from Google docs
 	// (including model path and `:generateContent` suffix). The platform normalizes it automatically.
 	//
 	// ### Custom OpenAI-Compatible
@@ -22046,7 +22074,7 @@ type ClientInterface interface {
 	//
 	// Nothing is persisted. Combine a returned candidate with a `name` and the credential you supplied here and submit it to `POST /v2/llms`.
 	//
-	// Discovery live-tests at most three models per detected endpoint, with both OpenAI dialects probed, at most six upstream generation calls, and returns every usable model the endpoint advertises.
+	// Discovery live-tests at most three models per detected endpoint — with both OpenAI dialects probed, at most six upstream generation calls — and returns every usable model the endpoint advertises.
 	//
 	// Takes any type of body and a specified content type.
 	//
@@ -22059,7 +22087,7 @@ type ClientInterface interface {
 	//
 	// Nothing is persisted. Combine a returned candidate with a `name` and the credential you supplied here and submit it to `POST /v2/llms`.
 	//
-	// Discovery live-tests at most three models per detected endpoint, with both OpenAI dialects probed, at most six upstream generation calls, and returns every usable model the endpoint advertises.
+	// Discovery live-tests at most three models per detected endpoint — with both OpenAI dialects probed, at most six upstream generation calls — and returns every usable model the endpoint advertises.
 	//
 	// Takes a body of the `application/json` content type.
 	//
@@ -22312,7 +22340,7 @@ type ClientInterface interface {
 
 	// ListPipelineRunEvents List pipeline run events
 	//
-	// Lists the timeline of events for a pipeline run, keyed by `run_id`. Events report what the run did, records discovered, records processed, agent sessions created, dead letters, watermark advances, and lifecycle transitions. The terminal `run_completed` event is present once a run finishes. A run that ended abruptly surfaces as `failed`. The event agrees with the run's `status` field, which is the authoritative terminal signal.
+	// Lists the timeline of events for a pipeline run, keyed by `run_id`. Events report what the run did — records discovered, records processed, agent sessions created, dead letters, watermark advances, and lifecycle transitions. The terminal `run_completed` event is present once a run finishes. A run that ended abruptly surfaces as `failed`. The event agrees with the run's `status` field, which is the authoritative terminal signal.
 	//
 	// Corresponds with GET /v2/pipelines/{pipeline_key}/runs/{run_id}/events (the `ListPipelineRunEvents` operationId).
 	ListPipelineRunEvents(ctx context.Context, pipelineKey PipelineKey, runId PipelineRunId, params *ListPipelineRunEventsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -22745,9 +22773,9 @@ type ClientInterface interface {
 	// Mints the anonymous identity a widget visitor presents as `X-Visitor-Id` on `/v2/agent_aliases/{alias_key}/end_user_sessions` requests, naming a connector in the session create body.
 	// No credential is required. The `X-Customer-Id` header carries the `customer_id` served by the public connector view; the minted id is scoped to that customer and authenticates the same visitor on any of the customer's widgets that admit anonymous visitors.
 	//
-	// Call this only when the client holds no visitor id. The id never expires, store it durably; it is the only proof of ownership of the sessions it creates, and a repeat call mints a fresh identity that owns none of the previous identity's sessions.
+	// Call this only when the client holds no visitor id. The id never expires — store it durably; it is the only proof of ownership of the sessions it creates, and a repeat call mints a fresh identity that owns none of the previous identity's sessions.
 	//
-	// Returns `404` when the customer does not exist, is disabled, or has no enabled widget connector that admits anonymous visitors, one indistinguishable refusal, so the endpoint confirms nothing about which customer ids exist.
+	// Returns `404` when the customer does not exist, is disabled, or has no enabled widget connector that admits anonymous visitors — one indistinguishable refusal, so the endpoint confirms nothing about which customer ids exist.
 	//
 	// Corresponds with POST /v2/visitors (the `CreateVisitor` operationId).
 	CreateVisitor(ctx context.Context, params *CreateVisitorParams, reqEditors ...RequestEditorFn) (*http.Response, error)

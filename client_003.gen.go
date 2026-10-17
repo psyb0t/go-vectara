@@ -76,9 +76,9 @@ func (c *Client) ListAgentAliases(ctx context.Context, params *ListAgentAliasesP
 // Creates an alias. An alias maps a public name to one or more underlying agents under a configurable policy. When you create a session through an alias (via `POST /v2/agent_aliases/{alias_key}/sessions`), the alias's policy selects the underlying agent that runs the session.
 //
 // Common patterns:
-// - **Direct alias**, a `routed` policy with one rule and one target. Identical in behavior to invoking the agent directly.
-// - **Canary rollout**, a `routed` policy with one rule and multiple weighted targets (e.g. 90% v1, 10% v2).
-// - **Tenant routing**, a `routed` policy with multiple rules, each matching on session metadata (e.g. `session.metadata.tenant`).
+// - **Direct alias** — a `routed` policy with one rule and one target. Identical in behavior to invoking the agent directly.
+// - **Canary rollout** — a `routed` policy with one rule and multiple weighted targets (e.g. 90% v1, 10% v2).
+// - **Tenant routing** — a `routed` policy with multiple rules, each matching on session metadata (e.g. `session.metadata.tenant`).
 //
 // Takes any type of body and a specified content type.
 //
@@ -100,9 +100,9 @@ func (c *Client) CreateAgentAliasWithBody(ctx context.Context, params *CreateAge
 // Creates an alias. An alias maps a public name to one or more underlying agents under a configurable policy. When you create a session through an alias (via `POST /v2/agent_aliases/{alias_key}/sessions`), the alias's policy selects the underlying agent that runs the session.
 //
 // Common patterns:
-// - **Direct alias**, a `routed` policy with one rule and one target. Identical in behavior to invoking the agent directly.
-// - **Canary rollout**, a `routed` policy with one rule and multiple weighted targets (e.g. 90% v1, 10% v2).
-// - **Tenant routing**, a `routed` policy with multiple rules, each matching on session metadata (e.g. `session.metadata.tenant`).
+// - **Direct alias** — a `routed` policy with one rule and one target. Identical in behavior to invoking the agent directly.
+// - **Canary rollout** — a `routed` policy with one rule and multiple weighted targets (e.g. 90% v1, 10% v2).
+// - **Tenant routing** — a `routed` policy with multiple rules, each matching on session metadata (e.g. `session.metadata.tenant`).
 //
 // Takes a body of the `application/json` content type.
 //
@@ -263,21 +263,24 @@ func (c *Client) DeleteAgentConnector(ctx context.Context, aliasKey AgentAliasKe
 	return c.Client.Do(req)
 }
 
-// GetPublicConnector Get public connector
+// GetLegacyPublicConnector Get public connector (legacy path)
+//
+// Deprecated: read the public view from `GET /v2/agent_aliases/{alias_key}/connectors/{connector_id}/public`. This path serves the same view while embeds already deployed move to that path; it is then repurposed as the authenticated operator read of the full connector.
 //
 // The public view of a connector, served unauthenticated to the embed snippet. The snippet carries the alias key and the connector's globally unique id, which expose no agent or customer identifier.
 // Returns the `customer_id` visitor minting is addressed to, the `presentation` to render, whether anonymous visitors are admitted (`public_access`), and the sign-in configuration when the widget offers one.
 //
 // A read with no side effects: minting an anonymous visitor id is a separate call, `POST /v2/visitors`, so a returning visitor who already holds an id only reads this view.
-// The view tells the client how to authenticate: `public_access` true, mint or present a visitor id; `end_user_sign_in` present, sign the user in through the referenced issuer. A widget may offer both, and the two follow-up calls do not depend on each other.
+// The view tells the client how to authenticate: `public_access` true — mint or present a visitor id; `end_user_sign_in` present — sign the user in through the referenced issuer. A widget may offer both, and the two follow-up calls do not depend on each other.
 //
 // This operation serves only the public projection; operators read the full connector, configuration included, from the connector list.
 //
-// Serves connectors that front an end-user surface, today, widget connectors. Returns `404` if the connector does not exist on the addressed alias, is a channel connector with no end-user surface (Slack, Google Chat, or Zoom), is disabled, or belongs to a disabled customer.
+// Serves connectors that front an end-user surface — today, widget connectors. Returns `404` if the connector does not exist on the addressed alias, is a channel connector with no end-user surface (Slack, Google Chat, or Zoom), is disabled, or belongs to a disabled customer.
 //
-// Corresponds with GET /v2/agent_aliases/{alias_key}/connectors/{connector_id} (the `GetPublicConnector` operationId).
-func (c *Client) GetPublicConnector(ctx context.Context, aliasKey AgentAliasKey, connectorId ConnectorId, params *GetPublicConnectorParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetPublicConnectorRequest(c.Server, aliasKey, connectorId, params)
+// Corresponds with GET /v2/agent_aliases/{alias_key}/connectors/{connector_id} (the `GetLegacyPublicConnector` operationId).
+// Deprecated: this operation has been marked as deprecated upstream, but no `x-deprecated-reason` was set
+func (c *Client) GetLegacyPublicConnector(ctx context.Context, aliasKey AgentAliasKey, connectorId ConnectorId, params *GetLegacyPublicConnectorParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetLegacyPublicConnectorRequest(c.Server, aliasKey, connectorId, params)
 	if err != nil {
 		return nil, err
 	}
@@ -316,6 +319,31 @@ func (c *Client) UpdateAgentConnectorWithBody(ctx context.Context, aliasKey Agen
 // Corresponds with PATCH /v2/agent_aliases/{alias_key}/connectors/{connector_id} (the `UpdateAgentConnector` operationId).
 func (c *Client) UpdateAgentConnector(ctx context.Context, aliasKey AgentAliasKey, connectorId ConnectorId, params *UpdateAgentConnectorParams, body UpdateAgentConnectorJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewUpdateAgentConnectorRequest(c.Server, aliasKey, connectorId, params, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+// GetPublicConnector Get public connector
+//
+// The public view of a connector, served unauthenticated to the embed snippet. The snippet carries the alias key and the connector's globally unique id, which expose no agent or customer identifier.
+// Returns the `customer_id` visitor minting is addressed to, the `presentation` to render, whether anonymous visitors are admitted (`public_access`), and the sign-in configuration when the widget offers one.
+//
+// A read with no side effects: minting an anonymous visitor id is a separate call, `POST /v2/visitors`, so a returning visitor who already holds an id only reads this view.
+// The view tells the client how to authenticate: `public_access` true — mint or present a visitor id; `end_user_sign_in` present — sign the user in through the referenced issuer. A widget may offer both, and the two follow-up calls do not depend on each other.
+//
+// This operation serves only the public projection; operators read the full connector, configuration included, from the connector list.
+//
+// Serves connectors that front an end-user surface — today, widget connectors. Returns `404` if the connector does not exist on the addressed alias, is a channel connector with no end-user surface (Slack, Google Chat, or Zoom), is disabled, or belongs to a disabled customer.
+//
+// Corresponds with GET /v2/agent_aliases/{alias_key}/connectors/{connector_id}/public (the `GetPublicConnector` operationId).
+func (c *Client) GetPublicConnector(ctx context.Context, aliasKey AgentAliasKey, connectorId ConnectorId, params *GetPublicConnectorParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetPublicConnectorRequest(c.Server, aliasKey, connectorId, params)
 	if err != nil {
 		return nil, err
 	}
@@ -457,7 +485,7 @@ func (c *Client) ListEndUserAliasRoutedEvents(ctx context.Context, aliasKey Agen
 // Sends a message, an interrupt, or a client tool output to a session the caller owns, addressed by the alias it was created through.
 // An administrator calling this operation is bound to the sessions it owns like every other caller; the operator endpoints are the administrative view of an alias's sessions.
 // Returns 403 if the session belongs to a different principal.
-// The response is projected to the caller's end-user visibility, see `EndUserEvent`.
+// The response is projected to the caller's end-user visibility — see `EndUserEvent`.
 // Anonymous widget visitors authenticate by presenting `X-Visitor-Id` instead of an `Authorization` credential; the platform mints an identity holding `agent_end_user` on the addressed alias, which satisfies this operation's role requirement.
 // Returns `429` when the caller reaches its hourly event cap.
 //
@@ -481,7 +509,7 @@ func (c *Client) CreateEndUserAliasRoutedInputWithBody(ctx context.Context, alia
 // Sends a message, an interrupt, or a client tool output to a session the caller owns, addressed by the alias it was created through.
 // An administrator calling this operation is bound to the sessions it owns like every other caller; the operator endpoints are the administrative view of an alias's sessions.
 // Returns 403 if the session belongs to a different principal.
-// The response is projected to the caller's end-user visibility, see `EndUserEvent`.
+// The response is projected to the caller's end-user visibility — see `EndUserEvent`.
 // Anonymous widget visitors authenticate by presenting `X-Visitor-Id` instead of an `Authorization` credential; the platform mints an identity holding `agent_end_user` on the addressed alias, which satisfies this operation's role requirement.
 // Returns `429` when the caller reaches its hourly event cap.
 //
@@ -2215,7 +2243,7 @@ func (c *Client) SubscribeA2aV03Task(ctx context.Context, agentKey AgentKey, tas
 //
 // Lists the API keys the caller can access. The response shows the corpora each key can access and with what permissions.
 //
-// Callers with the `corpus_administrator`, `administrator`, or `owner` role list every API key in the account. Users holding only other roles must set `api_key_role` to `personal` and receive only their own personal key; machine credentials, API keys, app clients, and service accounts, without one of those three roles cannot list keys at all.
+// Callers with the `corpus_administrator`, `administrator`, or `owner` role list every API key in the account. Users holding only other roles must set `api_key_role` to `personal` and receive only their own personal key; machine credentials — API keys, app clients, and service accounts — without one of those three roles cannot list keys at all.
 //
 // Corresponds with GET /v2/api_keys (the `ListApiKeys` operationId).
 func (c *Client) ListApiKeys(ctx context.Context, params *ListApiKeysParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
@@ -2234,7 +2262,7 @@ func (c *Client) ListApiKeys(ctx context.Context, params *ListApiKeysParams, req
 //
 // Creates an API key. You can bind the key to one or more corpora. A `personal` key has the same permissions as its owner; any other key carries exactly the roles assigned to it with `api_roles`, `corpus_roles`, and `agent_roles`.
 //
-// Callers with the `corpus_administrator`, `administrator`, or `owner` role create any API key. Callers holding only other roles must set `api_key_role` to `personal`. Only a user can create a personal API key; a request authenticated with a machine credential, an API key, app client, or service account, receives a `403` error.
+// Callers with the `corpus_administrator`, `administrator`, or `owner` role create any API key. Callers holding only other roles must set `api_key_role` to `personal`. Only a user can create a personal API key; a request authenticated with a machine credential — an API key, app client, or service account — receives a `403` error.
 //
 // :::note
 // For more information about the different types of API keys, see [API Key Management](/docs/security/authentication/api-key-management).
@@ -2259,7 +2287,7 @@ func (c *Client) CreateApiKeyWithBody(ctx context.Context, params *CreateApiKeyP
 //
 // Creates an API key. You can bind the key to one or more corpora. A `personal` key has the same permissions as its owner; any other key carries exactly the roles assigned to it with `api_roles`, `corpus_roles`, and `agent_roles`.
 //
-// Callers with the `corpus_administrator`, `administrator`, or `owner` role create any API key. Callers holding only other roles must set `api_key_role` to `personal`. Only a user can create a personal API key; a request authenticated with a machine credential, an API key, app client, or service account, receives a `403` error.
+// Callers with the `corpus_administrator`, `administrator`, or `owner` role create any API key. Callers holding only other roles must set `api_key_role` to `personal`. Only a user can create a personal API key; a request authenticated with a machine credential — an API key, app client, or service account — receives a `403` error.
 //
 // :::note
 // For more information about the different types of API keys, see [API Key Management](/docs/security/authentication/api-key-management).
@@ -2284,7 +2312,7 @@ func (c *Client) CreateApiKey(ctx context.Context, params *CreateApiKeyParams, b
 //
 // Deletes an API key. Delete a key when it is no longer needed or when it is compromised.
 //
-// Users that hold none of the `corpus_administrator`, `administrator`, or `owner` roles can only delete their own personal API key; a key that exists but belongs to another user returns a `404` error. Machine credentials, API keys, app clients, and service accounts, without one of those three roles cannot call this operation.
+// Users that hold none of the `corpus_administrator`, `administrator`, or `owner` roles can only delete their own personal API key; a key that exists but belongs to another user returns a `404` error. Machine credentials — API keys, app clients, and service accounts — without one of those three roles cannot call this operation.
 //
 // Corresponds with DELETE /v2/api_keys/{api_key_id} (the `DeleteApiKey` operationId).
 func (c *Client) DeleteApiKey(ctx context.Context, apiKeyId string, params *DeleteApiKeyParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
@@ -2303,7 +2331,7 @@ func (c *Client) DeleteApiKey(ctx context.Context, apiKeyId string, params *Dele
 //
 // Returns an API key. The response shows the corpora the key can access and with what permissions.
 //
-// Users that hold none of the `corpus_administrator`, `administrator`, or `owner` roles can only get their own personal API key; a key that exists but belongs to another user returns a `404` error. Machine credentials, API keys, app clients, and service accounts, without one of those three roles cannot call this operation.
+// Users that hold none of the `corpus_administrator`, `administrator`, or `owner` roles can only get their own personal API key; a key that exists but belongs to another user returns a `404` error. Machine credentials — API keys, app clients, and service accounts — without one of those three roles cannot call this operation.
 //
 // Corresponds with GET /v2/api_keys/{api_key_id} (the `GetApiKey` operationId).
 func (c *Client) GetApiKey(ctx context.Context, apiKeyId string, params *GetApiKeyParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
@@ -2322,7 +2350,7 @@ func (c *Client) GetApiKey(ctx context.Context, apiKeyId string, params *GetApiK
 //
 // Updates an API key. Enable or disable the key to temporarily remove access without deleting the key. This is useful for maintenance windows, or when your team no longer requires access to a specific corpus.
 //
-// Users that hold none of the `corpus_administrator`, `administrator`, or `owner` roles can only update their own personal API key; a key that exists but belongs to another user returns a `404` error. Machine credentials, API keys, app clients, and service accounts, without one of those three roles cannot call this operation.
+// Users that hold none of the `corpus_administrator`, `administrator`, or `owner` roles can only update their own personal API key; a key that exists but belongs to another user returns a `404` error. Machine credentials — API keys, app clients, and service accounts — without one of those three roles cannot call this operation.
 //
 // Takes any type of body and a specified content type.
 //
@@ -2343,7 +2371,7 @@ func (c *Client) UpdateApiKeyWithBody(ctx context.Context, apiKeyId string, para
 //
 // Updates an API key. Enable or disable the key to temporarily remove access without deleting the key. This is useful for maintenance windows, or when your team no longer requires access to a specific corpus.
 //
-// Users that hold none of the `corpus_administrator`, `administrator`, or `owner` roles can only update their own personal API key; a key that exists but belongs to another user returns a `404` error. Machine credentials, API keys, app clients, and service accounts, without one of those three roles cannot call this operation.
+// Users that hold none of the `corpus_administrator`, `administrator`, or `owner` roles can only update their own personal API key; a key that exists but belongs to another user returns a `404` error. Machine credentials — API keys, app clients, and service accounts — without one of those three roles cannot call this operation.
 //
 // Takes a body of the `application/json` content type.
 //
@@ -3087,8 +3115,8 @@ func (c *Client) BulkUpdateCorpusDocumentMetadata(ctx context.Context, corpusKey
 // By default, the platform uses **sentence-based chunking**, which provides optimal retrieval accuracy for most datasets.
 //
 // For larger documents or performance-tuned ingestion, you can explicitly set a `chunking_strategy`:
-// - `sentence_chunking_strategy`, creates one chunk per sentence (default).
-// - `max_chars_chunking_strategy`, creates larger chunks up to a specified character limit (`max_chars_per_chunk`), balancing retrieval speed with contextual coherence.
+// - `sentence_chunking_strategy` — creates one chunk per sentence (default).
+// - `max_chars_chunking_strategy` — creates larger chunks up to a specified character limit (`max_chars_per_chunk`), balancing retrieval speed with contextual coherence.
 //
 // For content that mixes prose with code, set `preserve_code_blocks: true` on either strategy to emit markdown code blocks as their own chunks, prefixed with the section title, while the surrounding prose is chunked by the strategy as usual. Example: `{"type":"max_chars_chunking_strategy","max_chars_per_chunk":1024,"preserve_code_blocks":true}`
 //
@@ -3142,8 +3170,8 @@ func (c *Client) CreateCorpusDocumentWithBody(ctx context.Context, corpusKey Cor
 // By default, the platform uses **sentence-based chunking**, which provides optimal retrieval accuracy for most datasets.
 //
 // For larger documents or performance-tuned ingestion, you can explicitly set a `chunking_strategy`:
-// - `sentence_chunking_strategy`, creates one chunk per sentence (default).
-// - `max_chars_chunking_strategy`, creates larger chunks up to a specified character limit (`max_chars_per_chunk`), balancing retrieval speed with contextual coherence.
+// - `sentence_chunking_strategy` — creates one chunk per sentence (default).
+// - `max_chars_chunking_strategy` — creates larger chunks up to a specified character limit (`max_chars_per_chunk`), balancing retrieval speed with contextual coherence.
 //
 // For content that mixes prose with code, set `preserve_code_blocks: true` on either strategy to emit markdown code blocks as their own chunks, prefixed with the section title, while the surrounding prose is chunked by the strategy as usual. Example: `{"type":"max_chars_chunking_strategy","max_chars_per_chunk":1024,"preserve_code_blocks":true}`
 //
@@ -3664,7 +3692,7 @@ func (c *Client) SearchCorpus(ctx context.Context, corpusKey CorpusKey, params *
 //
 // `generation.prompt_template` (string, optional) - A custom prompt template in JSON format that defines the system and user messages for the LLM. Use this to customize the behavior of the model beyond the preset. The template can include Velocity templates with variables such as `$vectaraQueryResults` to reference retrieved search results. For more information, see [Custom prompts](/docs/prompts/vectara-prompt-engine).
 //
-// `generation.max_used_search_results` (integer, optional) - The maximum number of top search results to send to the LLM for summarization. A higher value can create a more detailed summary but can increase response time. **Default**: 5.
+// `generation.max_used_search_results` (integer, optional) - The maximum number of top search results to send to the LLM for summarization. A higher value can create a more comprehensive summary but can increase response time. **Default**: 5.
 //
 // :::caution
 // A value that is too high can prevent the model from generating a response.
@@ -3851,7 +3879,7 @@ func (c *Client) QueryCorpusWithBody(ctx context.Context, corpusKey CorpusKey, p
 //
 // `generation.prompt_template` (string, optional) - A custom prompt template in JSON format that defines the system and user messages for the LLM. Use this to customize the behavior of the model beyond the preset. The template can include Velocity templates with variables such as `$vectaraQueryResults` to reference retrieved search results. For more information, see [Custom prompts](/docs/prompts/vectara-prompt-engine).
 //
-// `generation.max_used_search_results` (integer, optional) - The maximum number of top search results to send to the LLM for summarization. A higher value can create a more detailed summary but can increase response time. **Default**: 5.
+// `generation.max_used_search_results` (integer, optional) - The maximum number of top search results to send to the LLM for summarization. A higher value can create a more comprehensive summary but can increase response time. **Default**: 5.
 //
 // :::caution
 // A value that is too high can prevent the model from generating a response.
@@ -5149,7 +5177,7 @@ func (c *Client) ListLLMs(ctx context.Context, params *ListLLMsParams, reqEditor
 //
 // ```
 //
-// ### Google Vertex AI (Gemini), Service Account
+// ### Google Vertex AI (Gemini) — Service Account
 //
 // **Type:** `vertex-ai`
 // **Models:** gemini-2.5-pro, gemini-2.5-flash
@@ -5170,7 +5198,7 @@ func (c *Client) ListLLMs(ctx context.Context, params *ListLLMsParams, reqEditor
 //
 // ```
 //
-// ### Google AI Studio (Gemini), API Key
+// ### Google AI Studio (Gemini) — API Key
 //
 // **Type:** `vertex-ai`
 // **Models:** gemini-2.5-pro, gemini-2.5-flash
@@ -5191,7 +5219,7 @@ func (c *Client) ListLLMs(ctx context.Context, params *ListLLMsParams, reqEditor
 //
 // ```
 //
-// The `uri` field is flexible, you can provide a base URI or a full URL copied from Google docs
+// The `uri` field is flexible — you can provide a base URI or a full URL copied from Google docs
 // (including model path and `:generateContent` suffix). The platform normalizes it automatically.
 //
 // ### Custom OpenAI-Compatible
@@ -5325,7 +5353,7 @@ func (c *Client) CreateLLMWithBody(ctx context.Context, params *CreateLLMParams,
 //
 // ```
 //
-// ### Google Vertex AI (Gemini), Service Account
+// ### Google Vertex AI (Gemini) — Service Account
 //
 // **Type:** `vertex-ai`
 // **Models:** gemini-2.5-pro, gemini-2.5-flash
@@ -5346,7 +5374,7 @@ func (c *Client) CreateLLMWithBody(ctx context.Context, params *CreateLLMParams,
 //
 // ```
 //
-// ### Google AI Studio (Gemini), API Key
+// ### Google AI Studio (Gemini) — API Key
 //
 // **Type:** `vertex-ai`
 // **Models:** gemini-2.5-pro, gemini-2.5-flash
@@ -5367,7 +5395,7 @@ func (c *Client) CreateLLMWithBody(ctx context.Context, params *CreateLLMParams,
 //
 // ```
 //
-// The `uri` field is flexible, you can provide a base URI or a full URL copied from Google docs
+// The `uri` field is flexible — you can provide a base URI or a full URL copied from Google docs
 // (including model path and `:generateContent` suffix). The platform normalizes it automatically.
 //
 // ### Custom OpenAI-Compatible
@@ -5564,7 +5592,7 @@ func (c *Client) CreateChatCompletion(ctx context.Context, params *CreateChatCom
 //
 // Nothing is persisted. Combine a returned candidate with a `name` and the credential you supplied here and submit it to `POST /v2/llms`.
 //
-// Discovery live-tests at most three models per detected endpoint, with both OpenAI dialects probed, at most six upstream generation calls, and returns every usable model the endpoint advertises.
+// Discovery live-tests at most three models per detected endpoint — with both OpenAI dialects probed, at most six upstream generation calls — and returns every usable model the endpoint advertises.
 //
 // Takes any type of body and a specified content type.
 //
@@ -5587,7 +5615,7 @@ func (c *Client) DiscoverLLMsWithBody(ctx context.Context, params *DiscoverLLMsP
 //
 // Nothing is persisted. Combine a returned candidate with a `name` and the credential you supplied here and submit it to `POST /v2/llms`.
 //
-// Discovery live-tests at most three models per detected endpoint, with both OpenAI dialects probed, at most six upstream generation calls, and returns every usable model the endpoint advertises.
+// Discovery live-tests at most three models per detected endpoint — with both OpenAI dialects probed, at most six upstream generation calls — and returns every usable model the endpoint advertises.
 //
 // Takes a body of the `application/json` content type.
 //
@@ -6100,7 +6128,7 @@ func (c *Client) CancelPipelineRun(ctx context.Context, pipelineKey PipelineKey,
 
 // ListPipelineRunEvents List pipeline run events
 //
-// Lists the timeline of events for a pipeline run, keyed by `run_id`. Events report what the run did, records discovered, records processed, agent sessions created, dead letters, watermark advances, and lifecycle transitions. The terminal `run_completed` event is present once a run finishes. A run that ended abruptly surfaces as `failed`. The event agrees with the run's `status` field, which is the authoritative terminal signal.
+// Lists the timeline of events for a pipeline run, keyed by `run_id`. Events report what the run did — records discovered, records processed, agent sessions created, dead letters, watermark advances, and lifecycle transitions. The terminal `run_completed` event is present once a run finishes. A run that ended abruptly surfaces as `failed`. The event agrees with the run's `status` field, which is the authoritative terminal signal.
 //
 // Corresponds with GET /v2/pipelines/{pipeline_key}/runs/{run_id}/events (the `ListPipelineRunEvents` operationId).
 func (c *Client) ListPipelineRunEvents(ctx context.Context, pipelineKey PipelineKey, runId PipelineRunId, params *ListPipelineRunEventsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
@@ -6953,9 +6981,9 @@ func (c *Client) ResetUserPassword(ctx context.Context, username string, params 
 // Mints the anonymous identity a widget visitor presents as `X-Visitor-Id` on `/v2/agent_aliases/{alias_key}/end_user_sessions` requests, naming a connector in the session create body.
 // No credential is required. The `X-Customer-Id` header carries the `customer_id` served by the public connector view; the minted id is scoped to that customer and authenticates the same visitor on any of the customer's widgets that admit anonymous visitors.
 //
-// Call this only when the client holds no visitor id. The id never expires, store it durably; it is the only proof of ownership of the sessions it creates, and a repeat call mints a fresh identity that owns none of the previous identity's sessions.
+// Call this only when the client holds no visitor id. The id never expires — store it durably; it is the only proof of ownership of the sessions it creates, and a repeat call mints a fresh identity that owns none of the previous identity's sessions.
 //
-// Returns `404` when the customer does not exist, is disabled, or has no enabled widget connector that admits anonymous visitors, one indistinguishable refusal, so the endpoint confirms nothing about which customer ids exist.
+// Returns `404` when the customer does not exist, is disabled, or has no enabled widget connector that admits anonymous visitors — one indistinguishable refusal, so the endpoint confirms nothing about which customer ids exist.
 //
 // Corresponds with POST /v2/visitors (the `CreateVisitor` operationId).
 func (c *Client) CreateVisitor(ctx context.Context, params *CreateVisitorParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
@@ -7660,8 +7688,8 @@ func NewDeleteAgentConnectorRequest(server string, aliasKey AgentAliasKey, conne
 	return req, nil
 }
 
-// NewGetPublicConnectorRequest constructs an http.Request for the GetPublicConnector method
-func NewGetPublicConnectorRequest(server string, aliasKey AgentAliasKey, connectorId ConnectorId, params *GetPublicConnectorParams) (*http.Request, error) {
+// NewGetLegacyPublicConnectorRequest constructs an http.Request for the GetLegacyPublicConnector method
+func NewGetLegacyPublicConnectorRequest(server string, aliasKey AgentAliasKey, connectorId ConnectorId, params *GetLegacyPublicConnectorParams) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -7777,6 +7805,73 @@ func NewUpdateAgentConnectorRequestWithBody(server string, aliasKey AgentAliasKe
 	}
 
 	req.Header.Add("Content-Type", contentType)
+
+	if params != nil {
+
+		if params.RequestTimeout != nil {
+			var headerParam0 string
+
+			headerParam0, err = runtime.StyleParamWithOptions("simple", false, "Request-Timeout", *params.RequestTimeout, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationHeader, Type: "integer", Format: ""})
+			if err != nil {
+				return nil, err
+			}
+
+			req.Header.Set("Request-Timeout", headerParam0)
+		}
+
+		if params.RequestTimeoutMillis != nil {
+			var headerParam1 string
+
+			headerParam1, err = runtime.StyleParamWithOptions("simple", false, "Request-Timeout-Millis", *params.RequestTimeoutMillis, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationHeader, Type: "integer", Format: ""})
+			if err != nil {
+				return nil, err
+			}
+
+			req.Header.Set("Request-Timeout-Millis", headerParam1)
+		}
+
+	}
+
+	return req, nil
+}
+
+// NewGetPublicConnectorRequest constructs an http.Request for the GetPublicConnector method
+func NewGetPublicConnectorRequest(server string, aliasKey AgentAliasKey, connectorId ConnectorId, params *GetPublicConnectorParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "alias_key", aliasKey, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: ""})
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithOptions("simple", false, "connector_id", connectorId, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: ""})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/v2/agent_aliases/%s/connectors/%s/public", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodGet, queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
 
 	if params != nil {
 
