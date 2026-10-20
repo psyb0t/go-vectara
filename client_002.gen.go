@@ -17,6 +17,44 @@ import (
 	openapi_types "github.com/oapi-codegen/runtime/types"
 )
 
+// UpdateWolkenFormsSourceConfiguration Partial update for Wolken forms source configuration. Only provided fields are merged.
+type UpdateWolkenFormsSourceConfiguration = BaseWolkenFormsSourceConfiguration
+
+// UpdateWolkenKbSourceConfiguration Partial update for Wolken source configuration. Only provided fields are merged.
+type UpdateWolkenKbSourceConfiguration = BaseWolkenKbSourceConfiguration
+
+// UpdateWolkenTicketsSourceConfiguration Partial update for Wolken tickets source configuration. Only provided fields are merged.
+// An update cannot return `backfill_window` or `note_response_type_ids` to its unset state.
+// A `null` value for either is accepted and ignored, keeping the stored value, and an empty
+// `note_response_type_ids` is not a reset but the distinct no-notes state. To unset either
+// field, replace the pipeline with `PUT /v2/pipelines/{pipeline_key}` using a configuration
+// that omits it.
+type UpdateWolkenTicketsSourceConfiguration = BaseWolkenTicketsSourceConfiguration
+
+// UploadFileRequest Request to upload and index a file into a corpus within a customer account.
+//
+// Example: {"chunking_strategy":{"type":"sentence_chunking_strategy"},"file":"system_design_v1.pdf","filename":"system_design_v1.pdf","metadata":{"department\"":"engineering","doc_type\"":"architecture_diagram"},"table_extraction_config":{"extract_tables":true}}
+type UploadFileRequest struct {
+	// ChunkingStrategy Chooses how to split documents into chunks during indexing. This is optional. If you do not set a chunking strategy, the platform uses the default strategy, which creates one chunk (docpart) per sentence.
+	ChunkingStrategy *ChunkingStrategy `json:"chunking_strategy,omitempty"`
+
+	// File Binary file contents. The filename of the file becomes the document ID.
+	File openapi_types.File `json:"file"`
+
+	// Filename Optional multipart section to override the filename.
+	//
+	// Example: system_design_v1.pdf
+	Filename *string `json:"filename,omitempty"`
+
+	// Metadata Arbitrary object that is attached as document metadata to the extracted document.
+	//
+	// Example: {"department":"engineering","doc_type\"":"architecture_diagram"}
+	Metadata *map[string]interface{} `json:"metadata,omitempty"`
+
+	// TableExtractionConfig Configuration for table extraction from the document. This configuration is optional. If omitted, the platform does not extract tables from PDF files.
+	TableExtractionConfig *TableExtractionConfig `json:"table_extraction_config,omitempty"`
+}
+
 // UpsertGlossaryEntriesRequest Request to upsert entries into a glossary in bulk. Entries with existing terms are updated; new terms are inserted.
 // The platform rebuilds the glossary index after the upsert. Agents use the updated glossary after the rebuild completes.
 type UpsertGlossaryEntriesRequest struct {

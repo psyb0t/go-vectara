@@ -15,6 +15,46 @@ import (
 	openapi_types "github.com/oapi-codegen/runtime/types"
 )
 
+// CreateEndUserAliasRoutedSessionWithBodyWithResponse Create end user session for alias
+//
+// Creates a session owned by the calling end user, routed through this alias's policy. The session's owning principal is the caller's authenticated identity.
+// An administrator calling this operation is bound to the sessions it owns like every other caller; the operator endpoints are the administrative view of an alias's sessions.
+// Ownership binds to the alias key, not the resolved agent, so it is unaffected by a later change to the alias's routing weights.
+// Anonymous widget visitors authenticate by presenting `X-Visitor-Id` instead of an `Authorization` credential; the platform mints an identity holding `agent_end_user` on the addressed alias, which satisfies this operation's role requirement. A visitor id is customer-scoped, so it need not have been minted through the connector named in the request body; that connector must still admit anonymous visitors (`403` otherwise). The connector's `allowed_origins` also applies to anonymous and signed-in callers; requests without an `Origin` header are admitted.
+// The session binds to the connector named by the request body's `connector_id` and takes its idle lifetime from that connector's `session_tti_minutes`, reported on the returned session.
+// Returns `429` when the caller reaches the live-session or hourly session-creation cap, or when the customer-wide anonymous session-creation ceiling is reached.
+//
+// Takes any type of body and a specified content type, and returns a wrapper object for the known response body format(s).
+//
+// Corresponds with POST /v2/agent_aliases/{alias_key}/end_user_sessions (the `CreateEndUserAliasRoutedSession` operationId).
+func (c *ClientWithResponses) CreateEndUserAliasRoutedSessionWithBodyWithResponse(ctx context.Context, aliasKey AgentAliasKey, params *CreateEndUserAliasRoutedSessionParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateEndUserAliasRoutedSessionResponse, error) {
+	rsp, err := c.CreateEndUserAliasRoutedSessionWithBody(ctx, aliasKey, params, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateEndUserAliasRoutedSessionResponse(rsp)
+}
+
+// CreateEndUserAliasRoutedSessionWithResponse Create end user session for alias
+//
+// Creates a session owned by the calling end user, routed through this alias's policy. The session's owning principal is the caller's authenticated identity.
+// An administrator calling this operation is bound to the sessions it owns like every other caller; the operator endpoints are the administrative view of an alias's sessions.
+// Ownership binds to the alias key, not the resolved agent, so it is unaffected by a later change to the alias's routing weights.
+// Anonymous widget visitors authenticate by presenting `X-Visitor-Id` instead of an `Authorization` credential; the platform mints an identity holding `agent_end_user` on the addressed alias, which satisfies this operation's role requirement. A visitor id is customer-scoped, so it need not have been minted through the connector named in the request body; that connector must still admit anonymous visitors (`403` otherwise). The connector's `allowed_origins` also applies to anonymous and signed-in callers; requests without an `Origin` header are admitted.
+// The session binds to the connector named by the request body's `connector_id` and takes its idle lifetime from that connector's `session_tti_minutes`, reported on the returned session.
+// Returns `429` when the caller reaches the live-session or hourly session-creation cap, or when the customer-wide anonymous session-creation ceiling is reached.
+//
+// Takes a body of the `application/json` content type, and returns a wrapper object for the known response body format(s).
+//
+// Corresponds with POST /v2/agent_aliases/{alias_key}/end_user_sessions (the `CreateEndUserAliasRoutedSession` operationId).
+func (c *ClientWithResponses) CreateEndUserAliasRoutedSessionWithResponse(ctx context.Context, aliasKey AgentAliasKey, params *CreateEndUserAliasRoutedSessionParams, body CreateEndUserAliasRoutedSessionJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateEndUserAliasRoutedSessionResponse, error) {
+	rsp, err := c.CreateEndUserAliasRoutedSession(ctx, aliasKey, params, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateEndUserAliasRoutedSessionResponse(rsp)
+}
+
 // DeleteEndUserAliasRoutedSessionWithResponse Delete end user session for alias
 //
 // Permanently deletes a session the caller owns, addressed by the alias it was created through. Returns 403 if the session belongs to a different principal. This action cannot be undone.
@@ -10553,6 +10593,13 @@ func ParseCreateCorpusDocumentResponse(rsp *http.Response) (*CreateCorpusDocumen
 		}
 		response.JSON409 = &dest
 
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 507:
+		var dest Error
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON507 = &dest
+
 	}
 
 	return response, nil
@@ -10711,6 +10758,13 @@ func ParseUpdateCorpusDocumentResponse(rsp *http.Response) (*UpdateCorpusDocumen
 		}
 		response.JSON429 = &dest
 
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 507:
+		var dest Error
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON507 = &dest
+
 	}
 
 	return response, nil
@@ -10797,6 +10851,13 @@ func ParseReplaceCorpusDocumentMetadataResponse(rsp *http.Response) (*ReplaceCor
 			return nil, err
 		}
 		response.JSON429 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 507:
+		var dest Error
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON507 = &dest
 
 	}
 
@@ -11079,6 +11140,13 @@ func ParseReplaceFilterAttributesResponse2(rsp *http.Response) (*ReplaceFilterAt
 		}
 		response.JSON404 = &dest
 
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 507:
+		var dest Error
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON507 = &dest
+
 	}
 
 	return response, nil
@@ -11175,6 +11243,13 @@ func ParseUploadFileResponse(rsp *http.Response) (*UploadFileResponse, error) {
 			return nil, err
 		}
 		response.JSON415 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 507:
+		var dest Error
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON507 = &dest
 
 	}
 

@@ -14228,6 +14228,8 @@ type CreateCorpusDocumentResponse struct {
 	JSON404 *NotFoundError
 	// JSON409 the response for an HTTP 409 `application/json` response
 	JSON409 *Error
+	// JSON507 the response for an HTTP 507 `application/json` response
+	JSON507 *Error
 }
 
 // GetJSON201 returns the response for an HTTP 201 `application/json` response
@@ -14253,6 +14255,11 @@ func (r CreateCorpusDocumentResponse) GetJSON404() *NotFoundError {
 // GetJSON409 returns the response for an HTTP 409 `application/json` response
 func (r CreateCorpusDocumentResponse) GetJSON409() *Error {
 	return r.JSON409
+}
+
+// GetJSON507 returns the response for an HTTP 507 `application/json` response
+func (r CreateCorpusDocumentResponse) GetJSON507() *Error {
+	return r.JSON507
 }
 
 // GetBody returns the raw response body bytes
@@ -14433,6 +14440,8 @@ type UpdateCorpusDocumentResponse struct {
 	JSON404 *NotFoundError
 	// JSON429 the response for an HTTP 429 `application/json` response
 	JSON429 *Error
+	// JSON507 the response for an HTTP 507 `application/json` response
+	JSON507 *Error
 }
 
 // GetJSON200 returns the response for an HTTP 200 `application/json` response
@@ -14453,6 +14462,11 @@ func (r UpdateCorpusDocumentResponse) GetJSON404() *NotFoundError {
 // GetJSON429 returns the response for an HTTP 429 `application/json` response
 func (r UpdateCorpusDocumentResponse) GetJSON429() *Error {
 	return r.JSON429
+}
+
+// GetJSON507 returns the response for an HTTP 507 `application/json` response
+func (r UpdateCorpusDocumentResponse) GetJSON507() *Error {
+	return r.JSON507
 }
 
 // GetBody returns the raw response body bytes
@@ -14550,6 +14564,8 @@ type ReplaceCorpusDocumentMetadataResponse struct {
 	JSON404 *NotFoundError
 	// JSON429 the response for an HTTP 429 `application/json` response
 	JSON429 *Error
+	// JSON507 the response for an HTTP 507 `application/json` response
+	JSON507 *Error
 }
 
 // GetJSON200 returns the response for an HTTP 200 `application/json` response
@@ -14570,6 +14586,11 @@ func (r ReplaceCorpusDocumentMetadataResponse) GetJSON404() *NotFoundError {
 // GetJSON429 returns the response for an HTTP 429 `application/json` response
 func (r ReplaceCorpusDocumentMetadataResponse) GetJSON429() *Error {
 	return r.JSON429
+}
+
+// GetJSON507 returns the response for an HTTP 507 `application/json` response
+func (r ReplaceCorpusDocumentMetadataResponse) GetJSON507() *Error {
+	return r.JSON507
 }
 
 // GetBody returns the raw response body bytes
@@ -14920,6 +14941,8 @@ type ReplaceFilterAttributesResponse2 struct {
 	JSON403 *Error
 	// JSON404 the response for an HTTP 404 `application/json` response
 	JSON404 *NotFoundError
+	// JSON507 the response for an HTTP 507 `application/json` response
+	JSON507 *Error
 }
 
 // GetJSON200 returns the response for an HTTP 200 `application/json` response
@@ -14935,6 +14958,11 @@ func (r ReplaceFilterAttributesResponse2) GetJSON403() *Error {
 // GetJSON404 returns the response for an HTTP 404 `application/json` response
 func (r ReplaceFilterAttributesResponse2) GetJSON404() *NotFoundError {
 	return r.JSON404
+}
+
+// GetJSON507 returns the response for an HTTP 507 `application/json` response
+func (r ReplaceFilterAttributesResponse2) GetJSON507() *Error {
+	return r.JSON507
 }
 
 // GetBody returns the raw response body bytes
@@ -15029,6 +15057,8 @@ type UploadFileResponse struct {
 	JSON409 *Error
 	// JSON415 the response for an HTTP 415 `application/json` response
 	JSON415 *Error
+	// JSON507 the response for an HTTP 507 `application/json` response
+	JSON507 *Error
 }
 
 // GetJSON201 returns the response for an HTTP 201 `application/json` response
@@ -15059,6 +15089,11 @@ func (r UploadFileResponse) GetJSON409() *Error {
 // GetJSON415 returns the response for an HTTP 415 `application/json` response
 func (r UploadFileResponse) GetJSON415() *Error {
 	return r.JSON415
+}
+
+// GetJSON507 returns the response for an HTTP 507 `application/json` response
+func (r UploadFileResponse) GetJSON507() *Error {
+	return r.JSON507
 }
 
 // GetBody returns the raw response body bytes
@@ -19995,44 +20030,4 @@ func (c *ClientWithResponses) ListEndUserAliasRoutedSessionsWithResponse(ctx con
 		return nil, err
 	}
 	return ParseListEndUserAliasRoutedSessionsResponse(rsp)
-}
-
-// CreateEndUserAliasRoutedSessionWithBodyWithResponse Create end user session for alias
-//
-// Creates a session owned by the calling end user, routed through this alias's policy. The session's owning principal is the caller's authenticated identity.
-// An administrator calling this operation is bound to the sessions it owns like every other caller; the operator endpoints are the administrative view of an alias's sessions.
-// Ownership binds to the alias key, not the resolved agent, so it is unaffected by a later change to the alias's routing weights.
-// Anonymous widget visitors authenticate by presenting `X-Visitor-Id` instead of an `Authorization` credential; the platform mints an identity holding `agent_end_user` on the addressed alias, which satisfies this operation's role requirement. A visitor id is customer-scoped, so it need not have been minted through the connector named in the request body; that connector must still admit anonymous visitors (`403` otherwise). The connector's `allowed_origins` also applies to anonymous and signed-in callers; requests without an `Origin` header are admitted.
-// The session binds to the connector named by the request body's `connector_id` and takes its idle lifetime from that connector's `session_tti_minutes`, reported on the returned session.
-// Returns `429` when the caller reaches the live-session or hourly session-creation cap, or when the customer-wide anonymous session-creation ceiling is reached.
-//
-// Takes any type of body and a specified content type, and returns a wrapper object for the known response body format(s).
-//
-// Corresponds with POST /v2/agent_aliases/{alias_key}/end_user_sessions (the `CreateEndUserAliasRoutedSession` operationId).
-func (c *ClientWithResponses) CreateEndUserAliasRoutedSessionWithBodyWithResponse(ctx context.Context, aliasKey AgentAliasKey, params *CreateEndUserAliasRoutedSessionParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateEndUserAliasRoutedSessionResponse, error) {
-	rsp, err := c.CreateEndUserAliasRoutedSessionWithBody(ctx, aliasKey, params, contentType, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseCreateEndUserAliasRoutedSessionResponse(rsp)
-}
-
-// CreateEndUserAliasRoutedSessionWithResponse Create end user session for alias
-//
-// Creates a session owned by the calling end user, routed through this alias's policy. The session's owning principal is the caller's authenticated identity.
-// An administrator calling this operation is bound to the sessions it owns like every other caller; the operator endpoints are the administrative view of an alias's sessions.
-// Ownership binds to the alias key, not the resolved agent, so it is unaffected by a later change to the alias's routing weights.
-// Anonymous widget visitors authenticate by presenting `X-Visitor-Id` instead of an `Authorization` credential; the platform mints an identity holding `agent_end_user` on the addressed alias, which satisfies this operation's role requirement. A visitor id is customer-scoped, so it need not have been minted through the connector named in the request body; that connector must still admit anonymous visitors (`403` otherwise). The connector's `allowed_origins` also applies to anonymous and signed-in callers; requests without an `Origin` header are admitted.
-// The session binds to the connector named by the request body's `connector_id` and takes its idle lifetime from that connector's `session_tti_minutes`, reported on the returned session.
-// Returns `429` when the caller reaches the live-session or hourly session-creation cap, or when the customer-wide anonymous session-creation ceiling is reached.
-//
-// Takes a body of the `application/json` content type, and returns a wrapper object for the known response body format(s).
-//
-// Corresponds with POST /v2/agent_aliases/{alias_key}/end_user_sessions (the `CreateEndUserAliasRoutedSession` operationId).
-func (c *ClientWithResponses) CreateEndUserAliasRoutedSessionWithResponse(ctx context.Context, aliasKey AgentAliasKey, params *CreateEndUserAliasRoutedSessionParams, body CreateEndUserAliasRoutedSessionJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateEndUserAliasRoutedSessionResponse, error) {
-	rsp, err := c.CreateEndUserAliasRoutedSession(ctx, aliasKey, params, body, reqEditors...)
-	if err != nil {
-		return nil, err
-	}
-	return ParseCreateEndUserAliasRoutedSessionResponse(rsp)
 }

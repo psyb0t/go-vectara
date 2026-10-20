@@ -3492,6 +3492,12 @@ type Agent struct {
 	// Example: classifier
 	FirstStepName *string `json:"first_step_name,omitempty"`
 
+	// GenerateSessionDescriptions Whether the platform generates a description for each of this agent's sessions created without one. When true, after each turn that completes without error in such a session, the platform makes one additional request to the agent's model to summarize the session's events into its description. That request consumes tokens and counts against `llm_quota`. When false, no request is made and those sessions keep no description. A description supplied on session create or update is never replaced, and an empty description turns off generation for that session.
+	//
+	//
+	// Example: false
+	GenerateSessionDescriptions *GenerateSessionDescriptions `json:"generate_session_descriptions,omitempty"`
+
 	// Key A unique key that identifies an agent.
 	//
 	// Example: customer_support
@@ -4100,7 +4106,7 @@ type AgentSession struct {
 	// Example: billing
 	CurrentStepName *string `json:"current_step_name,omitempty"`
 
-	// Description A short description of the session's purpose. If omitted at creation, the platform generates one after the agent produces events. An empty string indicates auto-generation is disabled for this session.
+	// Description A short description of the session's purpose. If omitted at creation, the platform generates one after the agent produces events, unless the agent's `generate_session_descriptions` is false. An empty string indicates auto-generation is disabled for this session.
 	//
 	//
 	// Example: Helping customer troubleshoot widget installation issues
@@ -8067,6 +8073,12 @@ type CreateAgentRequest struct {
 	// Example: classifier
 	FirstStepName *string `json:"first_step_name,omitempty"`
 
+	// GenerateSessionDescriptions Whether the platform generates a description for each of this agent's sessions created without one. When true, after each turn that completes without error in such a session, the platform makes one additional request to the agent's model to summarize the session's events into its description. That request consumes tokens and counts against `llm_quota`. When false, no request is made and those sessions keep no description. A description supplied on session create or update is never replaced, and an empty description turns off generation for that session.
+	//
+	//
+	// Example: false
+	GenerateSessionDescriptions *GenerateSessionDescriptions `json:"generate_session_descriptions,omitempty"`
+
 	// Key A unique key that identifies an agent.
 	//
 	// Example: customer_support
@@ -8160,7 +8172,7 @@ type CreateAgentScheduleRequest struct {
 
 // CreateAgentSessionRequest Request object for creating a new agent session.
 type CreateAgentSessionRequest struct {
-	// Description A short description of the session's purpose. If omitted, the platform generates one after the session produces events. Pass an empty string to suppress auto-generation.
+	// Description A short description of the session's purpose. If omitted, the platform generates one after the session produces events, unless the agent's `generate_session_descriptions` is false. Pass an empty string to suppress auto-generation.
 	//
 	//
 	// Example: Helping customer troubleshoot issues
@@ -8562,7 +8574,7 @@ type CreateEndUserSessionRequest struct {
 	// Example: con_support_9f3a1c2b4d5e6f708192a3b4c5d6e7f8
 	ConnectorId ConnectorId `json:"connector_id"`
 
-	// Description A short description of the session's purpose. If omitted, the platform generates one after the agent produces events.
+	// Description A short description of the session's purpose. If omitted, the platform generates one after the agent produces events, unless the agent's `generate_session_descriptions` is false.
 	//
 	// Example: Helping customer troubleshoot widget installation issues
 	Description *string `json:"description,omitempty"`
@@ -10589,7 +10601,7 @@ type Encoder struct {
 	// Example: 1536
 	OutputDimensions *int32 `json:"output_dimensions,omitempty"`
 
-	// Type The encoder type
+	// Type The encoder type. Matches the `type` the encoder was created with, or `vectara` for encoders that Vectara provides.
 	//
 	// Example: openai-compatible
 	Type *string `json:"type,omitempty"`
@@ -11374,6 +11386,11 @@ type GchatConnectorConfiguration struct {
 	// Example: gchat
 	Type string `json:"type"`
 }
+
+// GenerateSessionDescriptions Whether the platform generates a description for each of this agent's sessions created without one. When true, after each turn that completes without error in such a session, the platform makes one additional request to the agent's model to summarize the session's events into its description. That request consumes tokens and counts against `llm_quota`. When false, no request is made and those sessions keep no description. A description supplied on session create or update is never replaced, and an empty description turns off generation for that session.
+//
+// Example: false
+type GenerateSessionDescriptions = bool
 
 // GenerationInfo An event with information about how the platform performed the generation.
 type GenerationInfo struct {
@@ -15737,6 +15754,12 @@ type ReplaceAgentRequest struct {
 	// Example: classifier
 	FirstStepName *string `json:"first_step_name,omitempty"`
 
+	// GenerateSessionDescriptions Whether the platform generates a description for each of this agent's sessions created without one. When true, after each turn that completes without error in such a session, the platform makes one additional request to the agent's model to summarize the session's events into its description. That request consumes tokens and counts against `llm_quota`. When false, no request is made and those sessions keep no description. A description supplied on session create or update is never replaced, and an empty description turns off generation for that session.
+	//
+	//
+	// Example: false
+	GenerateSessionDescriptions *GenerateSessionDescriptions `json:"generate_session_descriptions,omitempty"`
+
 	// Key A unique key that identifies an agent.
 	//
 	// Example: customer_support
@@ -18857,6 +18880,12 @@ type UpdateAgentRequest struct {
 	// to change the entry point. The named step must exist in the steps map.
 	FirstStepName *string `json:"first_step_name,omitempty"`
 
+	// GenerateSessionDescriptions Whether the platform generates a description for each of this agent's sessions created without one. When true, after each turn that completes without error in such a session, the platform makes one additional request to the agent's model to summarize the session's events into its description. That request consumes tokens and counts against `llm_quota`. When false, no request is made and those sessions keep no description. A description supplied on session create or update is never replaced, and an empty description turns off generation for that session.
+	//
+	//
+	// Example: false
+	GenerateSessionDescriptions *GenerateSessionDescriptions `json:"generate_session_descriptions,omitempty"`
+
 	// LlmQuota Ceilings on the LLM requests and tokens this agent may consume, counted across every LLM the agent calls. A sub-agent is charged to its own quota, not its parent's.
 	//
 	// Each field is optional; an omitted field applies no limit. Day and month windows are UTC calendar windows. Input tokens are the provider's reported prompt tokens, including cached tokens; output tokens are completion plus reasoning tokens. When a limit is reached the agent's next LLM call is refused: a non-streamed `createAgentInput` request answers `429` with a `Retry-After` header, and a streamed one ends with an `error` event naming the exhausted quota and the seconds until it resets.
@@ -19981,42 +20010,4 @@ type UpdateWidgetConnectorConfiguration struct {
 	//
 	// Example: widget
 	Type string `json:"type"`
-}
-
-// UpdateWolkenFormsSourceConfiguration Partial update for Wolken forms source configuration. Only provided fields are merged.
-type UpdateWolkenFormsSourceConfiguration = BaseWolkenFormsSourceConfiguration
-
-// UpdateWolkenKbSourceConfiguration Partial update for Wolken source configuration. Only provided fields are merged.
-type UpdateWolkenKbSourceConfiguration = BaseWolkenKbSourceConfiguration
-
-// UpdateWolkenTicketsSourceConfiguration Partial update for Wolken tickets source configuration. Only provided fields are merged.
-// An update cannot return `backfill_window` or `note_response_type_ids` to its unset state.
-// A `null` value for either is accepted and ignored, keeping the stored value, and an empty
-// `note_response_type_ids` is not a reset but the distinct no-notes state. To unset either
-// field, replace the pipeline with `PUT /v2/pipelines/{pipeline_key}` using a configuration
-// that omits it.
-type UpdateWolkenTicketsSourceConfiguration = BaseWolkenTicketsSourceConfiguration
-
-// UploadFileRequest Request to upload and index a file into a corpus within a customer account.
-//
-// Example: {"chunking_strategy":{"type":"sentence_chunking_strategy"},"file":"system_design_v1.pdf","filename":"system_design_v1.pdf","metadata":{"department\"":"engineering","doc_type\"":"architecture_diagram"},"table_extraction_config":{"extract_tables":true}}
-type UploadFileRequest struct {
-	// ChunkingStrategy Chooses how to split documents into chunks during indexing. This is optional. If you do not set a chunking strategy, the platform uses the default strategy, which creates one chunk (docpart) per sentence.
-	ChunkingStrategy *ChunkingStrategy `json:"chunking_strategy,omitempty"`
-
-	// File Binary file contents. The filename of the file becomes the document ID.
-	File openapi_types.File `json:"file"`
-
-	// Filename Optional multipart section to override the filename.
-	//
-	// Example: system_design_v1.pdf
-	Filename *string `json:"filename,omitempty"`
-
-	// Metadata Arbitrary object that is attached as document metadata to the extracted document.
-	//
-	// Example: {"department":"engineering","doc_type\"":"architecture_diagram"}
-	Metadata *map[string]interface{} `json:"metadata,omitempty"`
-
-	// TableExtractionConfig Configuration for table extraction from the document. This configuration is optional. If omitted, the platform does not extract tables from PDF files.
-	TableExtractionConfig *TableExtractionConfig `json:"table_extraction_config,omitempty"`
 }

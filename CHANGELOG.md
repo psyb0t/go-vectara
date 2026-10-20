@@ -2,6 +2,12 @@
 
 All notable changes per release. Versions follow [semver](https://semver.org).
 
+## v0.2.2, 2026-10-20
+
+- Added the `GenerateSessionDescriptions` type (a `bool` alias) and the optional `GenerateSessionDescriptions` field on `Agent`, `CreateAgentRequest`, `UpdateAgentRequest` and `ReplaceAgentRequest`. When true, the platform makes one extra model request after each completed turn to write a description for sessions created without one. That request uses tokens and counts against `llm_quota`.
+- Added the `JSON507` field and `GetJSON507()` method, returning `*Error`, on `CreateCorpusDocumentResponse`, `UpdateCorpusDocumentResponse`, `ReplaceCorpusDocumentMetadataResponse`, `ReplaceFilterAttributesResponse2` and `UploadFileResponse`, for HTTP 507 `application/json` responses.
+- Updated generated doc comments for session `Description` fields to match the spec's new wording about when the platform generates descriptions.
+
 ## v0.2.1, 2026-10-17
 
 - Documentation only. The agent skill explains how to look up every endpoint, parameter and model with `go doc` or on pkg.go.dev, and declares its license.
