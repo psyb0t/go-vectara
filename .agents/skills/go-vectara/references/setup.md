@@ -4,7 +4,7 @@ This module is unofficial and not affiliated with Vectara.
 
 ## Requirements
 
-- Go 1.26.9 or newer, per the module's `go.mod`.
+- Go 1.26.10 or newer, per the module's `go.mod`.
 - A Vectara credential with the roles required by each operation. The README example reads `VECTARA_API_KEY`.
 
 ## Install
