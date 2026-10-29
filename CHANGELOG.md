@@ -2,6 +2,12 @@
 
 All notable changes per release. Versions follow [semver](https://semver.org).
 
+## v0.2.5, 2026-10-29
+
+- Vectara's spec now marks the per-LLM request and token limits as deprecated. The generated doc comments say the platform still enforces them and that Vectara support sets limits. The fields carry a Go `Deprecated:` marker: `RequestsPerSecond` on `LLM`, `InputTokensPerDay`, `InputTokensPerMinute` and `InputTokensPerMonth` on `LLMQuota` and the Create and Update LLM request types, and the matching output token and request rate fields. Existing code still compiles, but linters such as staticcheck now flag uses of these fields.
+- Updated the `LlmQuota` doc comments on `Agent`, `CreateAgentRequest`, `UpdateAgentRequest` and `ReplaceAgentRequest` to say an omitted field sets no limit of its own and that the platform may apply its own limits.
+- Moved the `UpdateWidgetConnectorConfiguration` type to another generated file. Its fields are unchanged.
+
 ## v0.2.4, 2026-10-28
 
 - Updated Semgrep in the development image to 1.182.1 and refreshed its locked dependencies. certifi 2026.10.23 drops the emSign root CAs whose intermediate keys were compromised (GHSA-6q48-6c7w-9gw2).

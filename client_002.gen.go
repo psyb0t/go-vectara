@@ -17,6 +17,58 @@ import (
 	openapi_types "github.com/oapi-codegen/runtime/types"
 )
 
+// UpdateWidgetConnectorConfiguration Partial update of a widget connector's configuration: an omitted field keeps its stored value; `presentation` is replaced whole when supplied.
+type UpdateWidgetConnectorConfiguration struct {
+	// AllowedOrigins Allowed browser origins. Entries must be unique.
+	// A non-empty list rejects unmatched `Origin` headers with `403`; requests without `Origin` are allowed.
+	// Omitted preserves the current list. Set to null or an empty array to clear. Null entries are rejected.
+	//
+	//
+	// Example: ["https://example.com","https://*.example.com"]
+	AllowedOrigins *[]WidgetAllowedOrigin `json:"allowed_origins,omitempty"`
+
+	// EndUserSignIn The sign-in to apply. Omitted leaves the current sign-in unchanged, and `null` removes it so the widget no longer offers sign-in.
+	EndUserSignIn *WidgetSignIn `json:"end_user_sign_in,omitempty"`
+
+	// HiddenOutputTypes Present on the read view for consistency with other connector types; widget connectors ignore it and control end-user visibility through `revealed_output_types`. Accepted on update so a read-modify-write round trip is not rejected.
+	//
+	// Example: ["tool_calls"]
+	HiddenOutputTypes *[]AgentOutputType `json:"hidden_output_types,omitempty"`
+
+	// Presentation The presentation configuration the widget client renders — branding, palette, welcome content, suggested prompts.
+	// Free-form apart from the required `version`; the platform stores it verbatim, serves it back uninterpreted, and caps its total size.
+	// Null-valued keys are accepted but are omitted from responses.
+	// Served to anonymous visitors by the unauthenticated public connector view, so widget clients must treat every value as untrusted data.
+	// Schema validation of the payload lands with the first Altera release; `version` is what lets clients render older payloads once the shape evolves.
+	Presentation *WidgetPresentation `json:"presentation,omitempty"`
+
+	// PublicAccess Whether the widget admits anonymous visitors. Omitted leaves the current value unchanged.
+	// Setting it to `false` closes the widget to anonymous visitors: anonymous session creation naming it is refused, and sessions bound to it refuse anonymous access. Visitor ids themselves stay valid on the customer's other open widgets. The change takes effect within a few seconds.
+	// Gates anonymous admission only; authenticated callers presenting this connector are governed by `enabled`.
+	//
+	//
+	// Example: false
+	PublicAccess *bool `json:"public_access,omitempty"`
+
+	// RevealedOutputTypes Agent output types included in the widget's end-user event projection; the final response is always visible.
+	//
+	// Example: ["tool_calls"]
+	RevealedOutputTypes *[]AgentOutputType `json:"revealed_output_types,omitempty"`
+
+	// SessionMetadata Written into every session created through this widget connector, under `metadata.connector.<connector_id>`.
+	//
+	// Example: {"instance":"conversational-ai"}
+	SessionMetadata *map[string]interface{} `json:"session_metadata,omitempty"`
+
+	// SessionTtiMinutes How long a session created through this widget may sit idle before it is closed, in minutes. Set to 0 for sessions that never expire.
+	SessionTtiMinutes *int32 `json:"session_tti_minutes,omitempty"`
+
+	// Type The type of connector configuration.
+	//
+	// Example: widget
+	Type string `json:"type"`
+}
+
 // UpdateWolkenFormsSourceConfiguration Partial update for Wolken forms source configuration. Only provided fields are merged.
 type UpdateWolkenFormsSourceConfiguration = BaseWolkenFormsSourceConfiguration
 

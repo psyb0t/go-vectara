@@ -3505,7 +3505,7 @@ type Agent struct {
 
 	// LlmQuota Ceilings on the LLM requests and tokens this agent may consume, counted across every LLM the agent calls. A sub-agent is charged to its own quota, not its parent's.
 	//
-	// Each field is optional; an omitted field applies no limit. Day and month windows are UTC calendar windows. Input tokens are the provider's reported prompt tokens, including cached tokens; output tokens are completion plus reasoning tokens. When a limit is reached the agent's next LLM call is refused: a non-streamed `createAgentInput` request answers `429` with a `Retry-After` header, and a streamed one ends with an `error` event naming the exhausted quota and the seconds until it resets.
+	// Each field is optional; an omitted field sets no limit of its own. The platform may also apply its own limits. Day and month windows are UTC calendar windows. Input tokens are the provider's reported prompt tokens, including cached tokens; output tokens are completion plus reasoning tokens. When a limit is reached the agent's next LLM call is refused: a non-streamed `createAgentInput` request answers `429` with a `Retry-After` header, and a streamed one ends with an `error` event naming the exhausted quota and the seconds until it resets.
 	LlmQuota *LLMQuota `json:"llm_quota,omitempty"`
 
 	// Metadata Arbitrary metadata associated with the agent for customization and configuration.
@@ -8086,7 +8086,7 @@ type CreateAgentRequest struct {
 
 	// LlmQuota Ceilings on the LLM requests and tokens this agent may consume, counted across every LLM the agent calls. A sub-agent is charged to its own quota, not its parent's.
 	//
-	// Each field is optional; an omitted field applies no limit. Day and month windows are UTC calendar windows. Input tokens are the provider's reported prompt tokens, including cached tokens; output tokens are completion plus reasoning tokens. When a limit is reached the agent's next LLM call is refused: a non-streamed `createAgentInput` request answers `429` with a `Retry-After` header, and a streamed one ends with an `error` event naming the exhausted quota and the seconds until it resets.
+	// Each field is optional; an omitted field sets no limit of its own. The platform may also apply its own limits. Day and month windows are UTC calendar windows. Input tokens are the provider's reported prompt tokens, including cached tokens; output tokens are completion plus reasoning tokens. When a limit is reached the agent's next LLM call is refused: a non-streamed `createAgentInput` request answers `429` with a `Retry-After` header, and a streamed one ends with an `error` event naming the exhausted quota and the seconds until it resets.
 	LlmQuota *LLMQuota `json:"llm_quota,omitempty"`
 
 	// Metadata Arbitrary metadata associated with the agent for customization and configuration.
@@ -8253,19 +8253,22 @@ type CreateAnthropicLLMRequest struct {
 	// Example: 300
 	IdleTimeoutSeconds *IdleTimeoutSeconds `json:"idle_timeout_seconds,omitempty"`
 
-	// InputTokensPerDay The maximum number of input tokens per UTC calendar day for this LLM. Omit the field or set it to null to apply no limit. Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
+	// InputTokensPerDay Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of input tokens per UTC calendar day for this LLM. Omit the field or set it to null to set no limit through this field. Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
 	//
 	// Example: 2000000
+	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
 	InputTokensPerDay *int64 `json:"input_tokens_per_day,omitempty"`
 
-	// InputTokensPerMinute The maximum number of input (prompt) tokens per minute for this LLM, as reported by the provider and including cached prompt tokens. Omit the field or set it to null to apply no limit. Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
+	// InputTokensPerMinute Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of input (prompt) tokens per minute for this LLM, as reported by the provider and including cached prompt tokens. Omit the field or set it to null to set no limit through this field. Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
 	//
 	// Example: 200000
+	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
 	InputTokensPerMinute *int64 `json:"input_tokens_per_minute,omitempty"`
 
-	// InputTokensPerMonth The maximum number of input tokens per UTC calendar month for this LLM. Omit the field or set it to null to apply no limit. Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
+	// InputTokensPerMonth Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of input tokens per UTC calendar month for this LLM. Omit the field or set it to null to set no limit through this field. Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
 	//
 	// Example: 50000000
+	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
 	InputTokensPerMonth *int64 `json:"input_tokens_per_month,omitempty"`
 
 	// Model The Claude model name to use (e.g. claude-3-5-sonnet-20241022, claude-3-opus-20240229, etc).
@@ -8274,22 +8277,26 @@ type CreateAnthropicLLMRequest struct {
 	// Name The name that references the LLM. Other endpoints (like query) use this name to select the LLM. If the name conflicts with a global LLM (an LLM that is preconfigured with the platform), this LLM overrides the global LLM for all usages.
 	Name string `json:"name"`
 
-	// OutputTokensPerDay The maximum number of output tokens per UTC calendar day for this LLM. Omit the field or set it to null to apply no limit. Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
+	// OutputTokensPerDay Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of output tokens per UTC calendar day for this LLM. Omit the field or set it to null to set no limit through this field. Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
 	//
 	// Example: 500000
+	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
 	OutputTokensPerDay *int64 `json:"output_tokens_per_day,omitempty"`
 
-	// OutputTokensPerMinute The maximum number of output tokens (completion plus reasoning) per minute for this LLM. Omit the field or set it to null to apply no limit. Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
+	// OutputTokensPerMinute Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of output tokens (completion plus reasoning) per minute for this LLM. Omit the field or set it to null to set no limit through this field. Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
 	//
 	// Example: 50000
+	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
 	OutputTokensPerMinute *int64 `json:"output_tokens_per_minute,omitempty"`
 
-	// OutputTokensPerMonth The maximum number of output tokens per UTC calendar month for this LLM. Omit the field or set it to null to apply no limit. Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
+	// OutputTokensPerMonth Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of output tokens per UTC calendar month for this LLM. Omit the field or set it to null to set no limit through this field. Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
 	//
 	// Example: 10000000
+	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
 	OutputTokensPerMonth *int64 `json:"output_tokens_per_month,omitempty"`
 
-	// RequestsPerSecond The maximum number of requests per second for this LLM. Omit the field or set it to null to apply no limit. Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
+	// RequestsPerSecond Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of requests per second for this LLM. Omit the field or set it to null to set no limit through this field. Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
+	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
 	RequestsPerSecond *int64 `json:"requests_per_second,omitempty"`
 
 	// TestModelParameters Any additional parameters that are required for the LLM during the test call.
@@ -9057,19 +9064,22 @@ type CreateOpenAILLMRequest struct {
 	// Example: 300
 	IdleTimeoutSeconds *IdleTimeoutSeconds `json:"idle_timeout_seconds,omitempty"`
 
-	// InputTokensPerDay The maximum number of input tokens per UTC calendar day for this LLM. Omit the field or set it to null to apply no limit. Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
+	// InputTokensPerDay Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of input tokens per UTC calendar day for this LLM. Omit the field or set it to null to set no limit through this field. Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
 	//
 	// Example: 2000000
+	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
 	InputTokensPerDay *int64 `json:"input_tokens_per_day,omitempty"`
 
-	// InputTokensPerMinute The maximum number of input (prompt) tokens per minute for this LLM, as reported by the provider and including cached prompt tokens. Omit the field or set it to null to apply no limit. Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
+	// InputTokensPerMinute Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of input (prompt) tokens per minute for this LLM, as reported by the provider and including cached prompt tokens. Omit the field or set it to null to set no limit through this field. Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
 	//
 	// Example: 200000
+	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
 	InputTokensPerMinute *int64 `json:"input_tokens_per_minute,omitempty"`
 
-	// InputTokensPerMonth The maximum number of input tokens per UTC calendar month for this LLM. Omit the field or set it to null to apply no limit. Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
+	// InputTokensPerMonth Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of input tokens per UTC calendar month for this LLM. Omit the field or set it to null to set no limit through this field. Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
 	//
 	// Example: 50000000
+	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
 	InputTokensPerMonth *int64 `json:"input_tokens_per_month,omitempty"`
 
 	// Model The model name to use with the API (e.g. gpt-4, claude-2, etc). The platform sends this name to the remote LLM provider.
@@ -9080,22 +9090,26 @@ type CreateOpenAILLMRequest struct {
 	// Example: Claude 3.7 Sonnet
 	Name string `json:"name"`
 
-	// OutputTokensPerDay The maximum number of output tokens per UTC calendar day for this LLM. Omit the field or set it to null to apply no limit. Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
+	// OutputTokensPerDay Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of output tokens per UTC calendar day for this LLM. Omit the field or set it to null to set no limit through this field. Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
 	//
 	// Example: 500000
+	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
 	OutputTokensPerDay *int64 `json:"output_tokens_per_day,omitempty"`
 
-	// OutputTokensPerMinute The maximum number of output tokens (completion plus reasoning) per minute for this LLM. Omit the field or set it to null to apply no limit. Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
+	// OutputTokensPerMinute Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of output tokens (completion plus reasoning) per minute for this LLM. Omit the field or set it to null to set no limit through this field. Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
 	//
 	// Example: 50000
+	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
 	OutputTokensPerMinute *int64 `json:"output_tokens_per_minute,omitempty"`
 
-	// OutputTokensPerMonth The maximum number of output tokens per UTC calendar month for this LLM. Omit the field or set it to null to apply no limit. Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
+	// OutputTokensPerMonth Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of output tokens per UTC calendar month for this LLM. Omit the field or set it to null to set no limit through this field. Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
 	//
 	// Example: 10000000
+	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
 	OutputTokensPerMonth *int64 `json:"output_tokens_per_month,omitempty"`
 
-	// RequestsPerSecond The maximum number of requests per second for this LLM. Omit the field or set it to null to apply no limit. Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
+	// RequestsPerSecond Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of requests per second for this LLM. Omit the field or set it to null to set no limit through this field. Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
+	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
 	RequestsPerSecond *int64 `json:"requests_per_second,omitempty"`
 
 	// TestModelParameters Any additional parameters that are required for the LLM during the test call.
@@ -9133,19 +9147,22 @@ type CreateOpenAIResponsesLLMRequest struct {
 	// Example: 300
 	IdleTimeoutSeconds *IdleTimeoutSeconds `json:"idle_timeout_seconds,omitempty"`
 
-	// InputTokensPerDay The maximum number of input tokens per UTC calendar day for this LLM. Omit the field or set it to null to apply no limit. Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
+	// InputTokensPerDay Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of input tokens per UTC calendar day for this LLM. Omit the field or set it to null to set no limit through this field. Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
 	//
 	// Example: 2000000
+	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
 	InputTokensPerDay *int64 `json:"input_tokens_per_day,omitempty"`
 
-	// InputTokensPerMinute The maximum number of input (prompt) tokens per minute for this LLM, as reported by the provider and including cached prompt tokens. Omit the field or set it to null to apply no limit. Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
+	// InputTokensPerMinute Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of input (prompt) tokens per minute for this LLM, as reported by the provider and including cached prompt tokens. Omit the field or set it to null to set no limit through this field. Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
 	//
 	// Example: 200000
+	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
 	InputTokensPerMinute *int64 `json:"input_tokens_per_minute,omitempty"`
 
-	// InputTokensPerMonth The maximum number of input tokens per UTC calendar month for this LLM. Omit the field or set it to null to apply no limit. Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
+	// InputTokensPerMonth Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of input tokens per UTC calendar month for this LLM. Omit the field or set it to null to set no limit through this field. Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
 	//
 	// Example: 50000000
+	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
 	InputTokensPerMonth *int64 `json:"input_tokens_per_month,omitempty"`
 
 	// Model The model name to use with the Responses API (e.g. o1-preview, o1-mini). The platform sends this name to the remote LLM provider.
@@ -9156,22 +9173,26 @@ type CreateOpenAIResponsesLLMRequest struct {
 	// Example: Claude 3.7 Sonnet
 	Name string `json:"name"`
 
-	// OutputTokensPerDay The maximum number of output tokens per UTC calendar day for this LLM. Omit the field or set it to null to apply no limit. Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
+	// OutputTokensPerDay Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of output tokens per UTC calendar day for this LLM. Omit the field or set it to null to set no limit through this field. Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
 	//
 	// Example: 500000
+	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
 	OutputTokensPerDay *int64 `json:"output_tokens_per_day,omitempty"`
 
-	// OutputTokensPerMinute The maximum number of output tokens (completion plus reasoning) per minute for this LLM. Omit the field or set it to null to apply no limit. Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
+	// OutputTokensPerMinute Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of output tokens (completion plus reasoning) per minute for this LLM. Omit the field or set it to null to set no limit through this field. Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
 	//
 	// Example: 50000
+	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
 	OutputTokensPerMinute *int64 `json:"output_tokens_per_minute,omitempty"`
 
-	// OutputTokensPerMonth The maximum number of output tokens per UTC calendar month for this LLM. Omit the field or set it to null to apply no limit. Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
+	// OutputTokensPerMonth Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of output tokens per UTC calendar month for this LLM. Omit the field or set it to null to set no limit through this field. Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
 	//
 	// Example: 10000000
+	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
 	OutputTokensPerMonth *int64 `json:"output_tokens_per_month,omitempty"`
 
-	// RequestsPerSecond The maximum number of requests per second for this LLM. Omit the field or set it to null to apply no limit. Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
+	// RequestsPerSecond Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of requests per second for this LLM. Omit the field or set it to null to set no limit through this field. Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
+	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
 	RequestsPerSecond *int64 `json:"requests_per_second,omitempty"`
 
 	// TestModelParameters Any additional parameters that are required for the LLM during the test call.
@@ -9473,19 +9494,22 @@ type CreateVertexAILLMRequest struct {
 	// Example: 300
 	IdleTimeoutSeconds *IdleTimeoutSeconds `json:"idle_timeout_seconds,omitempty"`
 
-	// InputTokensPerDay The maximum number of input tokens per UTC calendar day for this LLM. Omit the field or set it to null to apply no limit. Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
+	// InputTokensPerDay Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of input tokens per UTC calendar day for this LLM. Omit the field or set it to null to set no limit through this field. Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
 	//
 	// Example: 2000000
+	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
 	InputTokensPerDay *int64 `json:"input_tokens_per_day,omitempty"`
 
-	// InputTokensPerMinute The maximum number of input (prompt) tokens per minute for this LLM, as reported by the provider and including cached prompt tokens. Omit the field or set it to null to apply no limit. Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
+	// InputTokensPerMinute Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of input (prompt) tokens per minute for this LLM, as reported by the provider and including cached prompt tokens. Omit the field or set it to null to set no limit through this field. Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
 	//
 	// Example: 200000
+	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
 	InputTokensPerMinute *int64 `json:"input_tokens_per_minute,omitempty"`
 
-	// InputTokensPerMonth The maximum number of input tokens per UTC calendar month for this LLM. Omit the field or set it to null to apply no limit. Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
+	// InputTokensPerMonth Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of input tokens per UTC calendar month for this LLM. Omit the field or set it to null to set no limit through this field. Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
 	//
 	// Example: 50000000
+	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
 	InputTokensPerMonth *int64 `json:"input_tokens_per_month,omitempty"`
 
 	// Model The model name to use (e.g. gemini-2.5-flash, gemini-2.5-pro, gemini-2.0-experimental-1219, etc).
@@ -9494,22 +9518,26 @@ type CreateVertexAILLMRequest struct {
 	// Name The name that references the LLM. Other endpoints (like query) use this name to select the LLM. If the name conflicts with a global LLM (an LLM that is preconfigured with the platform), this LLM overrides the global LLM for all usages.
 	Name string `json:"name"`
 
-	// OutputTokensPerDay The maximum number of output tokens per UTC calendar day for this LLM. Omit the field or set it to null to apply no limit. Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
+	// OutputTokensPerDay Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of output tokens per UTC calendar day for this LLM. Omit the field or set it to null to set no limit through this field. Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
 	//
 	// Example: 500000
+	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
 	OutputTokensPerDay *int64 `json:"output_tokens_per_day,omitempty"`
 
-	// OutputTokensPerMinute The maximum number of output tokens (completion plus reasoning) per minute for this LLM. Omit the field or set it to null to apply no limit. Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
+	// OutputTokensPerMinute Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of output tokens (completion plus reasoning) per minute for this LLM. Omit the field or set it to null to set no limit through this field. Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
 	//
 	// Example: 50000
+	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
 	OutputTokensPerMinute *int64 `json:"output_tokens_per_minute,omitempty"`
 
-	// OutputTokensPerMonth The maximum number of output tokens per UTC calendar month for this LLM. Omit the field or set it to null to apply no limit. Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
+	// OutputTokensPerMonth Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of output tokens per UTC calendar month for this LLM. Omit the field or set it to null to set no limit through this field. Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
 	//
 	// Example: 10000000
+	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
 	OutputTokensPerMonth *int64 `json:"output_tokens_per_month,omitempty"`
 
-	// RequestsPerSecond The maximum number of requests per second for this LLM. Omit the field or set it to null to apply no limit. Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
+	// RequestsPerSecond Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of requests per second for this LLM. Omit the field or set it to null to set no limit through this field. Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
+	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
 	RequestsPerSecond *int64 `json:"requests_per_second,omitempty"`
 
 	// TestModelParameters Any additional parameters that are required for the LLM during the test call.
@@ -13239,19 +13267,22 @@ type LLM struct {
 	// Example: 300
 	IdleTimeoutSeconds *IdleTimeoutSeconds `json:"idle_timeout_seconds,omitempty"`
 
-	// InputTokensPerDay The maximum number of input tokens per UTC calendar day for this LLM. The platform omits this field when the LLM has no such limit.
+	// InputTokensPerDay Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of input tokens per UTC calendar day for this LLM. The platform omits this field when no limit is set through it. Platform-set limits, which this response does not show, may still apply.
 	//
 	// Example: 2000000
+	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
 	InputTokensPerDay *int64 `json:"input_tokens_per_day,omitempty"`
 
-	// InputTokensPerMinute The maximum number of input (prompt) tokens per minute for this LLM, as reported by the provider and including cached prompt tokens. The platform omits this field when the LLM has no such limit.
+	// InputTokensPerMinute Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of input (prompt) tokens per minute for this LLM, as reported by the provider and including cached prompt tokens. The platform omits this field when no limit is set through it. Platform-set limits, which this response does not show, may still apply.
 	//
 	// Example: 200000
+	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
 	InputTokensPerMinute *int64 `json:"input_tokens_per_minute,omitempty"`
 
-	// InputTokensPerMonth The maximum number of input tokens per UTC calendar month for this LLM. The platform omits this field when the LLM has no such limit.
+	// InputTokensPerMonth Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of input tokens per UTC calendar month for this LLM. The platform omits this field when no limit is set through it. Platform-set limits, which this response does not show, may still apply.
 	//
 	// Example: 50000000
+	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
 	InputTokensPerMonth *int64 `json:"input_tokens_per_month,omitempty"`
 
 	// Model Provider-specific model identifier (e.g. `gpt-4o`, `claude-3-5-sonnet-20241022`, `gemini-2.5-flash`).
@@ -13262,19 +13293,22 @@ type LLM struct {
 	// Example: Claude 3.7 Sonnet
 	Name string `json:"name"`
 
-	// OutputTokensPerDay The maximum number of output tokens per UTC calendar day for this LLM. The platform omits this field when the LLM has no such limit.
+	// OutputTokensPerDay Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of output tokens per UTC calendar day for this LLM. The platform omits this field when no limit is set through it. Platform-set limits, which this response does not show, may still apply.
 	//
 	// Example: 500000
+	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
 	OutputTokensPerDay *int64 `json:"output_tokens_per_day,omitempty"`
 
-	// OutputTokensPerMinute The maximum number of output tokens (completion plus reasoning) per minute for this LLM. The platform omits this field when the LLM has no such limit.
+	// OutputTokensPerMinute Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of output tokens (completion plus reasoning) per minute for this LLM. The platform omits this field when no limit is set through it. Platform-set limits, which this response does not show, may still apply.
 	//
 	// Example: 50000
+	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
 	OutputTokensPerMinute *int64 `json:"output_tokens_per_minute,omitempty"`
 
-	// OutputTokensPerMonth The maximum number of output tokens per UTC calendar month for this LLM. The platform omits this field when the LLM has no such limit.
+	// OutputTokensPerMonth Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of output tokens per UTC calendar month for this LLM. The platform omits this field when no limit is set through it. Platform-set limits, which this response does not show, may still apply.
 	//
 	// Example: 10000000
+	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
 	OutputTokensPerMonth *int64 `json:"output_tokens_per_month,omitempty"`
 
 	// Ownership Indicates whether the LLM is provided by the platform or created by the customer. Platform LLMs are pre-configured and cannot be modified or deleted. Customer LLMs are created and managed by the customer.
@@ -13286,7 +13320,8 @@ type LLM struct {
 	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
 	Prompts interface{} `json:"prompts,omitempty"`
 
-	// RequestsPerSecond The maximum number of requests per second for this LLM. The platform omits this field when the LLM has no limit.
+	// RequestsPerSecond Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of requests per second for this LLM. The platform omits this field when no limit is set through it. Platform-set limits, which this response does not show, may still apply.
+	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
 	RequestsPerSecond *int64 `json:"requests_per_second,omitempty"`
 
 	// Type The provider type. It determines which authentication and configuration apply. Responses always include this field. If a stored LLM cannot be mapped to one of these values, the request fails with HTTP 500.
@@ -13326,41 +13361,48 @@ type LLMOwnership string
 
 // LLMQuota Ceilings on the LLM requests and tokens this agent may consume, counted across every LLM the agent calls. A sub-agent is charged to its own quota, not its parent's.
 //
-// Each field is optional; an omitted field applies no limit. Day and month windows are UTC calendar windows. Input tokens are the provider's reported prompt tokens, including cached tokens; output tokens are completion plus reasoning tokens. When a limit is reached the agent's next LLM call is refused: a non-streamed `createAgentInput` request answers `429` with a `Retry-After` header, and a streamed one ends with an `error` event naming the exhausted quota and the seconds until it resets.
+// Each field is optional; an omitted field sets no limit of its own. The platform may also apply its own limits. Day and month windows are UTC calendar windows. Input tokens are the provider's reported prompt tokens, including cached tokens; output tokens are completion plus reasoning tokens. When a limit is reached the agent's next LLM call is refused: a non-streamed `createAgentInput` request answers `429` with a `Retry-After` header, and a streamed one ends with an `error` event naming the exhausted quota and the seconds until it resets.
 type LLMQuota struct {
-	// InputTokensPerDay Maximum input tokens per UTC calendar day.
+	// InputTokensPerDay Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. Maximum input tokens per UTC calendar day.
 	//
 	// Example: 2000000
+	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
 	InputTokensPerDay *int64 `json:"input_tokens_per_day,omitempty"`
 
-	// InputTokensPerMinute Maximum input tokens per minute.
+	// InputTokensPerMinute Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. Maximum input tokens per minute.
 	//
 	// Example: 200000
+	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
 	InputTokensPerMinute *int64 `json:"input_tokens_per_minute,omitempty"`
 
-	// InputTokensPerMonth Maximum input tokens per UTC calendar month.
+	// InputTokensPerMonth Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. Maximum input tokens per UTC calendar month.
 	//
 	// Example: 50000000
+	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
 	InputTokensPerMonth *int64 `json:"input_tokens_per_month,omitempty"`
 
-	// OutputTokensPerDay Maximum output tokens per UTC calendar day.
+	// OutputTokensPerDay Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. Maximum output tokens per UTC calendar day.
 	//
 	// Example: 100000
+	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
 	OutputTokensPerDay *int64 `json:"output_tokens_per_day,omitempty"`
 
-	// OutputTokensPerMinute Maximum output tokens per minute.
+	// OutputTokensPerMinute Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. Maximum output tokens per minute.
 	//
 	// Example: 50000
+	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
 	OutputTokensPerMinute *int64 `json:"output_tokens_per_minute,omitempty"`
 
-	// OutputTokensPerMonth Maximum output tokens per UTC calendar month.
+	// OutputTokensPerMonth Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. Maximum output tokens per UTC calendar month.
 	//
 	// Example: 10000000
+	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
 	OutputTokensPerMonth *int64 `json:"output_tokens_per_month,omitempty"`
 
-	// RequestsPerSecond Maximum LLM requests per second.
+	// RequestsPerSecond Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. Maximum LLM requests per second.
 	//
 	// Example: 10
+	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
 	RequestsPerSecond *int64 `json:"requests_per_second,omitempty"`
 }
 
@@ -14731,19 +14773,22 @@ type OpenAILLMRequestBase struct {
 	// Example: 300
 	IdleTimeoutSeconds *IdleTimeoutSeconds `json:"idle_timeout_seconds,omitempty"`
 
-	// InputTokensPerDay The maximum number of input tokens per UTC calendar day for this LLM. Omit the field or set it to null to apply no limit. Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
+	// InputTokensPerDay Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of input tokens per UTC calendar day for this LLM. Omit the field or set it to null to set no limit through this field. Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
 	//
 	// Example: 2000000
+	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
 	InputTokensPerDay *int64 `json:"input_tokens_per_day,omitempty"`
 
-	// InputTokensPerMinute The maximum number of input (prompt) tokens per minute for this LLM, as reported by the provider and including cached prompt tokens. Omit the field or set it to null to apply no limit. Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
+	// InputTokensPerMinute Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of input (prompt) tokens per minute for this LLM, as reported by the provider and including cached prompt tokens. Omit the field or set it to null to set no limit through this field. Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
 	//
 	// Example: 200000
+	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
 	InputTokensPerMinute *int64 `json:"input_tokens_per_minute,omitempty"`
 
-	// InputTokensPerMonth The maximum number of input tokens per UTC calendar month for this LLM. Omit the field or set it to null to apply no limit. Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
+	// InputTokensPerMonth Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of input tokens per UTC calendar month for this LLM. Omit the field or set it to null to set no limit through this field. Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
 	//
 	// Example: 50000000
+	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
 	InputTokensPerMonth *int64 `json:"input_tokens_per_month,omitempty"`
 
 	// Model The model name to use with the API (e.g. gpt-4, claude-2, etc). The platform sends this name to the remote LLM provider.
@@ -14756,22 +14801,26 @@ type OpenAILLMRequestBase struct {
 	// Example: Claude 3.7 Sonnet
 	Name string `json:"name"`
 
-	// OutputTokensPerDay The maximum number of output tokens per UTC calendar day for this LLM. Omit the field or set it to null to apply no limit. Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
+	// OutputTokensPerDay Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of output tokens per UTC calendar day for this LLM. Omit the field or set it to null to set no limit through this field. Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
 	//
 	// Example: 500000
+	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
 	OutputTokensPerDay *int64 `json:"output_tokens_per_day,omitempty"`
 
-	// OutputTokensPerMinute The maximum number of output tokens (completion plus reasoning) per minute for this LLM. Omit the field or set it to null to apply no limit. Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
+	// OutputTokensPerMinute Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of output tokens (completion plus reasoning) per minute for this LLM. Omit the field or set it to null to set no limit through this field. Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
 	//
 	// Example: 50000
+	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
 	OutputTokensPerMinute *int64 `json:"output_tokens_per_minute,omitempty"`
 
-	// OutputTokensPerMonth The maximum number of output tokens per UTC calendar month for this LLM. Omit the field or set it to null to apply no limit. Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
+	// OutputTokensPerMonth Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of output tokens per UTC calendar month for this LLM. Omit the field or set it to null to set no limit through this field. Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
 	//
 	// Example: 10000000
+	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
 	OutputTokensPerMonth *int64 `json:"output_tokens_per_month,omitempty"`
 
-	// RequestsPerSecond The maximum number of requests per second for this LLM. Omit the field or set it to null to apply no limit. Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
+	// RequestsPerSecond Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of requests per second for this LLM. Omit the field or set it to null to set no limit through this field. Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
+	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
 	RequestsPerSecond *int64 `json:"requests_per_second,omitempty"`
 
 	// TestModelParameters Any additional parameters that are required for the LLM during the test call.
@@ -14807,88 +14856,95 @@ type OpenAILLMUpdateBase struct {
 	// Example: 300
 	IdleTimeoutSeconds *IdleTimeoutSeconds `json:"idle_timeout_seconds,omitempty"`
 
-	// InputTokensPerDay The maximum number of input tokens per UTC calendar day for this LLM.
+	// InputTokensPerDay Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of input tokens per UTC calendar day for this LLM.
 	//
 	// - Set a value to apply that limit.
-	// - Set the field to null to remove the limit.
+	// - Set the field to null to remove the limit set through this field.
 	// - Omit the field to keep the current limit.
 	//
 	// Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
 	//
 	//
 	// Example: 2000000
+	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
 	InputTokensPerDay *int64 `json:"input_tokens_per_day,omitempty"`
 
-	// InputTokensPerMinute The maximum number of input (prompt) tokens per minute for this LLM, as reported by the provider and including cached prompt tokens.
+	// InputTokensPerMinute Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of input (prompt) tokens per minute for this LLM, as reported by the provider and including cached prompt tokens.
 	//
 	// - Set a value to apply that limit.
-	// - Set the field to null to remove the limit.
+	// - Set the field to null to remove the limit set through this field.
 	// - Omit the field to keep the current limit.
 	//
 	// Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
 	//
 	//
 	// Example: 200000
+	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
 	InputTokensPerMinute *int64 `json:"input_tokens_per_minute,omitempty"`
 
-	// InputTokensPerMonth The maximum number of input tokens per UTC calendar month for this LLM.
+	// InputTokensPerMonth Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of input tokens per UTC calendar month for this LLM.
 	//
 	// - Set a value to apply that limit.
-	// - Set the field to null to remove the limit.
+	// - Set the field to null to remove the limit set through this field.
 	// - Omit the field to keep the current limit.
 	//
 	// Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
 	//
 	//
 	// Example: 50000000
+	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
 	InputTokensPerMonth *int64 `json:"input_tokens_per_month,omitempty"`
 
 	// Model The model identifier to use for this LLM.
 	Model *string `json:"model,omitempty"`
 
-	// OutputTokensPerDay The maximum number of output tokens per UTC calendar day for this LLM.
+	// OutputTokensPerDay Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of output tokens per UTC calendar day for this LLM.
 	//
 	// - Set a value to apply that limit.
-	// - Set the field to null to remove the limit.
+	// - Set the field to null to remove the limit set through this field.
 	// - Omit the field to keep the current limit.
 	//
 	// Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
 	//
 	//
 	// Example: 500000
+	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
 	OutputTokensPerDay *int64 `json:"output_tokens_per_day,omitempty"`
 
-	// OutputTokensPerMinute The maximum number of output tokens (completion plus reasoning) per minute for this LLM.
+	// OutputTokensPerMinute Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of output tokens (completion plus reasoning) per minute for this LLM.
 	//
 	// - Set a value to apply that limit.
-	// - Set the field to null to remove the limit.
+	// - Set the field to null to remove the limit set through this field.
 	// - Omit the field to keep the current limit.
 	//
 	// Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
 	//
 	//
 	// Example: 50000
+	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
 	OutputTokensPerMinute *int64 `json:"output_tokens_per_minute,omitempty"`
 
-	// OutputTokensPerMonth The maximum number of output tokens per UTC calendar month for this LLM.
+	// OutputTokensPerMonth Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of output tokens per UTC calendar month for this LLM.
 	//
 	// - Set a value to apply that limit.
-	// - Set the field to null to remove the limit.
+	// - Set the field to null to remove the limit set through this field.
 	// - Omit the field to keep the current limit.
 	//
 	// Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
 	//
 	//
 	// Example: 10000000
+	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
 	OutputTokensPerMonth *int64 `json:"output_tokens_per_month,omitempty"`
 
-	// RequestsPerSecond The maximum number of requests per second for this LLM.
+	// RequestsPerSecond Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of requests per second for this LLM.
 	//
 	// - Set a value to apply that limit.
-	// - Set the field to null to remove the limit.
+	// - Set the field to null to remove the limit set through this field.
 	// - Omit the field to keep the current limit.
 	//
 	// Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
+	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
 	RequestsPerSecond *int64 `json:"requests_per_second,omitempty"`
 
 	// TestModelParameters Any additional parameters that are required for the LLM during the test call.
@@ -15767,7 +15823,7 @@ type ReplaceAgentRequest struct {
 
 	// LlmQuota Ceilings on the LLM requests and tokens this agent may consume, counted across every LLM the agent calls. A sub-agent is charged to its own quota, not its parent's.
 	//
-	// Each field is optional; an omitted field applies no limit. Day and month windows are UTC calendar windows. Input tokens are the provider's reported prompt tokens, including cached tokens; output tokens are completion plus reasoning tokens. When a limit is reached the agent's next LLM call is refused: a non-streamed `createAgentInput` request answers `429` with a `Retry-After` header, and a streamed one ends with an `error` event naming the exhausted quota and the seconds until it resets.
+	// Each field is optional; an omitted field sets no limit of its own. The platform may also apply its own limits. Day and month windows are UTC calendar windows. Input tokens are the provider's reported prompt tokens, including cached tokens; output tokens are completion plus reasoning tokens. When a limit is reached the agent's next LLM call is refused: a non-streamed `createAgentInput` request answers `429` with a `Retry-After` header, and a streamed one ends with an `error` event naming the exhausted quota and the seconds until it resets.
 	LlmQuota *LLMQuota `json:"llm_quota,omitempty"`
 
 	// Metadata Arbitrary metadata associated with the agent for customization and configuration.
@@ -18888,7 +18944,7 @@ type UpdateAgentRequest struct {
 
 	// LlmQuota Ceilings on the LLM requests and tokens this agent may consume, counted across every LLM the agent calls. A sub-agent is charged to its own quota, not its parent's.
 	//
-	// Each field is optional; an omitted field applies no limit. Day and month windows are UTC calendar windows. Input tokens are the provider's reported prompt tokens, including cached tokens; output tokens are completion plus reasoning tokens. When a limit is reached the agent's next LLM call is refused: a non-streamed `createAgentInput` request answers `429` with a `Retry-After` header, and a streamed one ends with an `error` event naming the exhausted quota and the seconds until it resets.
+	// Each field is optional; an omitted field sets no limit of its own. The platform may also apply its own limits. Day and month windows are UTC calendar windows. Input tokens are the provider's reported prompt tokens, including cached tokens; output tokens are completion plus reasoning tokens. When a limit is reached the agent's next LLM call is refused: a non-streamed `createAgentInput` request answers `429` with a `Retry-After` header, and a streamed one ends with an `error` event naming the exhausted quota and the seconds until it resets.
 	LlmQuota *LLMQuota `json:"llm_quota,omitempty"`
 
 	// Metadata Arbitrary metadata associated with the agent. Set to null to clear.
@@ -19060,88 +19116,95 @@ type UpdateAnthropicLLMRequest struct {
 	// Example: 300
 	IdleTimeoutSeconds *IdleTimeoutSeconds `json:"idle_timeout_seconds,omitempty"`
 
-	// InputTokensPerDay The maximum number of input tokens per UTC calendar day for this LLM.
+	// InputTokensPerDay Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of input tokens per UTC calendar day for this LLM.
 	//
 	// - Set a value to apply that limit.
-	// - Set the field to null to remove the limit.
+	// - Set the field to null to remove the limit set through this field.
 	// - Omit the field to keep the current limit.
 	//
 	// Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
 	//
 	//
 	// Example: 2000000
+	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
 	InputTokensPerDay *int64 `json:"input_tokens_per_day,omitempty"`
 
-	// InputTokensPerMinute The maximum number of input (prompt) tokens per minute for this LLM, as reported by the provider and including cached prompt tokens.
+	// InputTokensPerMinute Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of input (prompt) tokens per minute for this LLM, as reported by the provider and including cached prompt tokens.
 	//
 	// - Set a value to apply that limit.
-	// - Set the field to null to remove the limit.
+	// - Set the field to null to remove the limit set through this field.
 	// - Omit the field to keep the current limit.
 	//
 	// Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
 	//
 	//
 	// Example: 200000
+	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
 	InputTokensPerMinute *int64 `json:"input_tokens_per_minute,omitempty"`
 
-	// InputTokensPerMonth The maximum number of input tokens per UTC calendar month for this LLM.
+	// InputTokensPerMonth Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of input tokens per UTC calendar month for this LLM.
 	//
 	// - Set a value to apply that limit.
-	// - Set the field to null to remove the limit.
+	// - Set the field to null to remove the limit set through this field.
 	// - Omit the field to keep the current limit.
 	//
 	// Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
 	//
 	//
 	// Example: 50000000
+	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
 	InputTokensPerMonth *int64 `json:"input_tokens_per_month,omitempty"`
 
 	// Model The model identifier to use for this LLM.
 	Model *string `json:"model,omitempty"`
 
-	// OutputTokensPerDay The maximum number of output tokens per UTC calendar day for this LLM.
+	// OutputTokensPerDay Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of output tokens per UTC calendar day for this LLM.
 	//
 	// - Set a value to apply that limit.
-	// - Set the field to null to remove the limit.
+	// - Set the field to null to remove the limit set through this field.
 	// - Omit the field to keep the current limit.
 	//
 	// Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
 	//
 	//
 	// Example: 500000
+	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
 	OutputTokensPerDay *int64 `json:"output_tokens_per_day,omitempty"`
 
-	// OutputTokensPerMinute The maximum number of output tokens (completion plus reasoning) per minute for this LLM.
+	// OutputTokensPerMinute Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of output tokens (completion plus reasoning) per minute for this LLM.
 	//
 	// - Set a value to apply that limit.
-	// - Set the field to null to remove the limit.
+	// - Set the field to null to remove the limit set through this field.
 	// - Omit the field to keep the current limit.
 	//
 	// Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
 	//
 	//
 	// Example: 50000
+	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
 	OutputTokensPerMinute *int64 `json:"output_tokens_per_minute,omitempty"`
 
-	// OutputTokensPerMonth The maximum number of output tokens per UTC calendar month for this LLM.
+	// OutputTokensPerMonth Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of output tokens per UTC calendar month for this LLM.
 	//
 	// - Set a value to apply that limit.
-	// - Set the field to null to remove the limit.
+	// - Set the field to null to remove the limit set through this field.
 	// - Omit the field to keep the current limit.
 	//
 	// Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
 	//
 	//
 	// Example: 10000000
+	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
 	OutputTokensPerMonth *int64 `json:"output_tokens_per_month,omitempty"`
 
-	// RequestsPerSecond The maximum number of requests per second for this LLM.
+	// RequestsPerSecond Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of requests per second for this LLM.
 	//
 	// - Set a value to apply that limit.
-	// - Set the field to null to remove the limit.
+	// - Set the field to null to remove the limit set through this field.
 	// - Omit the field to keep the current limit.
 	//
 	// Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
+	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
 	RequestsPerSecond *int64 `json:"requests_per_second,omitempty"`
 
 	// TestModelParameters Any additional parameters that are required for the LLM during the test call.
@@ -19440,88 +19503,95 @@ type UpdateOpenAILLMRequest struct {
 	// Example: 300
 	IdleTimeoutSeconds *IdleTimeoutSeconds `json:"idle_timeout_seconds,omitempty"`
 
-	// InputTokensPerDay The maximum number of input tokens per UTC calendar day for this LLM.
+	// InputTokensPerDay Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of input tokens per UTC calendar day for this LLM.
 	//
 	// - Set a value to apply that limit.
-	// - Set the field to null to remove the limit.
+	// - Set the field to null to remove the limit set through this field.
 	// - Omit the field to keep the current limit.
 	//
 	// Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
 	//
 	//
 	// Example: 2000000
+	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
 	InputTokensPerDay *int64 `json:"input_tokens_per_day,omitempty"`
 
-	// InputTokensPerMinute The maximum number of input (prompt) tokens per minute for this LLM, as reported by the provider and including cached prompt tokens.
+	// InputTokensPerMinute Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of input (prompt) tokens per minute for this LLM, as reported by the provider and including cached prompt tokens.
 	//
 	// - Set a value to apply that limit.
-	// - Set the field to null to remove the limit.
+	// - Set the field to null to remove the limit set through this field.
 	// - Omit the field to keep the current limit.
 	//
 	// Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
 	//
 	//
 	// Example: 200000
+	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
 	InputTokensPerMinute *int64 `json:"input_tokens_per_minute,omitempty"`
 
-	// InputTokensPerMonth The maximum number of input tokens per UTC calendar month for this LLM.
+	// InputTokensPerMonth Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of input tokens per UTC calendar month for this LLM.
 	//
 	// - Set a value to apply that limit.
-	// - Set the field to null to remove the limit.
+	// - Set the field to null to remove the limit set through this field.
 	// - Omit the field to keep the current limit.
 	//
 	// Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
 	//
 	//
 	// Example: 50000000
+	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
 	InputTokensPerMonth *int64 `json:"input_tokens_per_month,omitempty"`
 
 	// Model The model identifier to use for this LLM.
 	Model *string `json:"model,omitempty"`
 
-	// OutputTokensPerDay The maximum number of output tokens per UTC calendar day for this LLM.
+	// OutputTokensPerDay Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of output tokens per UTC calendar day for this LLM.
 	//
 	// - Set a value to apply that limit.
-	// - Set the field to null to remove the limit.
+	// - Set the field to null to remove the limit set through this field.
 	// - Omit the field to keep the current limit.
 	//
 	// Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
 	//
 	//
 	// Example: 500000
+	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
 	OutputTokensPerDay *int64 `json:"output_tokens_per_day,omitempty"`
 
-	// OutputTokensPerMinute The maximum number of output tokens (completion plus reasoning) per minute for this LLM.
+	// OutputTokensPerMinute Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of output tokens (completion plus reasoning) per minute for this LLM.
 	//
 	// - Set a value to apply that limit.
-	// - Set the field to null to remove the limit.
+	// - Set the field to null to remove the limit set through this field.
 	// - Omit the field to keep the current limit.
 	//
 	// Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
 	//
 	//
 	// Example: 50000
+	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
 	OutputTokensPerMinute *int64 `json:"output_tokens_per_minute,omitempty"`
 
-	// OutputTokensPerMonth The maximum number of output tokens per UTC calendar month for this LLM.
+	// OutputTokensPerMonth Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of output tokens per UTC calendar month for this LLM.
 	//
 	// - Set a value to apply that limit.
-	// - Set the field to null to remove the limit.
+	// - Set the field to null to remove the limit set through this field.
 	// - Omit the field to keep the current limit.
 	//
 	// Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
 	//
 	//
 	// Example: 10000000
+	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
 	OutputTokensPerMonth *int64 `json:"output_tokens_per_month,omitempty"`
 
-	// RequestsPerSecond The maximum number of requests per second for this LLM.
+	// RequestsPerSecond Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of requests per second for this LLM.
 	//
 	// - Set a value to apply that limit.
-	// - Set the field to null to remove the limit.
+	// - Set the field to null to remove the limit set through this field.
 	// - Omit the field to keep the current limit.
 	//
 	// Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
+	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
 	RequestsPerSecond *int64 `json:"requests_per_second,omitempty"`
 
 	// TestModelParameters Any additional parameters that are required for the LLM during the test call.
@@ -19558,88 +19628,95 @@ type UpdateOpenAIResponsesLLMRequest struct {
 	// Example: 300
 	IdleTimeoutSeconds *IdleTimeoutSeconds `json:"idle_timeout_seconds,omitempty"`
 
-	// InputTokensPerDay The maximum number of input tokens per UTC calendar day for this LLM.
+	// InputTokensPerDay Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of input tokens per UTC calendar day for this LLM.
 	//
 	// - Set a value to apply that limit.
-	// - Set the field to null to remove the limit.
+	// - Set the field to null to remove the limit set through this field.
 	// - Omit the field to keep the current limit.
 	//
 	// Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
 	//
 	//
 	// Example: 2000000
+	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
 	InputTokensPerDay *int64 `json:"input_tokens_per_day,omitempty"`
 
-	// InputTokensPerMinute The maximum number of input (prompt) tokens per minute for this LLM, as reported by the provider and including cached prompt tokens.
+	// InputTokensPerMinute Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of input (prompt) tokens per minute for this LLM, as reported by the provider and including cached prompt tokens.
 	//
 	// - Set a value to apply that limit.
-	// - Set the field to null to remove the limit.
+	// - Set the field to null to remove the limit set through this field.
 	// - Omit the field to keep the current limit.
 	//
 	// Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
 	//
 	//
 	// Example: 200000
+	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
 	InputTokensPerMinute *int64 `json:"input_tokens_per_minute,omitempty"`
 
-	// InputTokensPerMonth The maximum number of input tokens per UTC calendar month for this LLM.
+	// InputTokensPerMonth Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of input tokens per UTC calendar month for this LLM.
 	//
 	// - Set a value to apply that limit.
-	// - Set the field to null to remove the limit.
+	// - Set the field to null to remove the limit set through this field.
 	// - Omit the field to keep the current limit.
 	//
 	// Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
 	//
 	//
 	// Example: 50000000
+	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
 	InputTokensPerMonth *int64 `json:"input_tokens_per_month,omitempty"`
 
 	// Model The model identifier to use for this LLM.
 	Model *string `json:"model,omitempty"`
 
-	// OutputTokensPerDay The maximum number of output tokens per UTC calendar day for this LLM.
+	// OutputTokensPerDay Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of output tokens per UTC calendar day for this LLM.
 	//
 	// - Set a value to apply that limit.
-	// - Set the field to null to remove the limit.
+	// - Set the field to null to remove the limit set through this field.
 	// - Omit the field to keep the current limit.
 	//
 	// Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
 	//
 	//
 	// Example: 500000
+	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
 	OutputTokensPerDay *int64 `json:"output_tokens_per_day,omitempty"`
 
-	// OutputTokensPerMinute The maximum number of output tokens (completion plus reasoning) per minute for this LLM.
+	// OutputTokensPerMinute Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of output tokens (completion plus reasoning) per minute for this LLM.
 	//
 	// - Set a value to apply that limit.
-	// - Set the field to null to remove the limit.
+	// - Set the field to null to remove the limit set through this field.
 	// - Omit the field to keep the current limit.
 	//
 	// Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
 	//
 	//
 	// Example: 50000
+	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
 	OutputTokensPerMinute *int64 `json:"output_tokens_per_minute,omitempty"`
 
-	// OutputTokensPerMonth The maximum number of output tokens per UTC calendar month for this LLM.
+	// OutputTokensPerMonth Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of output tokens per UTC calendar month for this LLM.
 	//
 	// - Set a value to apply that limit.
-	// - Set the field to null to remove the limit.
+	// - Set the field to null to remove the limit set through this field.
 	// - Omit the field to keep the current limit.
 	//
 	// Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
 	//
 	//
 	// Example: 10000000
+	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
 	OutputTokensPerMonth *int64 `json:"output_tokens_per_month,omitempty"`
 
-	// RequestsPerSecond The maximum number of requests per second for this LLM.
+	// RequestsPerSecond Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of requests per second for this LLM.
 	//
 	// - Set a value to apply that limit.
-	// - Set the field to null to remove the limit.
+	// - Set the field to null to remove the limit set through this field.
 	// - Omit the field to keep the current limit.
 	//
 	// Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
+	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
 	RequestsPerSecond *int64 `json:"requests_per_second,omitempty"`
 
 	// TestModelParameters Any additional parameters that are required for the LLM during the test call.
@@ -19798,88 +19875,95 @@ type UpdateVertexAILLMRequest struct {
 	// Example: 300
 	IdleTimeoutSeconds *IdleTimeoutSeconds `json:"idle_timeout_seconds,omitempty"`
 
-	// InputTokensPerDay The maximum number of input tokens per UTC calendar day for this LLM.
+	// InputTokensPerDay Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of input tokens per UTC calendar day for this LLM.
 	//
 	// - Set a value to apply that limit.
-	// - Set the field to null to remove the limit.
+	// - Set the field to null to remove the limit set through this field.
 	// - Omit the field to keep the current limit.
 	//
 	// Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
 	//
 	//
 	// Example: 2000000
+	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
 	InputTokensPerDay *int64 `json:"input_tokens_per_day,omitempty"`
 
-	// InputTokensPerMinute The maximum number of input (prompt) tokens per minute for this LLM, as reported by the provider and including cached prompt tokens.
+	// InputTokensPerMinute Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of input (prompt) tokens per minute for this LLM, as reported by the provider and including cached prompt tokens.
 	//
 	// - Set a value to apply that limit.
-	// - Set the field to null to remove the limit.
+	// - Set the field to null to remove the limit set through this field.
 	// - Omit the field to keep the current limit.
 	//
 	// Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
 	//
 	//
 	// Example: 200000
+	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
 	InputTokensPerMinute *int64 `json:"input_tokens_per_minute,omitempty"`
 
-	// InputTokensPerMonth The maximum number of input tokens per UTC calendar month for this LLM.
+	// InputTokensPerMonth Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of input tokens per UTC calendar month for this LLM.
 	//
 	// - Set a value to apply that limit.
-	// - Set the field to null to remove the limit.
+	// - Set the field to null to remove the limit set through this field.
 	// - Omit the field to keep the current limit.
 	//
 	// Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
 	//
 	//
 	// Example: 50000000
+	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
 	InputTokensPerMonth *int64 `json:"input_tokens_per_month,omitempty"`
 
 	// Model The model identifier to use for this LLM.
 	Model *string `json:"model,omitempty"`
 
-	// OutputTokensPerDay The maximum number of output tokens per UTC calendar day for this LLM.
+	// OutputTokensPerDay Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of output tokens per UTC calendar day for this LLM.
 	//
 	// - Set a value to apply that limit.
-	// - Set the field to null to remove the limit.
+	// - Set the field to null to remove the limit set through this field.
 	// - Omit the field to keep the current limit.
 	//
 	// Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
 	//
 	//
 	// Example: 500000
+	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
 	OutputTokensPerDay *int64 `json:"output_tokens_per_day,omitempty"`
 
-	// OutputTokensPerMinute The maximum number of output tokens (completion plus reasoning) per minute for this LLM.
+	// OutputTokensPerMinute Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of output tokens (completion plus reasoning) per minute for this LLM.
 	//
 	// - Set a value to apply that limit.
-	// - Set the field to null to remove the limit.
+	// - Set the field to null to remove the limit set through this field.
 	// - Omit the field to keep the current limit.
 	//
 	// Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
 	//
 	//
 	// Example: 50000
+	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
 	OutputTokensPerMinute *int64 `json:"output_tokens_per_minute,omitempty"`
 
-	// OutputTokensPerMonth The maximum number of output tokens per UTC calendar month for this LLM.
+	// OutputTokensPerMonth Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of output tokens per UTC calendar month for this LLM.
 	//
 	// - Set a value to apply that limit.
-	// - Set the field to null to remove the limit.
+	// - Set the field to null to remove the limit set through this field.
 	// - Omit the field to keep the current limit.
 	//
 	// Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
 	//
 	//
 	// Example: 10000000
+	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
 	OutputTokensPerMonth *int64 `json:"output_tokens_per_month,omitempty"`
 
-	// RequestsPerSecond The maximum number of requests per second for this LLM.
+	// RequestsPerSecond Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of requests per second for this LLM.
 	//
 	// - Set a value to apply that limit.
-	// - Set the field to null to remove the limit.
+	// - Set the field to null to remove the limit set through this field.
 	// - Omit the field to keep the current limit.
 	//
 	// Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
+	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
 	RequestsPerSecond *int64 `json:"requests_per_second,omitempty"`
 
 	// TestModelParameters Any additional parameters that are required for the LLM during the test call.
@@ -19958,56 +20042,4 @@ type UpdateWebSourceConfiguration struct {
 
 	// UserAgent User-Agent header sent with every request. Must not contain CR or LF.
 	UserAgent *string `json:"user_agent,omitempty"`
-}
-
-// UpdateWidgetConnectorConfiguration Partial update of a widget connector's configuration: an omitted field keeps its stored value; `presentation` is replaced whole when supplied.
-type UpdateWidgetConnectorConfiguration struct {
-	// AllowedOrigins Allowed browser origins. Entries must be unique.
-	// A non-empty list rejects unmatched `Origin` headers with `403`; requests without `Origin` are allowed.
-	// Omitted preserves the current list. Set to null or an empty array to clear. Null entries are rejected.
-	//
-	//
-	// Example: ["https://example.com","https://*.example.com"]
-	AllowedOrigins *[]WidgetAllowedOrigin `json:"allowed_origins,omitempty"`
-
-	// EndUserSignIn The sign-in to apply. Omitted leaves the current sign-in unchanged, and `null` removes it so the widget no longer offers sign-in.
-	EndUserSignIn *WidgetSignIn `json:"end_user_sign_in,omitempty"`
-
-	// HiddenOutputTypes Present on the read view for consistency with other connector types; widget connectors ignore it and control end-user visibility through `revealed_output_types`. Accepted on update so a read-modify-write round trip is not rejected.
-	//
-	// Example: ["tool_calls"]
-	HiddenOutputTypes *[]AgentOutputType `json:"hidden_output_types,omitempty"`
-
-	// Presentation The presentation configuration the widget client renders — branding, palette, welcome content, suggested prompts.
-	// Free-form apart from the required `version`; the platform stores it verbatim, serves it back uninterpreted, and caps its total size.
-	// Null-valued keys are accepted but are omitted from responses.
-	// Served to anonymous visitors by the unauthenticated public connector view, so widget clients must treat every value as untrusted data.
-	// Schema validation of the payload lands with the first Altera release; `version` is what lets clients render older payloads once the shape evolves.
-	Presentation *WidgetPresentation `json:"presentation,omitempty"`
-
-	// PublicAccess Whether the widget admits anonymous visitors. Omitted leaves the current value unchanged.
-	// Setting it to `false` closes the widget to anonymous visitors: anonymous session creation naming it is refused, and sessions bound to it refuse anonymous access. Visitor ids themselves stay valid on the customer's other open widgets. The change takes effect within a few seconds.
-	// Gates anonymous admission only; authenticated callers presenting this connector are governed by `enabled`.
-	//
-	//
-	// Example: false
-	PublicAccess *bool `json:"public_access,omitempty"`
-
-	// RevealedOutputTypes Agent output types included in the widget's end-user event projection; the final response is always visible.
-	//
-	// Example: ["tool_calls"]
-	RevealedOutputTypes *[]AgentOutputType `json:"revealed_output_types,omitempty"`
-
-	// SessionMetadata Written into every session created through this widget connector, under `metadata.connector.<connector_id>`.
-	//
-	// Example: {"instance":"conversational-ai"}
-	SessionMetadata *map[string]interface{} `json:"session_metadata,omitempty"`
-
-	// SessionTtiMinutes How long a session created through this widget may sit idle before it is closed, in minutes. Set to 0 for sessions that never expire.
-	SessionTtiMinutes *int32 `json:"session_tti_minutes,omitempty"`
-
-	// Type The type of connector configuration.
-	//
-	// Example: widget
-	Type string `json:"type"`
 }
