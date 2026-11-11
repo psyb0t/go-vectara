@@ -289,6 +289,24 @@ func (e AgentSessionStatus) Valid() bool {
 	}
 }
 
+// Defines values for AgentStepType.
+const (
+	AgentStepTypeConversational AgentStepType = "conversational"
+	AgentStepTypeToolCalls      AgentStepType = "tool_calls"
+)
+
+// Valid indicates whether the value is a known member of the AgentStepType enum.
+func (e AgentStepType) Valid() bool {
+	switch e {
+	case AgentStepTypeConversational:
+		return true
+	case AgentStepTypeToolCalls:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for AgentTraceStatus.
 const (
 	AgentTraceStatusError AgentTraceStatus = "error"
@@ -1215,6 +1233,7 @@ const (
 	JobProgressPhaseCompleted         JobProgressPhase = "completed"
 	JobProgressPhaseCuttingOver       JobProgressPhase = "cutting_over"
 	JobProgressPhaseImporting         JobProgressPhase = "importing"
+	JobProgressPhaseIndexing          JobProgressPhase = "indexing"
 	JobProgressPhasePreparing         JobProgressPhase = "preparing"
 	JobProgressPhaseReplayingJournals JobProgressPhase = "replaying_journals"
 	JobProgressPhaseScanning          JobProgressPhase = "scanning"
@@ -1228,6 +1247,8 @@ func (e JobProgressPhase) Valid() bool {
 	case JobProgressPhaseCuttingOver:
 		return true
 	case JobProgressPhaseImporting:
+		return true
+	case JobProgressPhaseIndexing:
 		return true
 	case JobProgressPhasePreparing:
 		return true
@@ -2305,6 +2326,7 @@ const (
 	ListTracesParamsToolErrorTypeInvalidInput         ListTracesParamsToolErrorType = "invalid_input"
 	ListTracesParamsToolErrorTypeNotFound             ListTracesParamsToolErrorType = "not_found"
 	ListTracesParamsToolErrorTypeTimeout              ListTracesParamsToolErrorType = "timeout"
+	ListTracesParamsToolErrorTypeUnknownResult        ListTracesParamsToolErrorType = "unknown_result"
 )
 
 // Valid indicates whether the value is a known member of the ListTracesParamsToolErrorType enum.
@@ -2323,6 +2345,8 @@ func (e ListTracesParamsToolErrorType) Valid() bool {
 	case ListTracesParamsToolErrorTypeNotFound:
 		return true
 	case ListTracesParamsToolErrorTypeTimeout:
+		return true
+	case ListTracesParamsToolErrorTypeUnknownResult:
 		return true
 	default:
 		return false
@@ -3492,21 +3516,17 @@ type Agent struct {
 	// Example: classifier
 	FirstStepName *string `json:"first_step_name,omitempty"`
 
-	// GenerateSessionDescriptions Whether the platform generates a description for each of this agent's sessions created without one. When true, after each turn that completes without error in such a session, the platform makes one additional request to the agent's model to summarize the session's events into its description. That request consumes tokens and counts against `llm_quota`. When false, no request is made and those sessions keep no description. A description supplied on session create or update is never replaced, and an empty description turns off generation for that session.
+	// GenerateSessionDescriptions Deprecated alias of `session_description.enabled`. On requests, ignored when `session_description` is also set, and when sent alone it leaves `session_description.deliver_before_turn_end` unchanged. On responses, mirrors `session_description.enabled`.
 	//
 	//
 	// Example: false
+	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
 	GenerateSessionDescriptions *GenerateSessionDescriptions `json:"generate_session_descriptions,omitempty"`
 
 	// Key A unique key that identifies an agent.
 	//
 	// Example: customer_support
 	Key AgentKey `json:"key"`
-
-	// LlmQuota Ceilings on the LLM requests and tokens this agent may consume, counted across every LLM the agent calls. A sub-agent is charged to its own quota, not its parent's.
-	//
-	// Each field is optional; an omitted field sets no limit of its own. The platform may also apply its own limits. Day and month windows are UTC calendar windows. Input tokens are the provider's reported prompt tokens, including cached tokens; output tokens are completion plus reasoning tokens. When a limit is reached the agent's next LLM call is refused: a non-streamed `createAgentInput` request answers `429` with a `Retry-After` header, and a streamed one ends with an `error` event naming the exhausted quota and the seconds until it resets.
-	LlmQuota *LLMQuota `json:"llm_quota,omitempty"`
 
 	// Metadata Arbitrary metadata associated with the agent for customization and configuration.
 	//
@@ -3520,6 +3540,9 @@ type Agent struct {
 	//
 	// Example: Customer Support Agent
 	Name AgentName `json:"name"`
+
+	// SessionDescription Controls how this agent's sessions created without a description get one. Generation sends one additional request to the agent's model, using the text of the input message that triggers it (the first input message with text, or the next one after a failed request), and stores the result on the session. That request consumes tokens. When the response is streamed, the stream also carries a `session_description` event. A description supplied on session create or update is never replaced, and an empty description turns off generation for that session.
+	SessionDescription *SessionDescriptionConfiguration `json:"session_description,omitempty"`
 
 	// SessionEnrichment Tool calls run at session creation to populate the new session's metadata before the agent's first turn. Each call invokes one of the agent's enrichment-only tool configurations and writes its output into the session metadata. The agent, run conditions, and routing can then read values fetched or computed at session start. Enrichment tools are ordinary entries in the agent's tool_configurations marked enrichment_only, so they are never exposed to the agent's LLM. Enrichment runs for every session the agent creates regardless of trigger, including the API, chat connectors, and schedules. Independent calls run in parallel and a call may consume an earlier call's output. Enrichment is fail-closed: unless a call sets continue_on_error, a failed call aborts session creation and no session is created. The abort status names the failure: 422 for an invalid configuration or a failed transform, 502 for a tool failure, and 504 for a timeout. A jq error raised by the called tool configuration's input_transform or output_transform is a call failure like any other: continue_on_error skips it, and otherwise its message is returned in the error response's messages array.
 	SessionEnrichment *SessionEnrichmentConfig `json:"session_enrichment,omitempty"`
@@ -4106,7 +4129,7 @@ type AgentSession struct {
 	// Example: billing
 	CurrentStepName *string `json:"current_step_name,omitempty"`
 
-	// Description A short description of the session's purpose. If omitted at creation, the platform generates one after the agent produces events, unless the agent's `generate_session_descriptions` is false. An empty string indicates auto-generation is disabled for this session.
+	// Description A short description of the session's purpose. If omitted at creation, the platform generates one from an input message that has text, unless the agent's `session_description.enabled` is false. An empty string indicates auto-generation is disabled for this session.
 	//
 	//
 	// Example: Helping customer troubleshoot widget installation issues
@@ -4213,7 +4236,8 @@ type AgentSkillInput struct {
 // The step name comes from the map key in the agent's steps map.
 //
 // A step receives all previous session history, including any prior agent steps.
-// The agent then follows the step's instructions to decide what to do.
+// It first runs its tool_calls, if any. In a `conversational` step the LLM then follows the
+// step's instructions to decide what to do. A `tool_calls` step does not call the LLM.
 // Finally, the agent stops if no next step is defined, or continues to the first
 // next step whose condition matches.
 //
@@ -4267,9 +4291,20 @@ type AgentStep struct {
 	// Reminders Reminders injected into conversation messages when specific events occur. Useful for keeping the agent on-task during long conversations.
 	Reminders *[]AgentStepReminder `json:"reminders,omitempty"`
 
-	// Type Deprecated. This field is ignored and exists only for backward compatibility.
-	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
-	Type *string `json:"type,omitempty"`
+	// ToolCalls Tool calls the platform makes each time the session transitions into this step, or starts at it, before anything else in the step runs.
+	// Calls start in the order listed. A call whose arguments reference an earlier call's output starts once that call finishes.
+	// Calls with no such reference run in parallel.
+	//
+	// In a `conversational` step, the LLM then handles the input following the step's instructions. The LLM does not see the step's tool
+	// calls or their outputs: they are recorded as session events, and next_steps conditions and later calls read their outputs as
+	// `tools.<tool_config_name>.outputs.latest`.
+	// In a `tool_calls` step, the step evaluates next_steps once the calls finish, and the LLM is not called.
+	//
+	// A new input that finds the session already at this step does not run the calls again. Each call's on_failure sets what its failure does.
+	ToolCalls *[]AgentStepToolCall `json:"tool_calls,omitempty"`
+
+	// Type How the step acts on its input. Defaults to `conversational`.
+	Type *AgentStepType `json:"type,omitempty"`
 }
 
 // AgentStepInstruction An instruction that can be used in an agent step, either by reference, defined inline, or using a Vectara built-in instruction.
@@ -4283,6 +4318,32 @@ type AgentStepInstruction struct {
 type AgentStepReminder struct {
 	union json.RawMessage
 }
+
+// AgentStepToolCall A tool call the platform makes each time the session transitions into a step or starts at it. It names one of the agent's tool configurations and supplies the arguments to invoke it with. The call is recorded in the session as a `tool_input` event followed by a `tool_output` event, the same events a call made by the LLM produces. The LLM does not see the call or its output.
+type AgentStepToolCall struct {
+	// Arguments Arguments to invoke the tool with. These may set only the parameters that the tool configuration does not already fix through its argument_override. Naming a fixed parameter is rejected when the agent is created or updated. No LLM fills in arguments, so these arguments, together with the parameters the tool configuration fixes, must cover every required parameter of the tool. A call that omits one fails when it runs. Each value is either a literal or a `$ref` object, resolved when the call runs against the same context as a reference in argument_override. That context includes the output of an earlier call in the same step as `tools.<tool_config_name>.outputs.latest`.
+	//
+	// Example: {"artifact_id":"art_pdf_abc123","chunking":{"strategy":"hierarchical"}}
+	Arguments *map[string]interface{} `json:"arguments,omitempty"`
+
+	// OnFailure What a failure of this call does. The failure is recorded as the call's `tool_output`, whose `error` field holds the failure message and which later calls and next_steps conditions read as `tools.<tool_config_name>.outputs.latest`. Defaults to `end_turn`. Session enrichment tool calls use `continue_on_error` instead.
+	OnFailure *StepToolCallOnFailure `json:"on_failure,omitempty"`
+
+	// Tool Name of the tool configuration to call. Must name one of the agent's tool_configurations whose enrichment_only is false and that the step's allowed_tools permits. A later call in the same step references this call's output as `tools.<tool_config_name>.outputs.latest`.
+	//
+	// Example: document_analyze
+	Tool string `json:"tool"`
+}
+
+// AgentStepType How a step acts on its input. New values may be added; clients should ignore values they do not recognize.
+//
+//   - `conversational`: the step runs its tool_calls, then the LLM acts on the input following the step's instructions.
+//   - `tool_calls`: the step runs its tool_calls and nothing else. The LLM is not called. The step must set instructions to an
+//     empty list and use the default output_parser, and must not set reminders or allowed_skills.
+//     A step with no tool_calls goes straight to its next_steps.
+//
+// Example: conversational
+type AgentStepType string
 
 // AgentStreamedResponse An individual event sent with Server-sent Events (SSE) when the agent response is streamed.
 type AgentStreamedResponse struct {
@@ -4600,6 +4661,9 @@ type ArtifactCreateTool struct {
 	// Example:
 	//   `{"query": {"$ref": ".session.metadata.query"}}`
 	//
+	// A `$ref` object may also set `$default`, the value used when the reference does not resolve:
+	//   `{"tier": {"$ref": "session.metadata.tier", "$default": "free"}}`
+	//
 	// To use a literal `"$ref"` value, write `"$$ref"`. The $$ escapes the first $.
 	//
 	// Example: {"max_results":10}
@@ -4735,6 +4799,9 @@ type ArtifactGrepTool struct {
 	//
 	// Example:
 	//   `{"query": {"$ref": ".session.metadata.query"}}`
+	//
+	// A `$ref` object may also set `$default`, the value used when the reference does not resolve:
+	//   `{"tier": {"$ref": "session.metadata.tier", "$default": "free"}}`
 	//
 	// To use a literal `"$ref"` value, write `"$$ref"`. The $$ escapes the first $.
 	//
@@ -4998,6 +5065,9 @@ type ArtifactReadTool struct {
 	//
 	// Example:
 	//   `{"query": {"$ref": ".session.metadata.query"}}`
+	//
+	// A `$ref` object may also set `$default`, the value used when the reference does not resolve:
+	//   `{"tier": {"$ref": "session.metadata.tier", "$default": "free"}}`
 	//
 	// To use a literal `"$ref"` value, write `"$$ref"`. The $$ escapes the first $.
 	//
@@ -6704,6 +6774,9 @@ type ClientTool struct {
 	// Example:
 	//   `{"query": {"$ref": ".session.metadata.query"}}`
 	//
+	// A `$ref` object may also set `$default`, the value used when the reference does not resolve:
+	//   `{"tier": {"$ref": "session.metadata.tier", "$default": "free"}}`
+	//
 	// To use a literal `"$ref"` value, write `"$$ref"`. The $$ escapes the first $.
 	//
 	// Example: {"max_results":10}
@@ -7508,6 +7581,9 @@ type CorporaSearchTool struct {
 	// Example:
 	//   `{"query": {"$ref": ".session.metadata.query"}}`
 	//
+	// A `$ref` object may also set `$default`, the value used when the reference does not resolve:
+	//   `{"tier": {"$ref": "session.metadata.tier", "$default": "free"}}`
+	//
 	// To use a literal `"$ref"` value, write `"$$ref"`. The $$ escapes the first $.
 	//
 	// Example: {"max_results":10}
@@ -8073,21 +8149,17 @@ type CreateAgentRequest struct {
 	// Example: classifier
 	FirstStepName *string `json:"first_step_name,omitempty"`
 
-	// GenerateSessionDescriptions Whether the platform generates a description for each of this agent's sessions created without one. When true, after each turn that completes without error in such a session, the platform makes one additional request to the agent's model to summarize the session's events into its description. That request consumes tokens and counts against `llm_quota`. When false, no request is made and those sessions keep no description. A description supplied on session create or update is never replaced, and an empty description turns off generation for that session.
+	// GenerateSessionDescriptions Deprecated alias of `session_description.enabled`. On requests, ignored when `session_description` is also set, and when sent alone it leaves `session_description.deliver_before_turn_end` unchanged. On responses, mirrors `session_description.enabled`.
 	//
 	//
 	// Example: false
+	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
 	GenerateSessionDescriptions *GenerateSessionDescriptions `json:"generate_session_descriptions,omitempty"`
 
 	// Key A unique key that identifies an agent.
 	//
 	// Example: customer_support
 	Key *AgentKey `json:"key,omitempty"`
-
-	// LlmQuota Ceilings on the LLM requests and tokens this agent may consume, counted across every LLM the agent calls. A sub-agent is charged to its own quota, not its parent's.
-	//
-	// Each field is optional; an omitted field sets no limit of its own. The platform may also apply its own limits. Day and month windows are UTC calendar windows. Input tokens are the provider's reported prompt tokens, including cached tokens; output tokens are completion plus reasoning tokens. When a limit is reached the agent's next LLM call is refused: a non-streamed `createAgentInput` request answers `429` with a `Retry-After` header, and a streamed one ends with an `error` event naming the exhausted quota and the seconds until it resets.
-	LlmQuota *LLMQuota `json:"llm_quota,omitempty"`
 
 	// Metadata Arbitrary metadata associated with the agent for customization and configuration.
 	//
@@ -8101,6 +8173,9 @@ type CreateAgentRequest struct {
 	//
 	// Example: Customer Support Agent
 	Name AgentName `json:"name"`
+
+	// SessionDescription Controls how this agent's sessions created without a description get one. Generation sends one additional request to the agent's model, using the text of the input message that triggers it (the first input message with text, or the next one after a failed request), and stores the result on the session. That request consumes tokens. When the response is streamed, the stream also carries a `session_description` event. A description supplied on session create or update is never replaced, and an empty description turns off generation for that session.
+	SessionDescription *SessionDescriptionConfiguration `json:"session_description,omitempty"`
 
 	// SessionEnrichment Tool calls run at session creation to populate the new session's metadata before the agent's first turn. Each call invokes one of the agent's enrichment-only tool configurations and writes its output into the session metadata. The agent, run conditions, and routing can then read values fetched or computed at session start. Enrichment tools are ordinary entries in the agent's tool_configurations marked enrichment_only, so they are never exposed to the agent's LLM. Enrichment runs for every session the agent creates regardless of trigger, including the API, chat connectors, and schedules. Independent calls run in parallel and a call may consume an earlier call's output. Enrichment is fail-closed: unless a call sets continue_on_error, a failed call aborts session creation and no session is created. The abort status names the failure: 422 for an invalid configuration or a failed transform, 502 for a tool failure, and 504 for a timeout. A jq error raised by the called tool configuration's input_transform or output_transform is a call failure like any other: continue_on_error skips it, and otherwise its message is returned in the error response's messages array.
 	SessionEnrichment *SessionEnrichmentConfig `json:"session_enrichment,omitempty"`
@@ -8172,7 +8247,7 @@ type CreateAgentScheduleRequest struct {
 
 // CreateAgentSessionRequest Request object for creating a new agent session.
 type CreateAgentSessionRequest struct {
-	// Description A short description of the session's purpose. If omitted, the platform generates one after the session produces events, unless the agent's `generate_session_descriptions` is false. Pass an empty string to suppress auto-generation.
+	// Description A short description of the session's purpose. If omitted, the platform generates one from an input message that has text, unless the agent's `session_description.enabled` is false. Pass an empty string to suppress auto-generation.
 	//
 	//
 	// Example: Helping customer troubleshoot issues
@@ -8253,51 +8328,11 @@ type CreateAnthropicLLMRequest struct {
 	// Example: 300
 	IdleTimeoutSeconds *IdleTimeoutSeconds `json:"idle_timeout_seconds,omitempty"`
 
-	// InputTokensPerDay Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of input tokens per UTC calendar day for this LLM. Omit the field or set it to null to set no limit through this field. Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
-	//
-	// Example: 2000000
-	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
-	InputTokensPerDay *int64 `json:"input_tokens_per_day,omitempty"`
-
-	// InputTokensPerMinute Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of input (prompt) tokens per minute for this LLM, as reported by the provider and including cached prompt tokens. Omit the field or set it to null to set no limit through this field. Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
-	//
-	// Example: 200000
-	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
-	InputTokensPerMinute *int64 `json:"input_tokens_per_minute,omitempty"`
-
-	// InputTokensPerMonth Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of input tokens per UTC calendar month for this LLM. Omit the field or set it to null to set no limit through this field. Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
-	//
-	// Example: 50000000
-	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
-	InputTokensPerMonth *int64 `json:"input_tokens_per_month,omitempty"`
-
 	// Model The Claude model name to use (e.g. claude-3-5-sonnet-20241022, claude-3-opus-20240229, etc).
 	Model string `json:"model"`
 
 	// Name The name that references the LLM. Other endpoints (like query) use this name to select the LLM. If the name conflicts with a global LLM (an LLM that is preconfigured with the platform), this LLM overrides the global LLM for all usages.
 	Name string `json:"name"`
-
-	// OutputTokensPerDay Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of output tokens per UTC calendar day for this LLM. Omit the field or set it to null to set no limit through this field. Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
-	//
-	// Example: 500000
-	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
-	OutputTokensPerDay *int64 `json:"output_tokens_per_day,omitempty"`
-
-	// OutputTokensPerMinute Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of output tokens (completion plus reasoning) per minute for this LLM. Omit the field or set it to null to set no limit through this field. Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
-	//
-	// Example: 50000
-	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
-	OutputTokensPerMinute *int64 `json:"output_tokens_per_minute,omitempty"`
-
-	// OutputTokensPerMonth Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of output tokens per UTC calendar month for this LLM. Omit the field or set it to null to set no limit through this field. Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
-	//
-	// Example: 10000000
-	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
-	OutputTokensPerMonth *int64 `json:"output_tokens_per_month,omitempty"`
-
-	// RequestsPerSecond Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of requests per second for this LLM. Omit the field or set it to null to set no limit through this field. Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
-	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
-	RequestsPerSecond *int64 `json:"requests_per_second,omitempty"`
 
 	// TestModelParameters Any additional parameters that are required for the LLM during the test call.
 	TestModelParameters *map[string]interface{} `json:"test_model_parameters,omitempty"`
@@ -8581,7 +8616,7 @@ type CreateEndUserSessionRequest struct {
 	// Example: con_support_9f3a1c2b4d5e6f708192a3b4c5d6e7f8
 	ConnectorId ConnectorId `json:"connector_id"`
 
-	// Description A short description of the session's purpose. If omitted, the platform generates one after the agent produces events, unless the agent's `generate_session_descriptions` is false.
+	// Description A short description of the session's purpose. If omitted, the platform generates one from an input message that has text, unless the agent's `session_description.enabled` is false.
 	//
 	// Example: Helping customer troubleshoot widget installation issues
 	Description *string `json:"description,omitempty"`
@@ -8590,6 +8625,16 @@ type CreateEndUserSessionRequest struct {
 	//
 	// Example: Customer Support Session
 	Name *string `json:"name,omitempty"`
+}
+
+// CreateEndUserToolOutputRequest Delivers the outputs of the client tool calls the session is waiting on, so the agent can continue. Submit one entry per call listed in the `client_tool_pending` event or by `GET /v2/agent_aliases/{alias_key}/end_user_sessions/{session_key}/outstanding_client_tool_calls`.
+type CreateEndUserToolOutputRequest struct {
+	// StreamResponse Whether to stream the response.
+	StreamResponse *bool `json:"stream_response,omitempty"`
+
+	// ToolOutputs The tool outputs to deliver, one per pending client tool call.
+	ToolOutputs []CreateToolOutputRequest `json:"tool_outputs"`
+	Type        string                    `json:"type"`
 }
 
 // CreateGchatConnectorConfiguration Write view of a Google Chat connector's configuration. Supply the service
@@ -9064,24 +9109,6 @@ type CreateOpenAILLMRequest struct {
 	// Example: 300
 	IdleTimeoutSeconds *IdleTimeoutSeconds `json:"idle_timeout_seconds,omitempty"`
 
-	// InputTokensPerDay Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of input tokens per UTC calendar day for this LLM. Omit the field or set it to null to set no limit through this field. Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
-	//
-	// Example: 2000000
-	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
-	InputTokensPerDay *int64 `json:"input_tokens_per_day,omitempty"`
-
-	// InputTokensPerMinute Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of input (prompt) tokens per minute for this LLM, as reported by the provider and including cached prompt tokens. Omit the field or set it to null to set no limit through this field. Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
-	//
-	// Example: 200000
-	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
-	InputTokensPerMinute *int64 `json:"input_tokens_per_minute,omitempty"`
-
-	// InputTokensPerMonth Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of input tokens per UTC calendar month for this LLM. Omit the field or set it to null to set no limit through this field. Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
-	//
-	// Example: 50000000
-	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
-	InputTokensPerMonth *int64 `json:"input_tokens_per_month,omitempty"`
-
 	// Model The model name to use with the API (e.g. gpt-4, claude-2, etc). The platform sends this name to the remote LLM provider.
 	Model string `json:"model"`
 
@@ -9089,28 +9116,6 @@ type CreateOpenAILLMRequest struct {
 	//
 	// Example: Claude 3.7 Sonnet
 	Name string `json:"name"`
-
-	// OutputTokensPerDay Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of output tokens per UTC calendar day for this LLM. Omit the field or set it to null to set no limit through this field. Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
-	//
-	// Example: 500000
-	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
-	OutputTokensPerDay *int64 `json:"output_tokens_per_day,omitempty"`
-
-	// OutputTokensPerMinute Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of output tokens (completion plus reasoning) per minute for this LLM. Omit the field or set it to null to set no limit through this field. Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
-	//
-	// Example: 50000
-	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
-	OutputTokensPerMinute *int64 `json:"output_tokens_per_minute,omitempty"`
-
-	// OutputTokensPerMonth Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of output tokens per UTC calendar month for this LLM. Omit the field or set it to null to set no limit through this field. Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
-	//
-	// Example: 10000000
-	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
-	OutputTokensPerMonth *int64 `json:"output_tokens_per_month,omitempty"`
-
-	// RequestsPerSecond Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of requests per second for this LLM. Omit the field or set it to null to set no limit through this field. Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
-	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
-	RequestsPerSecond *int64 `json:"requests_per_second,omitempty"`
 
 	// TestModelParameters Any additional parameters that are required for the LLM during the test call.
 	//
@@ -9147,24 +9152,6 @@ type CreateOpenAIResponsesLLMRequest struct {
 	// Example: 300
 	IdleTimeoutSeconds *IdleTimeoutSeconds `json:"idle_timeout_seconds,omitempty"`
 
-	// InputTokensPerDay Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of input tokens per UTC calendar day for this LLM. Omit the field or set it to null to set no limit through this field. Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
-	//
-	// Example: 2000000
-	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
-	InputTokensPerDay *int64 `json:"input_tokens_per_day,omitempty"`
-
-	// InputTokensPerMinute Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of input (prompt) tokens per minute for this LLM, as reported by the provider and including cached prompt tokens. Omit the field or set it to null to set no limit through this field. Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
-	//
-	// Example: 200000
-	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
-	InputTokensPerMinute *int64 `json:"input_tokens_per_minute,omitempty"`
-
-	// InputTokensPerMonth Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of input tokens per UTC calendar month for this LLM. Omit the field or set it to null to set no limit through this field. Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
-	//
-	// Example: 50000000
-	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
-	InputTokensPerMonth *int64 `json:"input_tokens_per_month,omitempty"`
-
 	// Model The model name to use with the Responses API (e.g. o1-preview, o1-mini). The platform sends this name to the remote LLM provider.
 	Model string `json:"model"`
 
@@ -9172,28 +9159,6 @@ type CreateOpenAIResponsesLLMRequest struct {
 	//
 	// Example: Claude 3.7 Sonnet
 	Name string `json:"name"`
-
-	// OutputTokensPerDay Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of output tokens per UTC calendar day for this LLM. Omit the field or set it to null to set no limit through this field. Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
-	//
-	// Example: 500000
-	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
-	OutputTokensPerDay *int64 `json:"output_tokens_per_day,omitempty"`
-
-	// OutputTokensPerMinute Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of output tokens (completion plus reasoning) per minute for this LLM. Omit the field or set it to null to set no limit through this field. Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
-	//
-	// Example: 50000
-	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
-	OutputTokensPerMinute *int64 `json:"output_tokens_per_minute,omitempty"`
-
-	// OutputTokensPerMonth Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of output tokens per UTC calendar month for this LLM. Omit the field or set it to null to set no limit through this field. Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
-	//
-	// Example: 10000000
-	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
-	OutputTokensPerMonth *int64 `json:"output_tokens_per_month,omitempty"`
-
-	// RequestsPerSecond Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of requests per second for this LLM. Omit the field or set it to null to set no limit through this field. Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
-	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
-	RequestsPerSecond *int64 `json:"requests_per_second,omitempty"`
 
 	// TestModelParameters Any additional parameters that are required for the LLM during the test call.
 	//
@@ -9494,51 +9459,11 @@ type CreateVertexAILLMRequest struct {
 	// Example: 300
 	IdleTimeoutSeconds *IdleTimeoutSeconds `json:"idle_timeout_seconds,omitempty"`
 
-	// InputTokensPerDay Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of input tokens per UTC calendar day for this LLM. Omit the field or set it to null to set no limit through this field. Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
-	//
-	// Example: 2000000
-	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
-	InputTokensPerDay *int64 `json:"input_tokens_per_day,omitempty"`
-
-	// InputTokensPerMinute Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of input (prompt) tokens per minute for this LLM, as reported by the provider and including cached prompt tokens. Omit the field or set it to null to set no limit through this field. Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
-	//
-	// Example: 200000
-	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
-	InputTokensPerMinute *int64 `json:"input_tokens_per_minute,omitempty"`
-
-	// InputTokensPerMonth Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of input tokens per UTC calendar month for this LLM. Omit the field or set it to null to set no limit through this field. Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
-	//
-	// Example: 50000000
-	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
-	InputTokensPerMonth *int64 `json:"input_tokens_per_month,omitempty"`
-
 	// Model The model name to use (e.g. gemini-2.5-flash, gemini-2.5-pro, gemini-2.0-experimental-1219, etc).
 	Model string `json:"model"`
 
 	// Name The name that references the LLM. Other endpoints (like query) use this name to select the LLM. If the name conflicts with a global LLM (an LLM that is preconfigured with the platform), this LLM overrides the global LLM for all usages.
 	Name string `json:"name"`
-
-	// OutputTokensPerDay Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of output tokens per UTC calendar day for this LLM. Omit the field or set it to null to set no limit through this field. Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
-	//
-	// Example: 500000
-	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
-	OutputTokensPerDay *int64 `json:"output_tokens_per_day,omitempty"`
-
-	// OutputTokensPerMinute Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of output tokens (completion plus reasoning) per minute for this LLM. Omit the field or set it to null to set no limit through this field. Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
-	//
-	// Example: 50000
-	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
-	OutputTokensPerMinute *int64 `json:"output_tokens_per_minute,omitempty"`
-
-	// OutputTokensPerMonth Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of output tokens per UTC calendar month for this LLM. Omit the field or set it to null to set no limit through this field. Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
-	//
-	// Example: 10000000
-	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
-	OutputTokensPerMonth *int64 `json:"output_tokens_per_month,omitempty"`
-
-	// RequestsPerSecond Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of requests per second for this LLM. Omit the field or set it to null to set no limit through this field. Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
-	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
-	RequestsPerSecond *int64 `json:"requests_per_second,omitempty"`
 
 	// TestModelParameters Any additional parameters that are required for the LLM during the test call.
 	TestModelParameters *map[string]interface{} `json:"test_model_parameters,omitempty"`
@@ -10052,6 +9977,9 @@ type DocumentConversionTool struct {
 	// Example:
 	//   `{"query": {"$ref": ".session.metadata.query"}}`
 	//
+	// A `$ref` object may also set `$default`, the value used when the reference does not resolve:
+	//   `{"tier": {"$ref": "session.metadata.tier", "$default": "free"}}`
+	//
 	// To use a literal `"$ref"` value, write `"$$ref"`. The $$ escapes the first $.
 	//
 	// Example: {"max_results":10}
@@ -10351,6 +10279,9 @@ type DynamicVectaraTool struct {
 	// Example:
 	//   `{"query": {"$ref": ".session.metadata.query"}}`
 	//
+	// A `$ref` object may also set `$default`, the value used when the reference does not resolve:
+	//   `{"tier": {"$ref": "session.metadata.tier", "$default": "free"}}`
+	//
 	// To use a literal `"$ref"` value, write `"$$ref"`. The $$ escapes the first $.
 	//
 	// Example: {"max_results":10}
@@ -10480,6 +10411,9 @@ type DynamicVectaraToolConfiguration struct {
 	//
 	// Example:
 	//   `{"query": {"$ref": ".session.metadata.query"}}`
+	//
+	// A `$ref` object may also set `$default`, the value used when the reference does not resolve:
+	//   `{"tier": {"$ref": "session.metadata.tier", "$default": "free"}}`
 	//
 	// To use a literal `"$ref"` value, write `"$$ref"`. The $$ escapes the first $.
 	//
@@ -10673,6 +10607,7 @@ type EndUserAgentResponse struct {
 // EndUserAgentStreamedResponse An individual frame on the end-user live SSE stream.
 // Frames include every `EndUserEvent` variant, plus transient chunk types that are not persisted: `streaming_agent_output` and `streaming_agent_output_end`.
 // These chunk types let a client render the agent's reply incrementally instead of waiting for the complete `agent_output` event.
+// The stream also carries `session_description` frames, which hold the session's current description.
 // When the widget connector reveals the matching output category, the stream also carries `streaming_thinking` and `streaming_thinking_end` chunks and `tool_activity` frames.
 // Every stream terminates with a single `end` frame.
 type EndUserAgentStreamedResponse struct {
@@ -10705,9 +10640,11 @@ type EndUserErrorEvent struct {
 }
 
 // EndUserEvent A session event visible to the end user who owns the session.
-// The `input_message`, `agent_output`, and `error` variants are always visible.
-// The `tool_input`, `tool_output`, `thinking`, and `structured_output` variants appear only when the widget connector the session is bound to reveals the matching output category via `revealed_output_types`.
-// Revealed variants carry the same payload as their operator representations.
+// The `input_message`, `agent_output`, `error`, and `client_tool_pending` variants are always visible, as are the `tool_input` and `tool_output` variants of client tool calls.
+// The `tool_input` and `tool_output` variants of other tools, and the `thinking` and `structured_output` variants, appear only when the widget connector the session is bound to reveals the matching output category via `revealed_output_types`.
+// Revealed variants carry the same payload as their operator representations. Unless `tool_calls` is revealed, client tool `tool_input` and `tool_output` events omit `argument_override_paths` and `resolved_argument_overrides`.
+//
+// `client_tool_pending` appears in the response and stream of the turn that calls a client tool, but not in the session's history. It carries the call's arguments, including argument override values, with secrets unmasked.
 type EndUserEvent struct {
 	union json.RawMessage
 }
@@ -11142,9 +11079,20 @@ type FirstAgentStep struct {
 	// Reminders Reminders injected into conversation messages when specific events occur.
 	Reminders *[]AgentStepReminder `json:"reminders,omitempty"`
 
-	// Type Deprecated. This field is ignored and exists only for backward compatibility.
-	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
-	Type *string `json:"type,omitempty"`
+	// ToolCalls Tool calls the platform makes each time the session transitions into this step, or starts at it, before anything else in the step runs.
+	// Calls start in the order listed. A call whose arguments reference an earlier call's output starts once that call finishes.
+	// Calls with no such reference run in parallel.
+	//
+	// In a `conversational` step, the LLM then handles the input following the step's instructions. The LLM does not see the step's tool
+	// calls or their outputs: they are recorded as session events, and next_steps conditions and later calls read their outputs as
+	// `tools.<tool_config_name>.outputs.latest`.
+	// In a `tool_calls` step, the step evaluates next_steps once the calls finish, and the LLM is not called.
+	//
+	// A new input that finds the session already at this step does not run the calls again. Each call's on_failure sets what its failure does.
+	ToolCalls *[]AgentStepToolCall `json:"tool_calls,omitempty"`
+
+	// Type How the step acts on its input. Defaults to `conversational`.
+	Type *AgentStepType `json:"type,omitempty"`
 }
 
 // FluidtopicsDocumentFetchMode How a Fluid Topics document body is fetched.
@@ -11415,9 +11363,11 @@ type GchatConnectorConfiguration struct {
 	Type string `json:"type"`
 }
 
-// GenerateSessionDescriptions Whether the platform generates a description for each of this agent's sessions created without one. When true, after each turn that completes without error in such a session, the platform makes one additional request to the agent's model to summarize the session's events into its description. That request consumes tokens and counts against `llm_quota`. When false, no request is made and those sessions keep no description. A description supplied on session create or update is never replaced, and an empty description turns off generation for that session.
+// GenerateSessionDescriptions Deprecated alias of `session_description.enabled`. On requests, ignored when `session_description` is also set, and when sent alone it leaves `session_description.deliver_before_turn_end` unchanged. On responses, mirrors `session_description.enabled`.
 //
 // Example: false
+//
+// Deprecated: this type has been marked as deprecated upstream, but no `x-deprecated-reason` was set
 type GenerateSessionDescriptions = bool
 
 // GenerationInfo An event with information about how the platform performed the generation.
@@ -11699,6 +11649,9 @@ type GetDocumentTextTool struct {
 	//
 	// Example:
 	//   `{"query": {"$ref": ".session.metadata.query"}}`
+	//
+	// A `$ref` object may also set `$default`, the value used when the reference does not resolve:
+	//   `{"tier": {"$ref": "session.metadata.tier", "$default": "free"}}`
 	//
 	// To use a literal `"$ref"` value, write `"$$ref"`. The $$ escapes the first $.
 	//
@@ -12260,6 +12213,9 @@ type ImageReadTool struct {
 	//
 	// Example:
 	//   `{"query": {"$ref": ".session.metadata.query"}}`
+	//
+	// A `$ref` object may also set `$default`, the value used when the reference does not resolve:
+	//   `{"tier": {"$ref": "session.metadata.tier", "$default": "free"}}`
 	//
 	// To use a literal `"$ref"` value, write `"$$ref"`. The $$ escapes the first $.
 	//
@@ -13044,9 +13000,9 @@ type Job struct {
 
 	// Progress Live progress of a running job.
 	//
-	// Present only while the job is running, and only when retrieving a single job by ID; `listJobs` never populates it. Absence does not indicate failure — read `state` for job health. The counters describe the corpus rebuild the job runs, so a job that drives no rebuild reports nothing here.
+	// Present only while the job is running, and only when retrieving a single job by ID; `listJobs` never populates it. Absence does not indicate failure — read `state` for job health. The counters describe the corpus rebuild or filter attribute change the job runs, so a job that drives neither reports nothing here.
 	//
-	// `pages_pending_import`, `imports_in_flight` and `import_batches_submitted` describe incremental import, which is not enabled for every rebuild. When it is not in use all three report 0 for the whole rebuild, which means "not applicable" rather than "nothing left to do".
+	// `pages_pending_import`, `imports_in_flight` and `import_batches_submitted` describe incremental import, which is not enabled for every rebuild. When it is not in use all three report 0 for the whole job, which means "not applicable" rather than "nothing left to do". A filter attribute change that does not rebuild the corpus imports nothing, so it reports 0 for all three and for `import_recovery_attempts`.
 	Progress *JobProgress `json:"progress,omitempty"`
 
 	// StartedAt When the job was started.
@@ -13064,14 +13020,14 @@ type JobType string
 
 // JobProgress Live progress of a running job.
 //
-// Present only while the job is running, and only when retrieving a single job by ID; `listJobs` never populates it. Absence does not indicate failure — read `state` for job health. The counters describe the corpus rebuild the job runs, so a job that drives no rebuild reports nothing here.
+// Present only while the job is running, and only when retrieving a single job by ID; `listJobs` never populates it. Absence does not indicate failure — read `state` for job health. The counters describe the corpus rebuild or filter attribute change the job runs, so a job that drives neither reports nothing here.
 //
-// `pages_pending_import`, `imports_in_flight` and `import_batches_submitted` describe incremental import, which is not enabled for every rebuild. When it is not in use all three report 0 for the whole rebuild, which means "not applicable" rather than "nothing left to do".
+// `pages_pending_import`, `imports_in_flight` and `import_batches_submitted` describe incremental import, which is not enabled for every rebuild. When it is not in use all three report 0 for the whole job, which means "not applicable" rather than "nothing left to do". A filter attribute change that does not rebuild the corpus imports nothing, so it reports 0 for all three and for `import_recovery_attempts`.
 type JobProgress struct {
-	// DocumentsExpected The number of documents the corpus held when the rebuild started, and the total that `documents_indexed` runs towards. Absent when the corpus size could not be determined.
+	// DocumentsExpected The number of documents the corpus held when the job started scanning it, and the total that `documents_indexed` runs towards. Absent when the corpus size could not be determined.
 	DocumentsExpected *int64 `json:"documents_expected,omitempty"`
 
-	// DocumentsIndexed The number of documents the rebuild has processed out of the corpus so far, counting towards `documents_expected`.
+	// DocumentsIndexed The number of documents the job has processed out of the corpus so far, counting towards `documents_expected`.
 	DocumentsIndexed *int64 `json:"documents_indexed,omitempty"`
 
 	// ImportBatchesSubmitted Import batches handed to the vector store over the rebuild's lifetime. It only ever climbs. Reports 0 when incremental import is not in use.
@@ -13086,7 +13042,7 @@ type JobProgress struct {
 	// PagesPendingImport Staged scan batches waiting to be imported. Bounded by the rebuild's own backpressure, so this does not grow with the size of the corpus. Reports 0 when incremental import is not in use.
 	PagesPendingImport *int32 `json:"pages_pending_import,omitempty"`
 
-	// Phase The stage of the rebuild that is currently running. A rebuild scans the corpus and imports it into the new indices, then cuts the corpus over to them and replays everything written while it ran. New phases may be added; treat unrecognized values as opaque.
+	// Phase The stage of the job that is currently running. A rebuild scans the corpus and imports it into the new indices, then cuts the corpus over to them and replays everything written while it ran. A filter attribute change that does not rebuild the corpus scans the corpus, reports `indexing` while the new filter attributes are being indexed, then cuts over. Filters on the new attributes work once the job completes. New phases may be added; treat unrecognized values as opaque.
 	Phase *JobProgressPhase `json:"phase,omitempty"`
 
 	// ScanShards The number of shards the corpus is being scanned in, all read concurrently.
@@ -13095,11 +13051,11 @@ type JobProgress struct {
 	// ScanShardsFinished How many of the corpus's scan shards have been read to the end.
 	ScanShardsFinished *int32 `json:"scan_shards_finished,omitempty"`
 
-	// StartedAt When the rebuild these counters describe began, and the instant they are all measured from. It is reported by the rebuild itself, so it is present whenever this object is and does not move for the rebuild's lifetime, whereas `Job.started_at` is recorded on the job and may be absent or differ.
+	// StartedAt When the rebuild or filter attribute change these counters describe began, and the instant they are all measured from. It is reported by that work itself, so it is present whenever this object is and does not move for the job's lifetime, whereas `Job.started_at` is recorded on the job and may be absent or differ.
 	StartedAt *time.Time `json:"started_at,omitempty"`
 }
 
-// JobProgressPhase The stage of the rebuild that is currently running. A rebuild scans the corpus and imports it into the new indices, then cuts the corpus over to them and replays everything written while it ran. New phases may be added; treat unrecognized values as opaque.
+// JobProgressPhase The stage of the job that is currently running. A rebuild scans the corpus and imports it into the new indices, then cuts the corpus over to them and replays everything written while it ran. A filter attribute change that does not rebuild the corpus scans the corpus, reports `indexing` while the new filter attributes are being indexed, then cuts over. Filters on the new attributes work once the job completes. New phases may be added; treat unrecognized values as opaque.
 type JobProgressPhase string
 
 // JobState The state of a background job.
@@ -13267,24 +13223,6 @@ type LLM struct {
 	// Example: 300
 	IdleTimeoutSeconds *IdleTimeoutSeconds `json:"idle_timeout_seconds,omitempty"`
 
-	// InputTokensPerDay Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of input tokens per UTC calendar day for this LLM. The platform omits this field when no limit is set through it. Platform-set limits, which this response does not show, may still apply.
-	//
-	// Example: 2000000
-	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
-	InputTokensPerDay *int64 `json:"input_tokens_per_day,omitempty"`
-
-	// InputTokensPerMinute Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of input (prompt) tokens per minute for this LLM, as reported by the provider and including cached prompt tokens. The platform omits this field when no limit is set through it. Platform-set limits, which this response does not show, may still apply.
-	//
-	// Example: 200000
-	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
-	InputTokensPerMinute *int64 `json:"input_tokens_per_minute,omitempty"`
-
-	// InputTokensPerMonth Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of input tokens per UTC calendar month for this LLM. The platform omits this field when no limit is set through it. Platform-set limits, which this response does not show, may still apply.
-	//
-	// Example: 50000000
-	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
-	InputTokensPerMonth *int64 `json:"input_tokens_per_month,omitempty"`
-
 	// Model Provider-specific model identifier (e.g. `gpt-4o`, `claude-3-5-sonnet-20241022`, `gemini-2.5-flash`).
 	Model *string `json:"model,omitempty"`
 
@@ -13292,24 +13230,6 @@ type LLM struct {
 	//
 	// Example: Claude 3.7 Sonnet
 	Name string `json:"name"`
-
-	// OutputTokensPerDay Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of output tokens per UTC calendar day for this LLM. The platform omits this field when no limit is set through it. Platform-set limits, which this response does not show, may still apply.
-	//
-	// Example: 500000
-	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
-	OutputTokensPerDay *int64 `json:"output_tokens_per_day,omitempty"`
-
-	// OutputTokensPerMinute Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of output tokens (completion plus reasoning) per minute for this LLM. The platform omits this field when no limit is set through it. Platform-set limits, which this response does not show, may still apply.
-	//
-	// Example: 50000
-	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
-	OutputTokensPerMinute *int64 `json:"output_tokens_per_minute,omitempty"`
-
-	// OutputTokensPerMonth Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of output tokens per UTC calendar month for this LLM. The platform omits this field when no limit is set through it. Platform-set limits, which this response does not show, may still apply.
-	//
-	// Example: 10000000
-	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
-	OutputTokensPerMonth *int64 `json:"output_tokens_per_month,omitempty"`
 
 	// Ownership Indicates whether the LLM is provided by the platform or created by the customer. Platform LLMs are pre-configured and cannot be modified or deleted. Customer LLMs are created and managed by the customer.
 	//
@@ -13319,10 +13239,6 @@ type LLM struct {
 	// Prompts List of prompts that the model can use. This is deprecated; see `/v2/generation_presets` instead.
 	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
 	Prompts interface{} `json:"prompts,omitempty"`
-
-	// RequestsPerSecond Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of requests per second for this LLM. The platform omits this field when no limit is set through it. Platform-set limits, which this response does not show, may still apply.
-	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
-	RequestsPerSecond *int64 `json:"requests_per_second,omitempty"`
 
 	// Type The provider type. It determines which authentication and configuration apply. Responses always include this field. If a stored LLM cannot be mapped to one of these values, the request fails with HTTP 500.
 	Type LLMType `json:"type"`
@@ -13358,53 +13274,6 @@ type LLMCapabilities struct {
 //
 // Example: platform
 type LLMOwnership string
-
-// LLMQuota Ceilings on the LLM requests and tokens this agent may consume, counted across every LLM the agent calls. A sub-agent is charged to its own quota, not its parent's.
-//
-// Each field is optional; an omitted field sets no limit of its own. The platform may also apply its own limits. Day and month windows are UTC calendar windows. Input tokens are the provider's reported prompt tokens, including cached tokens; output tokens are completion plus reasoning tokens. When a limit is reached the agent's next LLM call is refused: a non-streamed `createAgentInput` request answers `429` with a `Retry-After` header, and a streamed one ends with an `error` event naming the exhausted quota and the seconds until it resets.
-type LLMQuota struct {
-	// InputTokensPerDay Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. Maximum input tokens per UTC calendar day.
-	//
-	// Example: 2000000
-	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
-	InputTokensPerDay *int64 `json:"input_tokens_per_day,omitempty"`
-
-	// InputTokensPerMinute Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. Maximum input tokens per minute.
-	//
-	// Example: 200000
-	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
-	InputTokensPerMinute *int64 `json:"input_tokens_per_minute,omitempty"`
-
-	// InputTokensPerMonth Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. Maximum input tokens per UTC calendar month.
-	//
-	// Example: 50000000
-	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
-	InputTokensPerMonth *int64 `json:"input_tokens_per_month,omitempty"`
-
-	// OutputTokensPerDay Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. Maximum output tokens per UTC calendar day.
-	//
-	// Example: 100000
-	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
-	OutputTokensPerDay *int64 `json:"output_tokens_per_day,omitempty"`
-
-	// OutputTokensPerMinute Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. Maximum output tokens per minute.
-	//
-	// Example: 50000
-	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
-	OutputTokensPerMinute *int64 `json:"output_tokens_per_minute,omitempty"`
-
-	// OutputTokensPerMonth Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. Maximum output tokens per UTC calendar month.
-	//
-	// Example: 10000000
-	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
-	OutputTokensPerMonth *int64 `json:"output_tokens_per_month,omitempty"`
-
-	// RequestsPerSecond Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. Maximum LLM requests per second.
-	//
-	// Example: 10
-	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
-	RequestsPerSecond *int64 `json:"requests_per_second,omitempty"`
-}
 
 // LLMType The LLM provider type, identifying which authentication and configuration apply. New values may be added as providers are onboarded; clients should ignore values they do not recognize rather than fail.
 //
@@ -13442,6 +13311,9 @@ type LambdaTool struct {
 	//
 	// Example:
 	//   `{"query": {"$ref": ".session.metadata.query"}}`
+	//
+	// A `$ref` object may also set `$default`, the value used when the reference does not resolve:
+	//   `{"tier": {"$ref": "session.metadata.tier", "$default": "free"}}`
 	//
 	// To use a literal `"$ref"` value, write `"$$ref"`. The $$ escapes the first $.
 	//
@@ -13615,6 +13487,9 @@ type LambdaToolConfiguration struct {
 	//
 	// Example:
 	//   `{"query": {"$ref": ".session.metadata.query"}}`
+	//
+	// A `$ref` object may also set `$default`, the value used when the reference does not resolve:
+	//   `{"tier": {"$ref": "session.metadata.tier", "$default": "free"}}`
 	//
 	// To use a literal `"$ref"` value, write `"$$ref"`. The $$ escapes the first $.
 	//
@@ -14188,6 +14063,9 @@ type McpTool struct {
 	// Example:
 	//   `{"query": {"$ref": ".session.metadata.query"}}`
 	//
+	// A `$ref` object may also set `$default`, the value used when the reference does not resolve:
+	//   `{"tier": {"$ref": "session.metadata.tier", "$default": "free"}}`
+	//
 	// To use a literal `"$ref"` value, write `"$$ref"`. The $$ escapes the first $.
 	//
 	// Example: {"max_results":10}
@@ -14338,6 +14216,9 @@ type McpToolConfiguration struct {
 	//
 	// Example:
 	//   `{"query": {"$ref": ".session.metadata.query"}}`
+	//
+	// A `$ref` object may also set `$default`, the value used when the reference does not resolve:
+	//   `{"tier": {"$ref": "session.metadata.tier", "$default": "free"}}`
 	//
 	// To use a literal `"$ref"` value, write `"$$ref"`. The $$ escapes the first $.
 	//
@@ -14773,24 +14654,6 @@ type OpenAILLMRequestBase struct {
 	// Example: 300
 	IdleTimeoutSeconds *IdleTimeoutSeconds `json:"idle_timeout_seconds,omitempty"`
 
-	// InputTokensPerDay Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of input tokens per UTC calendar day for this LLM. Omit the field or set it to null to set no limit through this field. Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
-	//
-	// Example: 2000000
-	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
-	InputTokensPerDay *int64 `json:"input_tokens_per_day,omitempty"`
-
-	// InputTokensPerMinute Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of input (prompt) tokens per minute for this LLM, as reported by the provider and including cached prompt tokens. Omit the field or set it to null to set no limit through this field. Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
-	//
-	// Example: 200000
-	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
-	InputTokensPerMinute *int64 `json:"input_tokens_per_minute,omitempty"`
-
-	// InputTokensPerMonth Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of input tokens per UTC calendar month for this LLM. Omit the field or set it to null to set no limit through this field. Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
-	//
-	// Example: 50000000
-	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
-	InputTokensPerMonth *int64 `json:"input_tokens_per_month,omitempty"`
-
 	// Model The model name to use with the API (e.g. gpt-4, claude-2, etc). The platform sends this name to the remote LLM provider.
 	//
 	// Example: claude-3-7-sonnet-20250219
@@ -14800,28 +14663,6 @@ type OpenAILLMRequestBase struct {
 	//
 	// Example: Claude 3.7 Sonnet
 	Name string `json:"name"`
-
-	// OutputTokensPerDay Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of output tokens per UTC calendar day for this LLM. Omit the field or set it to null to set no limit through this field. Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
-	//
-	// Example: 500000
-	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
-	OutputTokensPerDay *int64 `json:"output_tokens_per_day,omitempty"`
-
-	// OutputTokensPerMinute Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of output tokens (completion plus reasoning) per minute for this LLM. Omit the field or set it to null to set no limit through this field. Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
-	//
-	// Example: 50000
-	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
-	OutputTokensPerMinute *int64 `json:"output_tokens_per_minute,omitempty"`
-
-	// OutputTokensPerMonth Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of output tokens per UTC calendar month for this LLM. Omit the field or set it to null to set no limit through this field. Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
-	//
-	// Example: 10000000
-	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
-	OutputTokensPerMonth *int64 `json:"output_tokens_per_month,omitempty"`
-
-	// RequestsPerSecond Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of requests per second for this LLM. Omit the field or set it to null to set no limit through this field. Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
-	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
-	RequestsPerSecond *int64 `json:"requests_per_second,omitempty"`
 
 	// TestModelParameters Any additional parameters that are required for the LLM during the test call.
 	//
@@ -14856,96 +14697,8 @@ type OpenAILLMUpdateBase struct {
 	// Example: 300
 	IdleTimeoutSeconds *IdleTimeoutSeconds `json:"idle_timeout_seconds,omitempty"`
 
-	// InputTokensPerDay Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of input tokens per UTC calendar day for this LLM.
-	//
-	// - Set a value to apply that limit.
-	// - Set the field to null to remove the limit set through this field.
-	// - Omit the field to keep the current limit.
-	//
-	// Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
-	//
-	//
-	// Example: 2000000
-	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
-	InputTokensPerDay *int64 `json:"input_tokens_per_day,omitempty"`
-
-	// InputTokensPerMinute Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of input (prompt) tokens per minute for this LLM, as reported by the provider and including cached prompt tokens.
-	//
-	// - Set a value to apply that limit.
-	// - Set the field to null to remove the limit set through this field.
-	// - Omit the field to keep the current limit.
-	//
-	// Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
-	//
-	//
-	// Example: 200000
-	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
-	InputTokensPerMinute *int64 `json:"input_tokens_per_minute,omitempty"`
-
-	// InputTokensPerMonth Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of input tokens per UTC calendar month for this LLM.
-	//
-	// - Set a value to apply that limit.
-	// - Set the field to null to remove the limit set through this field.
-	// - Omit the field to keep the current limit.
-	//
-	// Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
-	//
-	//
-	// Example: 50000000
-	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
-	InputTokensPerMonth *int64 `json:"input_tokens_per_month,omitempty"`
-
 	// Model The model identifier to use for this LLM.
 	Model *string `json:"model,omitempty"`
-
-	// OutputTokensPerDay Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of output tokens per UTC calendar day for this LLM.
-	//
-	// - Set a value to apply that limit.
-	// - Set the field to null to remove the limit set through this field.
-	// - Omit the field to keep the current limit.
-	//
-	// Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
-	//
-	//
-	// Example: 500000
-	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
-	OutputTokensPerDay *int64 `json:"output_tokens_per_day,omitempty"`
-
-	// OutputTokensPerMinute Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of output tokens (completion plus reasoning) per minute for this LLM.
-	//
-	// - Set a value to apply that limit.
-	// - Set the field to null to remove the limit set through this field.
-	// - Omit the field to keep the current limit.
-	//
-	// Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
-	//
-	//
-	// Example: 50000
-	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
-	OutputTokensPerMinute *int64 `json:"output_tokens_per_minute,omitempty"`
-
-	// OutputTokensPerMonth Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of output tokens per UTC calendar month for this LLM.
-	//
-	// - Set a value to apply that limit.
-	// - Set the field to null to remove the limit set through this field.
-	// - Omit the field to keep the current limit.
-	//
-	// Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
-	//
-	//
-	// Example: 10000000
-	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
-	OutputTokensPerMonth *int64 `json:"output_tokens_per_month,omitempty"`
-
-	// RequestsPerSecond Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of requests per second for this LLM.
-	//
-	// - Set a value to apply that limit.
-	// - Set the field to null to remove the limit set through this field.
-	// - Omit the field to keep the current limit.
-	//
-	// Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
-	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
-	RequestsPerSecond *int64 `json:"requests_per_second,omitempty"`
 
 	// TestModelParameters Any additional parameters that are required for the LLM during the test call.
 	//
@@ -15422,7 +15175,7 @@ type Prompt struct {
 	Name string `json:"name"`
 }
 
-// PublicConnector The public view of a connector that fronts an end-user surface, served unauthenticated to the embed snippet by `GET /v2/agent_aliases/{alias_key}/connectors/{connector_id}/public`.
+// PublicConnector The public view of a connector that fronts an end-user surface, served unauthenticated to the embed snippet by `GET /v2/agent_aliases/{alias_key}/connectors/{connector_id}/public`. Operators read the full connector from `GET /v2/agent_aliases/{alias_key}/connectors/{connector_id}`.
 // End-user sessions are created on the addressed alias — `/v2/agent_aliases/{alias_key}/end_user_sessions` — naming this connector in the request body; the embed snippet carries the alias key and connector id it needs, and this view serves the `customer_id` that visitor minting (`POST /v2/visitors`) is addressed to.
 // Session attributes such as idle lifetime are reported on the session object returned by the end-user session create endpoint.
 type PublicConnector struct {
@@ -15810,21 +15563,17 @@ type ReplaceAgentRequest struct {
 	// Example: classifier
 	FirstStepName *string `json:"first_step_name,omitempty"`
 
-	// GenerateSessionDescriptions Whether the platform generates a description for each of this agent's sessions created without one. When true, after each turn that completes without error in such a session, the platform makes one additional request to the agent's model to summarize the session's events into its description. That request consumes tokens and counts against `llm_quota`. When false, no request is made and those sessions keep no description. A description supplied on session create or update is never replaced, and an empty description turns off generation for that session.
+	// GenerateSessionDescriptions Deprecated alias of `session_description.enabled`. On requests, ignored when `session_description` is also set, and when sent alone it leaves `session_description.deliver_before_turn_end` unchanged. On responses, mirrors `session_description.enabled`.
 	//
 	//
 	// Example: false
+	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
 	GenerateSessionDescriptions *GenerateSessionDescriptions `json:"generate_session_descriptions,omitempty"`
 
 	// Key A unique key that identifies an agent.
 	//
 	// Example: customer_support
 	Key *AgentKey `json:"key,omitempty"`
-
-	// LlmQuota Ceilings on the LLM requests and tokens this agent may consume, counted across every LLM the agent calls. A sub-agent is charged to its own quota, not its parent's.
-	//
-	// Each field is optional; an omitted field sets no limit of its own. The platform may also apply its own limits. Day and month windows are UTC calendar windows. Input tokens are the provider's reported prompt tokens, including cached tokens; output tokens are completion plus reasoning tokens. When a limit is reached the agent's next LLM call is refused: a non-streamed `createAgentInput` request answers `429` with a `Retry-After` header, and a streamed one ends with an `error` event naming the exhausted quota and the seconds until it resets.
-	LlmQuota *LLMQuota `json:"llm_quota,omitempty"`
 
 	// Metadata Arbitrary metadata associated with the agent for customization and configuration.
 	//
@@ -15838,6 +15587,9 @@ type ReplaceAgentRequest struct {
 	//
 	// Example: Customer Support Agent
 	Name AgentName `json:"name"`
+
+	// SessionDescription Controls how this agent's sessions created without a description get one. Generation sends one additional request to the agent's model, using the text of the input message that triggers it (the first input message with text, or the next one after a failed request), and stores the result on the session. That request consumes tokens. When the response is streamed, the stream also carries a `session_description` event. A description supplied on session create or update is never replaced, and an empty description turns off generation for that session.
+	SessionDescription *SessionDescriptionConfiguration `json:"session_description,omitempty"`
 
 	// SessionEnrichment Tool calls run at session creation to populate the new session's metadata before the agent's first turn. Each call invokes one of the agent's enrichment-only tool configurations and writes its output into the session metadata. The agent, run conditions, and routing can then read values fetched or computed at session start. Enrichment tools are ordinary entries in the agent's tool_configurations marked enrichment_only, so they are never exposed to the agent's LLM. Enrichment runs for every session the agent creates regardless of trigger, including the API, chat connectors, and schedules. Independent calls run in parallel and a call may consume an earlier call's output. Enrichment is fail-closed: unless a call sets continue_on_error, a failed call aborts session creation and no session is created. The abort status names the failure: 422 for an invalid configuration or a failed transform, 502 for a tool failure, and 504 for a timeout. A jq error raised by the called tool configuration's input_transform or output_transform is a call failure like any other: continue_on_error skips it, and otherwise its message is returned in the error response's messages array.
 	SessionEnrichment *SessionEnrichmentConfig `json:"session_enrichment,omitempty"`
@@ -16540,6 +16292,39 @@ type SessionContextUsage struct {
 	TotalTokens *int64 `json:"total_tokens,omitempty"`
 }
 
+// SessionDescriptionConfiguration Controls how this agent's sessions created without a description get one. Generation sends one additional request to the agent's model, using the text of the input message that triggers it (the first input message with text, or the next one after a failed request), and stores the result on the session. That request consumes tokens. When the response is streamed, the stream also carries a `session_description` event. A description supplied on session create or update is never replaced, and an empty description turns off generation for that session.
+type SessionDescriptionConfiguration struct {
+	// DeliverBeforeTurnEnd Whether a turn stays open until the description request started during it has finished, for up to 30 seconds. When true, the `session_description` event arrives before the stream ends and a non-streamed response returns after the description is stored, unless the request fails, exceeds that limit, or the session is interrupted. When false, the turn can end first, and the event then arrives on a later turn's stream. The wait adds to the turn's duration.
+	//
+	// Example: true
+	DeliverBeforeTurnEnd *bool `json:"deliver_before_turn_end,omitempty"`
+
+	// Enabled Whether the platform generates descriptions. When false, no request is made and those sessions keep no description. If a request fails, the next input message with text triggers another request.
+	//
+	// Example: true
+	Enabled *bool `json:"enabled,omitempty"`
+}
+
+// SessionDescriptionEvent The current description of the session (SSE only, not stored).
+// The stream carries this event when the platform generates a description, and when a stream opens on a session that already has one.
+// The event can repeat. Each occurrence replaces the previous value.
+type SessionDescriptionEvent struct {
+	// CreatedAt Timestamp when the event was created.
+	//
+	// Example: 2024-01-15T10:35:00Z
+	CreatedAt time.Time `json:"created_at"`
+
+	// Description The session's description.
+	//
+	// Example: Troubleshooting widget installation
+	Description string `json:"description"`
+
+	// Type The type of streaming event.
+	//
+	// Example: session_description
+	Type string `json:"type"`
+}
+
 // SessionEnrichmentConfig Tool calls run at session creation to populate the new session's metadata before the agent's first turn. Each call invokes one of the agent's enrichment-only tool configurations and writes its output into the session metadata. The agent, run conditions, and routing can then read values fetched or computed at session start. Enrichment tools are ordinary entries in the agent's tool_configurations marked enrichment_only, so they are never exposed to the agent's LLM. Enrichment runs for every session the agent creates regardless of trigger, including the API, chat connectors, and schedules. Independent calls run in parallel and a call may consume an earlier call's output. Enrichment is fail-closed: unless a call sets continue_on_error, a failed call aborts session creation and no session is created. The abort status names the failure: 422 for an invalid configuration or a failed transform, 502 for a tool failure, and 504 for a timeout. A jq error raised by the called tool configuration's input_transform or output_transform is a call failure like any other: continue_on_error skips it, and otherwise its message is returned in the error response's messages array.
 type SessionEnrichmentConfig struct {
 	// Enabled When false, enrichment does not run and sessions are created with the metadata provided by the caller.
@@ -16788,6 +16573,61 @@ type SourceRecordMetadata struct {
 
 	// UserMetadata Metadata the owner of the source object attached, such as S3 object tags or SharePoint custom columns.
 	UserMetadata *map[string]interface{} `json:"user_metadata,omitempty"`
+}
+
+// StepToolCallContinue The step carries on as if the call had succeeded. A later call that references this call's output uses the reference's `$default`, and fails if the reference has none.
+type StepToolCallContinue struct {
+	// Type The type of failure handling.
+	//
+	// Example: continue
+	Type string `json:"type"`
+}
+
+// StepToolCallEndTurn Once the step's calls finish, the failure ends the turn with an `error` event, and the step's next_steps are not evaluated. The session stays at the step, and its next input does not run the step's calls again.
+type StepToolCallEndTurn struct {
+	// Type The type of failure handling.
+	//
+	// Example: end_turn
+	Type string `json:"type"`
+}
+
+// StepToolCallNextStep Once the step's calls finish, the session transitions to the named step instead of evaluating next_steps, and that step runs in the same turn. The transition's content tells the LLM which call failed and why. Naming the current step enters it again, so all of its calls run again. Each transition counts toward the limit on step transitions per turn.
+type StepToolCallNextStep struct {
+	// StepName Name of the step to transition to. Must name one of the agent's steps, including the current step.
+	//
+	// Example: upload_failed
+	StepName string `json:"step_name"`
+
+	// Type The type of failure handling.
+	//
+	// Example: next_step
+	Type string `json:"type"`
+}
+
+// StepToolCallOnFailure What a failure of a step's tool call does. When several of a step's calls fail, the first failure recorded whose handling is not `continue` decides. New values of `type` may be added; clients should ignore values they do not recognize.
+type StepToolCallOnFailure struct {
+	union json.RawMessage
+}
+
+// StepToolCallOnFailureBase Properties shared by every kind of step tool call failure handling.
+type StepToolCallOnFailureBase struct {
+	// Type The type of failure handling. New values may be added; clients should ignore values they do not recognize.
+	//
+	// Example: end_turn
+	Type string `json:"type"`
+}
+
+// StepToolCallSource The entry in a step's tool_calls that a tool call was made from. Set on a `tool_input` event when the platform made the call for a step rather than the LLM; the LLM does not see such a call or its output.
+type StepToolCallSource struct {
+	// CallIndex Position of the call in the step's tool_calls, starting at 0.
+	//
+	// Example: 1
+	CallIndex int `json:"call_index"`
+
+	// StepName Name of the step whose tool_calls contains the call.
+	//
+	// Example: ingest
+	StepName string `json:"step_name"`
 }
 
 // StepTransitionEvent An event representing a transition between agent steps.
@@ -17212,6 +17052,9 @@ type SubAgentTool struct {
 	//
 	// Example:
 	//   `{"query": {"$ref": ".session.metadata.query"}}`
+	//
+	// A `$ref` object may also set `$default`, the value used when the reference does not resolve:
+	//   `{"tier": {"$ref": "session.metadata.tier", "$default": "free"}}`
 	//
 	// To use a literal `"$ref"` value, write `"$$ref"`. The $$ escapes the first $.
 	//
@@ -18181,6 +18024,9 @@ type ToolBase struct {
 	// Example:
 	//   `{"query": {"$ref": ".session.metadata.query"}}`
 	//
+	// A `$ref` object may also set `$default`, the value used when the reference does not resolve:
+	//   `{"tier": {"$ref": "session.metadata.tier", "$default": "free"}}`
+	//
 	// To use a literal `"$ref"` value, write `"$$ref"`. The $$ escapes the first $.
 	//
 	// Example: {"max_results":10}
@@ -18530,6 +18376,9 @@ type ToolInputEvent struct {
 	//
 	// Example: customer_support_chat
 	SessionKey AgentSessionKey `json:"session_key"`
+
+	// StepToolCall The entry in a step's tool_calls that a tool call was made from. Set on a `tool_input` event when the platform made the call for a step rather than the LLM; the LLM does not see such a call or its output.
+	StepToolCall *StepToolCallSource `json:"step_tool_call,omitempty"`
 
 	// ToolCallId The identifier for the tool call.
 	//
@@ -18911,9 +18760,8 @@ type UpdateAgentIdentityRequest struct {
 }
 
 // UpdateAgentRequest Request object for updating an existing agent. Omitted fields are preserved.
-// Nullable fields (description, tool_configurations, metadata, enabled,
-// llm_quota) can be set to null to clear them. Sending `llm_quota` replaces
-// the agent's quota as a whole rather than merging it field by field.
+// Nullable fields (description, tool_configurations, metadata, enabled)
+// can be set to null to clear them.
 type UpdateAgentRequest struct {
 	// Compaction Configuration for automatic context compaction.
 	Compaction *CompactionConfig `json:"compaction,omitempty"`
@@ -18936,16 +18784,12 @@ type UpdateAgentRequest struct {
 	// to change the entry point. The named step must exist in the steps map.
 	FirstStepName *string `json:"first_step_name,omitempty"`
 
-	// GenerateSessionDescriptions Whether the platform generates a description for each of this agent's sessions created without one. When true, after each turn that completes without error in such a session, the platform makes one additional request to the agent's model to summarize the session's events into its description. That request consumes tokens and counts against `llm_quota`. When false, no request is made and those sessions keep no description. A description supplied on session create or update is never replaced, and an empty description turns off generation for that session.
+	// GenerateSessionDescriptions Deprecated alias of `session_description.enabled`. On requests, ignored when `session_description` is also set, and when sent alone it leaves `session_description.deliver_before_turn_end` unchanged. On responses, mirrors `session_description.enabled`.
 	//
 	//
 	// Example: false
+	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
 	GenerateSessionDescriptions *GenerateSessionDescriptions `json:"generate_session_descriptions,omitempty"`
-
-	// LlmQuota Ceilings on the LLM requests and tokens this agent may consume, counted across every LLM the agent calls. A sub-agent is charged to its own quota, not its parent's.
-	//
-	// Each field is optional; an omitted field sets no limit of its own. The platform may also apply its own limits. Day and month windows are UTC calendar windows. Input tokens are the provider's reported prompt tokens, including cached tokens; output tokens are completion plus reasoning tokens. When a limit is reached the agent's next LLM call is refused: a non-streamed `createAgentInput` request answers `429` with a `Retry-After` header, and a streamed one ends with an `error` event naming the exhausted quota and the seconds until it resets.
-	LlmQuota *LLMQuota `json:"llm_quota,omitempty"`
 
 	// Metadata Arbitrary metadata associated with the agent. Set to null to clear.
 	//
@@ -18959,6 +18803,9 @@ type UpdateAgentRequest struct {
 	//
 	// Example: Customer Support Agent
 	Name *AgentName `json:"name,omitempty"`
+
+	// SessionDescription Controls how this agent's sessions created without a description get one. Generation sends one additional request to the agent's model, using the text of the input message that triggers it (the first input message with text, or the next one after a failed request), and stores the result on the session. That request consumes tokens. When the response is streamed, the stream also carries a `session_description` event. A description supplied on session create or update is never replaced, and an empty description turns off generation for that session.
+	SessionDescription *SessionDescriptionConfiguration `json:"session_description,omitempty"`
 
 	// SessionEnrichment Tool calls run at session creation to populate the new session's metadata before the agent's first turn. Each call invokes one of the agent's enrichment-only tool configurations and writes its output into the session metadata. The agent, run conditions, and routing can then read values fetched or computed at session start. Enrichment tools are ordinary entries in the agent's tool_configurations marked enrichment_only, so they are never exposed to the agent's LLM. Enrichment runs for every session the agent creates regardless of trigger, including the API, chat connectors, and schedules. Independent calls run in parallel and a call may consume an earlier call's output. Enrichment is fail-closed: unless a call sets continue_on_error, a failed call aborts session creation and no session is created. The abort status names the failure: 422 for an invalid configuration or a failed transform, 502 for a tool failure, and 504 for a timeout. A jq error raised by the called tool configuration's input_transform or output_transform is a call failure like any other: continue_on_error skips it, and otherwise its message is returned in the error response's messages array.
 	SessionEnrichment *SessionEnrichmentConfig `json:"session_enrichment,omitempty"`
@@ -19089,9 +18936,11 @@ type UpdateAgentStep struct {
 	// Reminders Reminders injected into the session as the agent runs. Set to null to clear all reminders.
 	Reminders *[]AgentStepReminder `json:"reminders,omitempty"`
 
-	// Type Deprecated. Previously used as a discriminator.
-	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
-	Type *string `json:"type,omitempty"`
+	// ToolCalls Tool calls the platform makes each time the session transitions into this step or starts at it. See AgentStep for how they run. Set to null to clear.
+	ToolCalls *[]AgentStepToolCall `json:"tool_calls,omitempty"`
+
+	// Type How the step acts on its input. If omitted, the current value is kept.
+	Type *AgentStepType `json:"type,omitempty"`
 }
 
 // UpdateAnthropicLLMRequest Request to update an Anthropic Large Language Model connection. All fields are optional.
@@ -19116,96 +18965,8 @@ type UpdateAnthropicLLMRequest struct {
 	// Example: 300
 	IdleTimeoutSeconds *IdleTimeoutSeconds `json:"idle_timeout_seconds,omitempty"`
 
-	// InputTokensPerDay Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of input tokens per UTC calendar day for this LLM.
-	//
-	// - Set a value to apply that limit.
-	// - Set the field to null to remove the limit set through this field.
-	// - Omit the field to keep the current limit.
-	//
-	// Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
-	//
-	//
-	// Example: 2000000
-	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
-	InputTokensPerDay *int64 `json:"input_tokens_per_day,omitempty"`
-
-	// InputTokensPerMinute Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of input (prompt) tokens per minute for this LLM, as reported by the provider and including cached prompt tokens.
-	//
-	// - Set a value to apply that limit.
-	// - Set the field to null to remove the limit set through this field.
-	// - Omit the field to keep the current limit.
-	//
-	// Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
-	//
-	//
-	// Example: 200000
-	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
-	InputTokensPerMinute *int64 `json:"input_tokens_per_minute,omitempty"`
-
-	// InputTokensPerMonth Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of input tokens per UTC calendar month for this LLM.
-	//
-	// - Set a value to apply that limit.
-	// - Set the field to null to remove the limit set through this field.
-	// - Omit the field to keep the current limit.
-	//
-	// Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
-	//
-	//
-	// Example: 50000000
-	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
-	InputTokensPerMonth *int64 `json:"input_tokens_per_month,omitempty"`
-
 	// Model The model identifier to use for this LLM.
 	Model *string `json:"model,omitempty"`
-
-	// OutputTokensPerDay Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of output tokens per UTC calendar day for this LLM.
-	//
-	// - Set a value to apply that limit.
-	// - Set the field to null to remove the limit set through this field.
-	// - Omit the field to keep the current limit.
-	//
-	// Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
-	//
-	//
-	// Example: 500000
-	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
-	OutputTokensPerDay *int64 `json:"output_tokens_per_day,omitempty"`
-
-	// OutputTokensPerMinute Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of output tokens (completion plus reasoning) per minute for this LLM.
-	//
-	// - Set a value to apply that limit.
-	// - Set the field to null to remove the limit set through this field.
-	// - Omit the field to keep the current limit.
-	//
-	// Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
-	//
-	//
-	// Example: 50000
-	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
-	OutputTokensPerMinute *int64 `json:"output_tokens_per_minute,omitempty"`
-
-	// OutputTokensPerMonth Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of output tokens per UTC calendar month for this LLM.
-	//
-	// - Set a value to apply that limit.
-	// - Set the field to null to remove the limit set through this field.
-	// - Omit the field to keep the current limit.
-	//
-	// Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
-	//
-	//
-	// Example: 10000000
-	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
-	OutputTokensPerMonth *int64 `json:"output_tokens_per_month,omitempty"`
-
-	// RequestsPerSecond Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of requests per second for this LLM.
-	//
-	// - Set a value to apply that limit.
-	// - Set the field to null to remove the limit set through this field.
-	// - Omit the field to keep the current limit.
-	//
-	// Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
-	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
-	RequestsPerSecond *int64 `json:"requests_per_second,omitempty"`
 
 	// TestModelParameters Any additional parameters that are required for the LLM during the test call.
 	TestModelParameters *map[string]interface{} `json:"test_model_parameters,omitempty"`
@@ -19338,9 +19099,11 @@ type UpdateFirstAgentStep struct {
 	// Reminders Reminders injected into the session as the agent runs. Set to null to clear all reminders.
 	Reminders *[]AgentStepReminder `json:"reminders,omitempty"`
 
-	// Type Deprecated. Previously used as a discriminator.
-	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
-	Type *string `json:"type,omitempty"`
+	// ToolCalls Tool calls the platform makes each time the session transitions into this step or starts at it. See AgentStep for how they run. Set to null to clear.
+	ToolCalls *[]AgentStepToolCall `json:"tool_calls,omitempty"`
+
+	// Type How the step acts on its input. If omitted, the current value is kept.
+	Type *AgentStepType `json:"type,omitempty"`
 }
 
 // UpdateFluidtopicsSourceConfiguration Partial update for Fluid Topics source configuration. Only provided fields are merged.
@@ -19503,96 +19266,8 @@ type UpdateOpenAILLMRequest struct {
 	// Example: 300
 	IdleTimeoutSeconds *IdleTimeoutSeconds `json:"idle_timeout_seconds,omitempty"`
 
-	// InputTokensPerDay Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of input tokens per UTC calendar day for this LLM.
-	//
-	// - Set a value to apply that limit.
-	// - Set the field to null to remove the limit set through this field.
-	// - Omit the field to keep the current limit.
-	//
-	// Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
-	//
-	//
-	// Example: 2000000
-	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
-	InputTokensPerDay *int64 `json:"input_tokens_per_day,omitempty"`
-
-	// InputTokensPerMinute Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of input (prompt) tokens per minute for this LLM, as reported by the provider and including cached prompt tokens.
-	//
-	// - Set a value to apply that limit.
-	// - Set the field to null to remove the limit set through this field.
-	// - Omit the field to keep the current limit.
-	//
-	// Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
-	//
-	//
-	// Example: 200000
-	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
-	InputTokensPerMinute *int64 `json:"input_tokens_per_minute,omitempty"`
-
-	// InputTokensPerMonth Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of input tokens per UTC calendar month for this LLM.
-	//
-	// - Set a value to apply that limit.
-	// - Set the field to null to remove the limit set through this field.
-	// - Omit the field to keep the current limit.
-	//
-	// Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
-	//
-	//
-	// Example: 50000000
-	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
-	InputTokensPerMonth *int64 `json:"input_tokens_per_month,omitempty"`
-
 	// Model The model identifier to use for this LLM.
 	Model *string `json:"model,omitempty"`
-
-	// OutputTokensPerDay Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of output tokens per UTC calendar day for this LLM.
-	//
-	// - Set a value to apply that limit.
-	// - Set the field to null to remove the limit set through this field.
-	// - Omit the field to keep the current limit.
-	//
-	// Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
-	//
-	//
-	// Example: 500000
-	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
-	OutputTokensPerDay *int64 `json:"output_tokens_per_day,omitempty"`
-
-	// OutputTokensPerMinute Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of output tokens (completion plus reasoning) per minute for this LLM.
-	//
-	// - Set a value to apply that limit.
-	// - Set the field to null to remove the limit set through this field.
-	// - Omit the field to keep the current limit.
-	//
-	// Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
-	//
-	//
-	// Example: 50000
-	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
-	OutputTokensPerMinute *int64 `json:"output_tokens_per_minute,omitempty"`
-
-	// OutputTokensPerMonth Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of output tokens per UTC calendar month for this LLM.
-	//
-	// - Set a value to apply that limit.
-	// - Set the field to null to remove the limit set through this field.
-	// - Omit the field to keep the current limit.
-	//
-	// Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
-	//
-	//
-	// Example: 10000000
-	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
-	OutputTokensPerMonth *int64 `json:"output_tokens_per_month,omitempty"`
-
-	// RequestsPerSecond Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of requests per second for this LLM.
-	//
-	// - Set a value to apply that limit.
-	// - Set the field to null to remove the limit set through this field.
-	// - Omit the field to keep the current limit.
-	//
-	// Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
-	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
-	RequestsPerSecond *int64 `json:"requests_per_second,omitempty"`
 
 	// TestModelParameters Any additional parameters that are required for the LLM during the test call.
 	//
@@ -19628,96 +19303,8 @@ type UpdateOpenAIResponsesLLMRequest struct {
 	// Example: 300
 	IdleTimeoutSeconds *IdleTimeoutSeconds `json:"idle_timeout_seconds,omitempty"`
 
-	// InputTokensPerDay Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of input tokens per UTC calendar day for this LLM.
-	//
-	// - Set a value to apply that limit.
-	// - Set the field to null to remove the limit set through this field.
-	// - Omit the field to keep the current limit.
-	//
-	// Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
-	//
-	//
-	// Example: 2000000
-	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
-	InputTokensPerDay *int64 `json:"input_tokens_per_day,omitempty"`
-
-	// InputTokensPerMinute Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of input (prompt) tokens per minute for this LLM, as reported by the provider and including cached prompt tokens.
-	//
-	// - Set a value to apply that limit.
-	// - Set the field to null to remove the limit set through this field.
-	// - Omit the field to keep the current limit.
-	//
-	// Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
-	//
-	//
-	// Example: 200000
-	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
-	InputTokensPerMinute *int64 `json:"input_tokens_per_minute,omitempty"`
-
-	// InputTokensPerMonth Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of input tokens per UTC calendar month for this LLM.
-	//
-	// - Set a value to apply that limit.
-	// - Set the field to null to remove the limit set through this field.
-	// - Omit the field to keep the current limit.
-	//
-	// Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
-	//
-	//
-	// Example: 50000000
-	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
-	InputTokensPerMonth *int64 `json:"input_tokens_per_month,omitempty"`
-
 	// Model The model identifier to use for this LLM.
 	Model *string `json:"model,omitempty"`
-
-	// OutputTokensPerDay Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of output tokens per UTC calendar day for this LLM.
-	//
-	// - Set a value to apply that limit.
-	// - Set the field to null to remove the limit set through this field.
-	// - Omit the field to keep the current limit.
-	//
-	// Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
-	//
-	//
-	// Example: 500000
-	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
-	OutputTokensPerDay *int64 `json:"output_tokens_per_day,omitempty"`
-
-	// OutputTokensPerMinute Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of output tokens (completion plus reasoning) per minute for this LLM.
-	//
-	// - Set a value to apply that limit.
-	// - Set the field to null to remove the limit set through this field.
-	// - Omit the field to keep the current limit.
-	//
-	// Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
-	//
-	//
-	// Example: 50000
-	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
-	OutputTokensPerMinute *int64 `json:"output_tokens_per_minute,omitempty"`
-
-	// OutputTokensPerMonth Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of output tokens per UTC calendar month for this LLM.
-	//
-	// - Set a value to apply that limit.
-	// - Set the field to null to remove the limit set through this field.
-	// - Omit the field to keep the current limit.
-	//
-	// Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
-	//
-	//
-	// Example: 10000000
-	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
-	OutputTokensPerMonth *int64 `json:"output_tokens_per_month,omitempty"`
-
-	// RequestsPerSecond Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of requests per second for this LLM.
-	//
-	// - Set a value to apply that limit.
-	// - Set the field to null to remove the limit set through this field.
-	// - Omit the field to keep the current limit.
-	//
-	// Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
-	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
-	RequestsPerSecond *int64 `json:"requests_per_second,omitempty"`
 
 	// TestModelParameters Any additional parameters that are required for the LLM during the test call.
 	//
@@ -19875,96 +19462,8 @@ type UpdateVertexAILLMRequest struct {
 	// Example: 300
 	IdleTimeoutSeconds *IdleTimeoutSeconds `json:"idle_timeout_seconds,omitempty"`
 
-	// InputTokensPerDay Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of input tokens per UTC calendar day for this LLM.
-	//
-	// - Set a value to apply that limit.
-	// - Set the field to null to remove the limit set through this field.
-	// - Omit the field to keep the current limit.
-	//
-	// Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
-	//
-	//
-	// Example: 2000000
-	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
-	InputTokensPerDay *int64 `json:"input_tokens_per_day,omitempty"`
-
-	// InputTokensPerMinute Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of input (prompt) tokens per minute for this LLM, as reported by the provider and including cached prompt tokens.
-	//
-	// - Set a value to apply that limit.
-	// - Set the field to null to remove the limit set through this field.
-	// - Omit the field to keep the current limit.
-	//
-	// Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
-	//
-	//
-	// Example: 200000
-	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
-	InputTokensPerMinute *int64 `json:"input_tokens_per_minute,omitempty"`
-
-	// InputTokensPerMonth Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of input tokens per UTC calendar month for this LLM.
-	//
-	// - Set a value to apply that limit.
-	// - Set the field to null to remove the limit set through this field.
-	// - Omit the field to keep the current limit.
-	//
-	// Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
-	//
-	//
-	// Example: 50000000
-	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
-	InputTokensPerMonth *int64 `json:"input_tokens_per_month,omitempty"`
-
 	// Model The model identifier to use for this LLM.
 	Model *string `json:"model,omitempty"`
-
-	// OutputTokensPerDay Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of output tokens per UTC calendar day for this LLM.
-	//
-	// - Set a value to apply that limit.
-	// - Set the field to null to remove the limit set through this field.
-	// - Omit the field to keep the current limit.
-	//
-	// Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
-	//
-	//
-	// Example: 500000
-	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
-	OutputTokensPerDay *int64 `json:"output_tokens_per_day,omitempty"`
-
-	// OutputTokensPerMinute Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of output tokens (completion plus reasoning) per minute for this LLM.
-	//
-	// - Set a value to apply that limit.
-	// - Set the field to null to remove the limit set through this field.
-	// - Omit the field to keep the current limit.
-	//
-	// Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
-	//
-	//
-	// Example: 50000
-	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
-	OutputTokensPerMinute *int64 `json:"output_tokens_per_minute,omitempty"`
-
-	// OutputTokensPerMonth Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of output tokens per UTC calendar month for this LLM.
-	//
-	// - Set a value to apply that limit.
-	// - Set the field to null to remove the limit set through this field.
-	// - Omit the field to keep the current limit.
-	//
-	// Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
-	//
-	//
-	// Example: 10000000
-	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
-	OutputTokensPerMonth *int64 `json:"output_tokens_per_month,omitempty"`
-
-	// RequestsPerSecond Deprecated. This field will be removed in a future release. The platform still enforces it until then. Contact Vectara support to set LLM request and token limits. The maximum number of requests per second for this LLM.
-	//
-	// - Set a value to apply that limit.
-	// - Set the field to null to remove the limit set through this field.
-	// - Omit the field to keep the current limit.
-	//
-	// Once the limit is reached, the platform rejects calls to this LLM with HTTP 429 and a Retry-After header.
-	// Deprecated: this property has been marked as deprecated upstream, but no `x-deprecated-reason` was set
-	RequestsPerSecond *int64 `json:"requests_per_second,omitempty"`
 
 	// TestModelParameters Any additional parameters that are required for the LLM during the test call.
 	TestModelParameters *map[string]interface{} `json:"test_model_parameters,omitempty"`
@@ -20042,4 +19541,498 @@ type UpdateWebSourceConfiguration struct {
 
 	// UserAgent User-Agent header sent with every request. Must not contain CR or LF.
 	UserAgent *string `json:"user_agent,omitempty"`
+}
+
+// UpdateWidgetConnectorConfiguration Partial update of a widget connector's configuration: an omitted field keeps its stored value; `presentation` is replaced whole when supplied.
+type UpdateWidgetConnectorConfiguration struct {
+	// AllowedOrigins Allowed browser origins. Entries must be unique.
+	// A non-empty list rejects unmatched `Origin` headers with `403`; requests without `Origin` are allowed.
+	// Omitted preserves the current list. Set to null or an empty array to clear. Null entries are rejected.
+	//
+	//
+	// Example: ["https://example.com","https://*.example.com"]
+	AllowedOrigins *[]WidgetAllowedOrigin `json:"allowed_origins,omitempty"`
+
+	// EndUserSignIn The sign-in to apply. Omitted leaves the current sign-in unchanged, and `null` removes it so the widget no longer offers sign-in.
+	EndUserSignIn *WidgetSignIn `json:"end_user_sign_in,omitempty"`
+
+	// HiddenOutputTypes Present on the read view for consistency with other connector types; widget connectors ignore it and control end-user visibility through `revealed_output_types`. Accepted on update so a read-modify-write round trip is not rejected.
+	//
+	// Example: ["tool_calls"]
+	HiddenOutputTypes *[]AgentOutputType `json:"hidden_output_types,omitempty"`
+
+	// Presentation The presentation configuration the widget client renders — branding, palette, welcome content, suggested prompts.
+	// Free-form apart from the required `version`; the platform stores it verbatim, serves it back uninterpreted, and caps its total size.
+	// Null-valued keys are accepted but are omitted from responses.
+	// Served to anonymous visitors by the unauthenticated public connector view, so widget clients must treat every value as untrusted data.
+	// Schema validation of the payload lands with the first Altera release; `version` is what lets clients render older payloads once the shape evolves.
+	Presentation *WidgetPresentation `json:"presentation,omitempty"`
+
+	// PublicAccess Whether the widget admits anonymous visitors. Omitted leaves the current value unchanged.
+	// Setting it to `false` closes the widget to anonymous visitors: anonymous session creation naming it is refused, and sessions bound to it refuse anonymous access. Visitor ids themselves stay valid on the customer's other open widgets. The change takes effect within a few seconds.
+	// Gates anonymous admission only; authenticated callers presenting this connector are governed by `enabled`.
+	//
+	//
+	// Example: false
+	PublicAccess *bool `json:"public_access,omitempty"`
+
+	// RevealedOutputTypes Agent output types included in the widget's end-user event projection; the final response is always visible.
+	//
+	// Example: ["tool_calls"]
+	RevealedOutputTypes *[]AgentOutputType `json:"revealed_output_types,omitempty"`
+
+	// SessionMetadata Written into every session created through this widget connector, under `metadata.connector.<connector_id>`.
+	//
+	// Example: {"instance":"conversational-ai"}
+	SessionMetadata *map[string]interface{} `json:"session_metadata,omitempty"`
+
+	// SessionTtiMinutes How long a session created through this widget may sit idle before it is closed, in minutes. Set to 0 for sessions that never expire.
+	SessionTtiMinutes *int32 `json:"session_tti_minutes,omitempty"`
+
+	// Type The type of connector configuration.
+	//
+	// Example: widget
+	Type string `json:"type"`
+}
+
+// UpdateWolkenFormsSourceConfiguration Partial update for Wolken forms source configuration. Only provided fields are merged.
+type UpdateWolkenFormsSourceConfiguration = BaseWolkenFormsSourceConfiguration
+
+// UpdateWolkenKbSourceConfiguration Partial update for Wolken source configuration. Only provided fields are merged.
+type UpdateWolkenKbSourceConfiguration = BaseWolkenKbSourceConfiguration
+
+// UpdateWolkenTicketsSourceConfiguration Partial update for Wolken tickets source configuration. Only provided fields are merged.
+// An update cannot return `backfill_window` or `note_response_type_ids` to its unset state.
+// A `null` value for either is accepted and ignored, keeping the stored value, and an empty
+// `note_response_type_ids` is not a reset but the distinct no-notes state. To unset either
+// field, replace the pipeline with `PUT /v2/pipelines/{pipeline_key}` using a configuration
+// that omits it.
+type UpdateWolkenTicketsSourceConfiguration = BaseWolkenTicketsSourceConfiguration
+
+// UploadFileRequest Request to upload and index a file into a corpus within a customer account.
+//
+// Example: {"chunking_strategy":{"type":"sentence_chunking_strategy"},"file":"system_design_v1.pdf","filename":"system_design_v1.pdf","metadata":{"department\"":"engineering","doc_type\"":"architecture_diagram"},"table_extraction_config":{"extract_tables":true}}
+type UploadFileRequest struct {
+	// ChunkingStrategy Chooses how to split documents into chunks during indexing. This is optional. If you do not set a chunking strategy, the platform uses the default strategy, which creates one chunk (docpart) per sentence.
+	ChunkingStrategy *ChunkingStrategy `json:"chunking_strategy,omitempty"`
+
+	// File Binary file contents. The filename of the file becomes the document ID.
+	File openapi_types.File `json:"file"`
+
+	// Filename Optional multipart section to override the filename.
+	//
+	// Example: system_design_v1.pdf
+	Filename *string `json:"filename,omitempty"`
+
+	// Metadata Arbitrary object that is attached as document metadata to the extracted document.
+	//
+	// Example: {"department":"engineering","doc_type\"":"architecture_diagram"}
+	Metadata *map[string]interface{} `json:"metadata,omitempty"`
+
+	// TableExtractionConfig Configuration for table extraction from the document. This configuration is optional. If omitted, the platform does not extract tables from PDF files.
+	TableExtractionConfig *TableExtractionConfig `json:"table_extraction_config,omitempty"`
+}
+
+// UpsertGlossaryEntriesRequest Request to upsert entries into a glossary in bulk. Entries with existing terms are updated; new terms are inserted.
+// The platform rebuilds the glossary index after the upsert. Agents use the updated glossary after the rebuild completes.
+type UpsertGlossaryEntriesRequest struct {
+	// Entries A map of terms to their expanded forms. Keys are terms (1–200 characters);
+	// values are expansions (1–1000 characters).
+	//
+	//
+	// Example: {"k8s":"Kubernetes","tf":"Terraform"}
+	Entries map[string]string `json:"entries"`
+}
+
+// User A user account with associated profile information and permissions.
+type User struct {
+	// AgentRoles Agent-specific role assignments for the user.
+	AgentRoles *[]AgentRole `json:"agent_roles,omitempty"`
+
+	// ApiPolicy The actions a principal can take on the Vectara platform.
+	ApiPolicy *ApiPolicy `json:"api_policy,omitempty"`
+
+	// ApiRoles The customer-level role names of the user.
+	ApiRoles *[]ApiRole `json:"api_roles,omitempty"`
+
+	// CorpusRoles Corpus-specific role assignments for the user.
+	CorpusRoles *[]CorpusRole `json:"corpus_roles,omitempty"`
+
+	// CreatedAt When the user was created.
+	CreatedAt *time.Time `json:"created_at,omitempty"`
+
+	// Description The description of the user.
+	Description *string `json:"description,omitempty"`
+
+	// Email The email address for the user.
+	Email openapi_types.Email `json:"email"`
+
+	// Enabled Indicates whether the user is enabled or disabled.
+	Enabled *bool `json:"enabled,omitempty"`
+
+	// Id The Vectara ID for the user.
+	Id string `json:"id"`
+
+	// Metadata Arbitrary metadata associated with the user.
+	//
+	// Example: {"console_mode":"business"}
+	Metadata *map[string]interface{} `json:"metadata,omitempty"`
+
+	// UpdatedAt When a user property was last updated.
+	UpdatedAt *time.Time `json:"updated_at,omitempty"`
+
+	// Username The username for the user.
+	Username *string `json:"username,omitempty"`
+}
+
+// UserFunctionReranker A reranker that uses user-defined functions to reorder search results.
+type UserFunctionReranker struct {
+	// Cutoff The minimum score threshold for results to be included after the reranking process. When you apply a reranker with a cutoff, it performs these steps:
+	// 1. Reranks all input results according to its algorithm. 2. Removes any results with scores below the cutoff. 3. Returns the remaining results, sorted by their new scores.
+	// Note: This cutoff applies per reranking stage. In a chain of rerankers, each reranker can have its own cutoff. This can further reduce the number of results at each stage. If you specify both `limit` and `cutoff`, the cutoff applies first, then the limit.
+	Cutoff *float32 `json:"cutoff,omitempty"`
+
+	// Limit The maximum number of results to return after the reranking process.
+	// When you apply a reranker, it performs these steps:
+	// 1. Reranks all input results according to its algorithm.
+	// 2. Sorts the reranked results by their new scores.
+	// 3. Returns the top N results, where N is the value of this limit.
+	//
+	// Note: This limit applies per reranking stage. In a chain of rerankers, each reranker can have its own limit. This can reduce the number of results at each stage.
+	Limit *int32 `json:"limit,omitempty"`
+
+	// Type When the type is `userfn`, you can define custom reranking functions using document-level metadata, part-level metadata, or scores generated from the request-level metadata.
+	Type *string `json:"type,omitempty"`
+
+	// UserFunction The user defined function.
+	//
+	// Example: get('$.score') * get('$.document_metadata.boost')
+	UserFunction *string `json:"user_function,omitempty"`
+}
+
+// VertexAccessTokenAuth Google Cloud Vertex AI access token authentication
+type VertexAccessTokenAuth struct {
+	// AccessToken The GCP access token
+	//
+	// Example: ya29.c.Kp...
+	AccessToken string `json:"access_token"`
+
+	// Project GCP project ID
+	//
+	// Example: my-project-id
+	Project string `json:"project"`
+
+	// Region GCP region for Vertex AI
+	//
+	// Example: us-central1
+	Region string `json:"region"`
+
+	// Type Must be "vertex_access_token" for access token auth
+	//
+	// Example: vertex_access_token
+	Type string `json:"type"`
+}
+
+// VertexAiApiKeyAuth API key authentication for Vertex AI
+type VertexAiApiKeyAuth struct {
+	// ApiKey The Google Cloud API key for authentication
+	ApiKey string `json:"api_key"`
+
+	// Type Must be "api_key" for API key authentication
+	Type string `json:"type"`
+}
+
+// VertexAiAuth Authentication configuration for Vertex AI
+type VertexAiAuth struct {
+	union json.RawMessage
+}
+
+// VertexAiServiceAccountAuth Service account authentication for Vertex AI
+type VertexAiServiceAccountAuth struct {
+	// KeyJson The service account JSON key file contents as a string
+	KeyJson string `json:"key_json"`
+
+	// Type Must be "service_account" for service account authentication
+	Type string `json:"type"`
+}
+
+// VertexServiceAccountAuth Google Cloud Vertex AI service account authentication
+type VertexServiceAccountAuth struct {
+	// KeyJson The service account key JSON
+	//
+	// Example: {"type":"service_account","project_id":"my-project",...}
+	KeyJson string `json:"key_json"`
+
+	// Project GCP project ID
+	//
+	// Example: my-project-id
+	Project string `json:"project"`
+
+	// Region GCP region for Vertex AI
+	//
+	// Example: us-central1
+	Region string `json:"region"`
+
+	// Type Must be "vertex_service_account" for service account auth
+	//
+	// Example: vertex_service_account
+	Type string `json:"type"`
+}
+
+// WatermarkAdvancedEvent The pipeline's persisted watermark moved forward at the end of the run.
+type WatermarkAdvancedEvent struct {
+	// Id Monotonic, unique-per-run identifier for this event.
+	//
+	// Example: evt_42
+	Id string `json:"id"`
+
+	// OccurredAt When the event occurred.
+	OccurredAt time.Time `json:"occurred_at"`
+	Type       string    `json:"type"`
+	Watermark  string    `json:"watermark"`
+}
+
+// WebGetAuth Authentication configuration for the outgoing HTTP request.
+type WebGetAuth struct {
+	union json.RawMessage
+}
+
+// WebGetAwsSigV4Auth AWS Signature Version 4 request signing, e.g. for reading an S3 bucket directly. The platform signs the final request (method, URL, query parameters, and body) with the supplied credentials. User-supplied headers ride along unsigned. The platform never follows redirects on signed requests. When `role_arn` is set, the platform first calls sts:AssumeRole with the static credentials and signs with the assumed-role credentials.
+type WebGetAwsSigV4Auth struct {
+	// AccessKeyId AWS access key id.
+	AccessKeyId WebGetAwsSigV4Auth_AccessKeyId `json:"access_key_id"`
+
+	// Region AWS region to sign for (e.g. `us-east-2`).
+	//
+	// Example: us-east-2
+	Region string `json:"region"`
+
+	// RoleArn Optional IAM role to assume (via sts:AssumeRole) from the static credentials before signing.
+	RoleArn *string `json:"role_arn,omitempty"`
+
+	// RoleSessionName Session name for the assumed role. Defaults to `vectara-agent`.
+	RoleSessionName *string `json:"role_session_name,omitempty"`
+
+	// SecretAccessKey AWS secret access key.
+	SecretAccessKey WebGetAwsSigV4Auth_SecretAccessKey `json:"secret_access_key"`
+
+	// Service AWS service name to sign for.
+	//
+	// Example: s3
+	Service *string `json:"service,omitempty"`
+
+	// SessionToken Optional session token when the static credentials are temporary.
+	SessionToken *WebGetAwsSigV4Auth_SessionToken `json:"session_token,omitempty"`
+
+	// Type Example: aws_sigv4
+	Type string `json:"type"`
+}
+
+// WebGetAwsSigV4AuthAccessKeyId0 defines model for WebGetAwsSigV4Auth.AccessKeyId.0.
+type WebGetAwsSigV4AuthAccessKeyId0 = string
+
+// WebGetAwsSigV4Auth_AccessKeyId AWS access key id.
+type WebGetAwsSigV4Auth_AccessKeyId struct {
+	union json.RawMessage
+}
+
+// WebGetAwsSigV4AuthSecretAccessKey0 defines model for WebGetAwsSigV4Auth.SecretAccessKey.0.
+type WebGetAwsSigV4AuthSecretAccessKey0 = string
+
+// WebGetAwsSigV4Auth_SecretAccessKey AWS secret access key.
+type WebGetAwsSigV4Auth_SecretAccessKey struct {
+	union json.RawMessage
+}
+
+// WebGetAwsSigV4AuthSessionToken0 defines model for WebGetAwsSigV4Auth.SessionToken.0.
+type WebGetAwsSigV4AuthSessionToken0 = string
+
+// WebGetAwsSigV4Auth_SessionToken Optional session token when the static credentials are temporary.
+type WebGetAwsSigV4Auth_SessionToken struct {
+	union json.RawMessage
+}
+
+// WebGetBearerAuth Static bearer token authentication. Adds `Authorization: Bearer <token>`.
+type WebGetBearerAuth struct {
+	// Token The bearer token. May be an EagerReference to an agent secret.
+	Token WebGetBearerAuth_Token `json:"token"`
+
+	// Type Example: bearer
+	Type string `json:"type"`
+}
+
+// WebGetBearerAuthToken0 defines model for WebGetBearerAuth.Token.0.
+type WebGetBearerAuthToken0 = string
+
+// WebGetBearerAuth_Token The bearer token. May be an EagerReference to an agent secret.
+type WebGetBearerAuth_Token struct {
+	union json.RawMessage
+}
+
+// WebGetHeaderAuth Static custom-header authentication, suitable for API keys.
+type WebGetHeaderAuth struct {
+	// Header The header name to set (e.g. `X-API-Key`).
+	Header string `json:"header"`
+
+	// Type Example: header
+	Type string `json:"type"`
+
+	// Value The header value. May be an EagerReference to an agent secret.
+	Value WebGetHeaderAuth_Value `json:"value"`
+}
+
+// WebGetHeaderAuthValue0 defines model for WebGetHeaderAuth.Value.0.
+type WebGetHeaderAuthValue0 = string
+
+// WebGetHeaderAuth_Value The header value. May be an EagerReference to an agent secret.
+type WebGetHeaderAuth_Value struct {
+	union json.RawMessage
+}
+
+// WebGetHeaderValue The value for a single HTTP header in the web_get tool.
+// Either a literal string or an EagerReference ({"$ref": "agent.secrets.foo"}) that resolves at session start so the secret value never appears in the tool configuration.
+type WebGetHeaderValue struct {
+	union json.RawMessage
+}
+
+// WebGetHeaderValue0 defines model for WebGetHeaderValue.0.
+type WebGetHeaderValue0 = string
+
+// WebGetHeadersMap A map of HTTP header names to their values for the web_get tool.
+// Each value may be a literal string or an EagerReference for per-header secret resolution.
+type WebGetHeadersMap map[string]WebGetHeaderValue
+
+// WebGetNoAuth Explicitly disables authentication.
+// Useful in argument_override to force a tool config to clear any auth the agent would otherwise supply, since merge semantics ignore null patches.
+type WebGetNoAuth struct {
+	// Type Example: none
+	Type string `json:"type"`
+}
+
+// WebGetOAuthClientCredentialsAuth OAuth 2.0 client-credentials grant.
+// The platform fetches an access token from the token endpoint and caches it until it expires.
+type WebGetOAuthClientCredentialsAuth struct {
+	// Audience Optional. Sent as the OAuth `audience` form parameter so the IdP mints a token scoped to this audience.
+	// Required by IdPs like Ory Hydra to issue a token whose `aud` claim targets an external service (e.g. an STS).
+	//
+	// Example: https://sts.example.com
+	Audience     *string                                       `json:"audience,omitempty"`
+	ClientId     WebGetOAuthClientCredentialsAuth_ClientId     `json:"client_id"`
+	ClientSecret WebGetOAuthClientCredentialsAuth_ClientSecret `json:"client_secret"`
+
+	// Scopes Example: ["read:items"]
+	Scopes *[]string `json:"scopes,omitempty"`
+
+	// TokenEndpoint Example: https://auth.example.com/oauth2/token
+	TokenEndpoint string `json:"token_endpoint"`
+
+	// Type Example: oauth_client_credentials
+	Type string `json:"type"`
+}
+
+// WebGetOAuthClientCredentialsAuthClientId0 defines model for WebGetOAuthClientCredentialsAuth.ClientId.0.
+type WebGetOAuthClientCredentialsAuthClientId0 = string
+
+// WebGetOAuthClientCredentialsAuth_ClientId defines model for WebGetOAuthClientCredentialsAuth.ClientId.
+type WebGetOAuthClientCredentialsAuth_ClientId struct {
+	union json.RawMessage
+}
+
+// WebGetOAuthClientCredentialsAuthClientSecret0 defines model for WebGetOAuthClientCredentialsAuth.ClientSecret.0.
+type WebGetOAuthClientCredentialsAuthClientSecret0 = string
+
+// WebGetOAuthClientCredentialsAuth_ClientSecret defines model for WebGetOAuthClientCredentialsAuth.ClientSecret.
+type WebGetOAuthClientCredentialsAuth_ClientSecret struct {
+	union json.RawMessage
+}
+
+// WebGetOAuthRefreshTokenAuth OAuth 2.0 refresh-token grant.
+// The platform exchanges a long-lived refresh token for an access token and caches the result until it expires.
+// Supports refresh-token rotation: if the IdP returns a new refresh_token, subsequent refreshes use it automatically.
+type WebGetOAuthRefreshTokenAuth struct {
+	ClientId     WebGetOAuthRefreshTokenAuth_ClientId     `json:"client_id"`
+	ClientSecret WebGetOAuthRefreshTokenAuth_ClientSecret `json:"client_secret"`
+	RefreshToken WebGetOAuthRefreshTokenAuth_RefreshToken `json:"refresh_token"`
+
+	// TokenEndpoint Example: https://auth.example.com/oauth2/token
+	TokenEndpoint string `json:"token_endpoint"`
+
+	// Type Example: oauth_refresh_token
+	Type string `json:"type"`
+}
+
+// WebGetOAuthRefreshTokenAuthClientId0 defines model for WebGetOAuthRefreshTokenAuth.ClientId.0.
+type WebGetOAuthRefreshTokenAuthClientId0 = string
+
+// WebGetOAuthRefreshTokenAuth_ClientId defines model for WebGetOAuthRefreshTokenAuth.ClientId.
+type WebGetOAuthRefreshTokenAuth_ClientId struct {
+	union json.RawMessage
+}
+
+// WebGetOAuthRefreshTokenAuthClientSecret0 defines model for WebGetOAuthRefreshTokenAuth.ClientSecret.0.
+type WebGetOAuthRefreshTokenAuthClientSecret0 = string
+
+// WebGetOAuthRefreshTokenAuth_ClientSecret defines model for WebGetOAuthRefreshTokenAuth.ClientSecret.
+type WebGetOAuthRefreshTokenAuth_ClientSecret struct {
+	union json.RawMessage
+}
+
+// WebGetOAuthRefreshTokenAuthRefreshToken0 defines model for WebGetOAuthRefreshTokenAuth.RefreshToken.0.
+type WebGetOAuthRefreshTokenAuthRefreshToken0 = string
+
+// WebGetOAuthRefreshTokenAuth_RefreshToken defines model for WebGetOAuthRefreshTokenAuth.RefreshToken.
+type WebGetOAuthRefreshTokenAuth_RefreshToken struct {
+	union json.RawMessage
+}
+
+// WebGetOAuthTokenExchangeAuth Two-legged OAuth token exchange. The platform first mints a subject token via the client-credentials grant at `token_endpoint`, scoped to `subject_audience`. It then exchanges the subject token at `exchange_endpoint` for the token sent to the target service. Configurable to cover both RFC 8693 and non-standard STS endpoints that present the subject token or parameters differently. The platform caches both tokens until they expire.
+type WebGetOAuthTokenExchangeAuth struct {
+	// ClientId Client id used to mint the subject token (client-credentials grant). May be an EagerReference to an agent secret.
+	ClientId WebGetOAuthTokenExchangeAuth_ClientId `json:"client_id"`
+
+	// ClientSecret Client secret used to mint the subject token. May be an EagerReference to an agent secret.
+	ClientSecret WebGetOAuthTokenExchangeAuth_ClientSecret `json:"client_secret"`
+
+	// ExchangeEndpoint STS endpoint that exchanges the subject token for the target token.
+	//
+	// Example: https://sts.example.com/exchange
+	ExchangeEndpoint string `json:"exchange_endpoint"`
+
+	// ParamLocation Where the exchange `params` are sent: query or body (RFC 8693 uses body).
+	ParamLocation *WebGetOAuthTokenExchangeAuthParamLocation `json:"param_location,omitempty"`
+
+	// Params Extra exchange parameters (e.g. `aud` and an `identity` selector for an assumable-identity STS; `grant_type`, `audience`,
+	// `subject_token_type` for RFC 8693).
+	//
+	// Example: {"aud":"https://api.example.com","identity":"\u003cassumable-identity-id\u003e"}
+	Params *map[string]string `json:"params,omitempty"`
+
+	// Scopes OAuth scopes requested for the subject token.
+	Scopes *[]string `json:"scopes,omitempty"`
+
+	// SubjectAudience Audience requested for the subject token; must be accepted by the exchange endpoint (e.g. the STS issuer).
+	//
+	// Example: https://sts.example.com
+	SubjectAudience string `json:"subject_audience"`
+
+	// SubjectBodyParam Body parameter name carrying the subject token when subject_placement is body_param (e.g. `subject_token`).
+	SubjectBodyParam *string `json:"subject_body_param,omitempty"`
+
+	// SubjectPlacement How the subject token is sent to the exchange endpoint: authorization_bearer (in the `Authorization: Bearer` header) or body_param (an RFC 8693 `subject_token` form field).
+	SubjectPlacement *WebGetOAuthTokenExchangeAuthSubjectPlacement `json:"subject_placement,omitempty"`
+
+	// TokenEndpoint Token endpoint that mints the subject token.
+	//
+	// Example: https://auth.example.com/oauth2/token
+	TokenEndpoint string `json:"token_endpoint"`
+
+	// TokenResponseField JSON field in the exchange response holding the issued token (e.g. `token`, or `access_token` for RFC 8693).
+	//
+	// Example: token
+	TokenResponseField *string `json:"token_response_field,omitempty"`
+
+	// Type The auth type discriminator; always `oauth_token_exchange` for this variant.
+	//
+	// Example: oauth_token_exchange
+	Type string `json:"type"`
 }

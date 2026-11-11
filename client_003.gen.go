@@ -263,24 +263,13 @@ func (c *Client) DeleteAgentConnector(ctx context.Context, aliasKey AgentAliasKe
 	return c.Client.Do(req)
 }
 
-// GetLegacyPublicConnector Get public connector (legacy path)
+// GetAgentConnector Get agent connector
 //
-// Deprecated: read the public view from `GET /v2/agent_aliases/{alias_key}/connectors/{connector_id}/public`. This path serves the same view while embeds already deployed move to that path; it is then repurposed as the authenticated operator read of the full connector.
+// Retrieves a connector on an alias, configuration included, whatever its type and whether or not it is enabled.
 //
-// The public view of a connector, served unauthenticated to the embed snippet. The snippet carries the alias key and the connector's globally unique id, which expose no agent or customer identifier.
-// Returns the `customer_id` visitor minting is addressed to, the `presentation` to render, whether anonymous visitors are admitted (`public_access`), and the sign-in configuration when the widget offers one.
-//
-// A read with no side effects: minting an anonymous visitor id is a separate call, `POST /v2/visitors`, so a returning visitor who already holds an id only reads this view.
-// The view tells the client how to authenticate: `public_access` true — mint or present a visitor id; `end_user_sign_in` present — sign the user in through the referenced issuer. A widget may offer both, and the two follow-up calls do not depend on each other.
-//
-// This operation serves only the public projection; operators read the full connector, configuration included, from the connector list.
-//
-// Serves connectors that front an end-user surface — today, widget connectors. Returns `404` if the connector does not exist on the addressed alias, is a channel connector with no end-user surface (Slack, Google Chat, or Zoom), is disabled, or belongs to a disabled customer.
-//
-// Corresponds with GET /v2/agent_aliases/{alias_key}/connectors/{connector_id} (the `GetLegacyPublicConnector` operationId).
-// Deprecated: this operation has been marked as deprecated upstream, but no `x-deprecated-reason` was set
-func (c *Client) GetLegacyPublicConnector(ctx context.Context, aliasKey AgentAliasKey, connectorId ConnectorId, params *GetLegacyPublicConnectorParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
-	req, err := NewGetLegacyPublicConnectorRequest(c.Server, aliasKey, connectorId, params)
+// Corresponds with GET /v2/agent_aliases/{alias_key}/connectors/{connector_id} (the `GetAgentConnector` operationId).
+func (c *Client) GetAgentConnector(ctx context.Context, aliasKey AgentAliasKey, connectorId ConnectorId, params *GetAgentConnectorParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetAgentConnectorRequest(c.Server, aliasKey, connectorId, params)
 	if err != nil {
 		return nil, err
 	}
@@ -337,7 +326,7 @@ func (c *Client) UpdateAgentConnector(ctx context.Context, aliasKey AgentAliasKe
 // A read with no side effects: minting an anonymous visitor id is a separate call, `POST /v2/visitors`, so a returning visitor who already holds an id only reads this view.
 // The view tells the client how to authenticate: `public_access` true — mint or present a visitor id; `end_user_sign_in` present — sign the user in through the referenced issuer. A widget may offer both, and the two follow-up calls do not depend on each other.
 //
-// This operation serves only the public projection; operators read the full connector, configuration included, from the connector list.
+// This operation serves only the public projection; operators read the full connector, configuration included, from `GET /v2/agent_aliases/{alias_key}/connectors/{connector_id}`.
 //
 // Serves connectors that front an end-user surface — today, widget connectors. Returns `404` if the connector does not exist on the addressed alias, is a channel connector with no end-user surface (Slack, Google Chat, or Zoom), is disabled, or belongs to a disabled customer.
 //
@@ -518,6 +507,27 @@ func (c *Client) CreateEndUserAliasRoutedInputWithBody(ctx context.Context, alia
 // Corresponds with POST /v2/agent_aliases/{alias_key}/end_user_sessions/{session_key}/events (the `CreateEndUserAliasRoutedInput` operationId).
 func (c *Client) CreateEndUserAliasRoutedInput(ctx context.Context, aliasKey AgentAliasKey, sessionKey AgentSessionKey, params *CreateEndUserAliasRoutedInputParams, body CreateEndUserAliasRoutedInputJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
 	req, err := NewCreateEndUserAliasRoutedInputRequest(c.Server, aliasKey, sessionKey, params, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+// ListEndUserAliasRoutedOutstandingClientToolCalls List end user outstanding client tool calls for alias
+//
+// Lists the client tool calls that a session the caller owns is waiting on, addressed by the alias it was created through.
+// Use it to recover waiting calls after a reconnect or reload, because the `client_tool_pending` event is not in the session's history. Submit each call's output as a `tool_output` input.
+// Each entry carries the call's arguments, including argument override values, with secrets unmasked.
+// The list is empty when the session is not waiting on a client tool. Returns 403 if the session belongs to a different principal.
+// Anonymous widget visitors authenticate by presenting `X-Visitor-Id` instead of an `Authorization` credential; the platform mints an identity holding `agent_end_user` on the addressed alias, which satisfies this operation's role requirement.
+//
+// Corresponds with GET /v2/agent_aliases/{alias_key}/end_user_sessions/{session_key}/outstanding_client_tool_calls (the `ListEndUserAliasRoutedOutstandingClientToolCalls` operationId).
+func (c *Client) ListEndUserAliasRoutedOutstandingClientToolCalls(ctx context.Context, aliasKey AgentAliasKey, sessionKey AgentSessionKey, params *ListEndUserAliasRoutedOutstandingClientToolCallsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListEndUserAliasRoutedOutstandingClientToolCallsRequest(c.Server, aliasKey, sessionKey, params)
 	if err != nil {
 		return nil, err
 	}
@@ -5688,7 +5698,6 @@ func (c *Client) GetLLM(ctx context.Context, llmId string, params *GetLLMParams,
 // - `headers` - Additional HTTP headers (for openai-compatible and anthropic types)
 // - `enabled` - Whether the LLM is enabled
 // - `capabilities` - Model capabilities (image support, context limit, tool calling)
-// - `requests_per_second`, `input_tokens_per_minute`, `output_tokens_per_minute`, `input_tokens_per_day`, `output_tokens_per_day`, `input_tokens_per_month`, `output_tokens_per_month` - Request and token quotas
 //
 // **Immutable fields:**
 // - `id` - System-generated identifier
@@ -5726,7 +5735,6 @@ func (c *Client) UpdateLLMWithBody(ctx context.Context, llmId string, params *Up
 // - `headers` - Additional HTTP headers (for openai-compatible and anthropic types)
 // - `enabled` - Whether the LLM is enabled
 // - `capabilities` - Model capabilities (image support, context limit, tool calling)
-// - `requests_per_second`, `input_tokens_per_minute`, `output_tokens_per_minute`, `input_tokens_per_day`, `output_tokens_per_day`, `input_tokens_per_month`, `output_tokens_per_month` - Request and token quotas
 //
 // **Immutable fields:**
 // - `id` - System-generated identifier
@@ -7688,8 +7696,8 @@ func NewDeleteAgentConnectorRequest(server string, aliasKey AgentAliasKey, conne
 	return req, nil
 }
 
-// NewGetLegacyPublicConnectorRequest constructs an http.Request for the GetLegacyPublicConnector method
-func NewGetLegacyPublicConnectorRequest(server string, aliasKey AgentAliasKey, connectorId ConnectorId, params *GetLegacyPublicConnectorParams) (*http.Request, error) {
+// NewGetAgentConnectorRequest constructs an http.Request for the GetAgentConnector method
+func NewGetAgentConnectorRequest(server string, aliasKey AgentAliasKey, connectorId ConnectorId, params *GetAgentConnectorParams) (*http.Request, error) {
 	var err error
 
 	var pathParam0 string
@@ -8419,6 +8427,84 @@ func NewCreateEndUserAliasRoutedInputRequestWithBody(server string, aliasKey Age
 	}
 
 	req.Header.Add("Content-Type", contentType)
+
+	if params != nil {
+
+		if params.RequestTimeout != nil {
+			var headerParam0 string
+
+			headerParam0, err = runtime.StyleParamWithOptions("simple", false, "Request-Timeout", *params.RequestTimeout, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationHeader, Type: "integer", Format: ""})
+			if err != nil {
+				return nil, err
+			}
+
+			req.Header.Set("Request-Timeout", headerParam0)
+		}
+
+		if params.RequestTimeoutMillis != nil {
+			var headerParam1 string
+
+			headerParam1, err = runtime.StyleParamWithOptions("simple", false, "Request-Timeout-Millis", *params.RequestTimeoutMillis, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationHeader, Type: "integer", Format: ""})
+			if err != nil {
+				return nil, err
+			}
+
+			req.Header.Set("Request-Timeout-Millis", headerParam1)
+		}
+
+		if params.XVisitorId != nil {
+			var headerParam2 string
+
+			headerParam2, err = runtime.StyleParamWithOptions("simple", false, "X-Visitor-Id", *params.XVisitorId, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationHeader, Type: "string", Format: ""})
+			if err != nil {
+				return nil, err
+			}
+
+			req.Header.Set("X-Visitor-Id", headerParam2)
+		}
+
+	}
+
+	return req, nil
+}
+
+// NewListEndUserAliasRoutedOutstandingClientToolCallsRequest constructs an http.Request for the ListEndUserAliasRoutedOutstandingClientToolCalls method
+func NewListEndUserAliasRoutedOutstandingClientToolCallsRequest(server string, aliasKey AgentAliasKey, sessionKey AgentSessionKey, params *ListEndUserAliasRoutedOutstandingClientToolCallsParams) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "alias_key", aliasKey, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: ""})
+	if err != nil {
+		return nil, err
+	}
+
+	var pathParam1 string
+
+	pathParam1, err = runtime.StyleParamWithOptions("simple", false, "session_key", sessionKey, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: ""})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/v2/agent_aliases/%s/end_user_sessions/%s/outstanding_client_tool_calls", pathParam0, pathParam1)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodGet, queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
 
 	if params != nil {
 
@@ -10252,6 +10338,18 @@ func NewListAgentsRequest(server string, params *ListAgentsParams) (*http.Reques
 		if params.Filter != nil {
 
 			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "filter", *params.Filter, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if params.MetadataFilter != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "metadata_filter", *params.MetadataFilter, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
 				return nil, err
 			} else {
 				for _, qp := range strings.Split(queryFrag, "&") {
@@ -19946,146 +20044,6 @@ func NewGetMetricRequest(server string, metricName string, params *GetMetricPara
 		if params.MaxBins != nil {
 
 			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "max_bins", *params.MaxBins, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "integer", Format: "int32"}); err != nil {
-				return nil, err
-			} else {
-				for _, qp := range strings.Split(queryFrag, "&") {
-					rawQueryFragments = append(rawQueryFragments, qp)
-				}
-			}
-
-		}
-
-		if encoded := queryValues.Encode(); encoded != "" {
-			rawQueryFragments = append(rawQueryFragments, encoded)
-		}
-		queryURL.RawQuery = strings.Join(rawQueryFragments, "&")
-	}
-
-	req, err := http.NewRequest(http.MethodGet, queryURL.String(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	if params != nil {
-
-		if params.RequestTimeout != nil {
-			var headerParam0 string
-
-			headerParam0, err = runtime.StyleParamWithOptions("simple", false, "Request-Timeout", *params.RequestTimeout, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationHeader, Type: "integer", Format: ""})
-			if err != nil {
-				return nil, err
-			}
-
-			req.Header.Set("Request-Timeout", headerParam0)
-		}
-
-		if params.RequestTimeoutMillis != nil {
-			var headerParam1 string
-
-			headerParam1, err = runtime.StyleParamWithOptions("simple", false, "Request-Timeout-Millis", *params.RequestTimeoutMillis, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationHeader, Type: "integer", Format: ""})
-			if err != nil {
-				return nil, err
-			}
-
-			req.Header.Set("Request-Timeout-Millis", headerParam1)
-		}
-
-	}
-
-	return req, nil
-}
-
-// NewListPipelinesRequest constructs an http.Request for the ListPipelines method
-func NewListPipelinesRequest(server string, params *ListPipelinesParams) (*http.Request, error) {
-	var err error
-
-	serverURL, err := url.Parse(server)
-	if err != nil {
-		return nil, err
-	}
-
-	operationPath := fmt.Sprintf("/v2/pipelines")
-	if operationPath[0] == '/' {
-		operationPath = "." + operationPath
-	}
-
-	queryURL, err := serverURL.Parse(operationPath)
-	if err != nil {
-		return nil, err
-	}
-
-	if params != nil {
-		// queryValues collects non-styled parameters (passthrough, JSON)
-		// that are safe to round-trip through url.Values.Encode().
-		queryValues := queryURL.Query()
-		// rawQueryFragments collects pre-encoded query fragments from
-		// styled parameters, preserving literal commas as delimiters
-		// per the OpenAPI spec (e.g. "color=blue,black,brown").
-		var rawQueryFragments []string
-
-		if params.SourceType != nil {
-
-			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "source_type", *params.SourceType, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
-				return nil, err
-			} else {
-				for _, qp := range strings.Split(queryFrag, "&") {
-					rawQueryFragments = append(rawQueryFragments, qp)
-				}
-			}
-
-		}
-
-		if params.Status != nil {
-
-			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "status", *params.Status, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
-				return nil, err
-			} else {
-				for _, qp := range strings.Split(queryFrag, "&") {
-					rawQueryFragments = append(rawQueryFragments, qp)
-				}
-			}
-
-		}
-
-		if params.Enabled != nil {
-
-			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "enabled", *params.Enabled, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "boolean", Format: ""}); err != nil {
-				return nil, err
-			} else {
-				for _, qp := range strings.Split(queryFrag, "&") {
-					rawQueryFragments = append(rawQueryFragments, qp)
-				}
-			}
-
-		}
-
-		if params.Filter != nil {
-
-			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "filter", *params.Filter, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
-				return nil, err
-			} else {
-				for _, qp := range strings.Split(queryFrag, "&") {
-					rawQueryFragments = append(rawQueryFragments, qp)
-				}
-			}
-
-		}
-
-		if params.Limit != nil {
-
-			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "limit", *params.Limit, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "integer", Format: "int32"}); err != nil {
-				return nil, err
-			} else {
-				for _, qp := range strings.Split(queryFrag, "&") {
-					rawQueryFragments = append(rawQueryFragments, qp)
-				}
-			}
-
-		}
-
-		if params.PageKey != nil {
-
-			if queryFrag, err := runtime.StyleParamWithOptions("form", true, "page_key", *params.PageKey, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
 				return nil, err
 			} else {
 				for _, qp := range strings.Split(queryFrag, "&") {

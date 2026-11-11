@@ -15,6 +15,212 @@ import (
 	openapi_types "github.com/oapi-codegen/runtime/types"
 )
 
+// DeleteAgentAliasWithResponse Delete an alias
+//
+// Deletes an alias. The underlying agents the alias points at are not affected. Returns 409 if any live resources still reference this alias, including its connectors; delete them first.
+//
+// Returns a wrapper object for the known response body format(s).
+//
+// Corresponds with DELETE /v2/agent_aliases/{alias_key} (the `DeleteAgentAlias` operationId).
+func (c *ClientWithResponses) DeleteAgentAliasWithResponse(ctx context.Context, aliasKey AgentAliasKey, params *DeleteAgentAliasParams, reqEditors ...RequestEditorFn) (*DeleteAgentAliasResponse, error) {
+	rsp, err := c.DeleteAgentAlias(ctx, aliasKey, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDeleteAgentAliasResponse(rsp)
+}
+
+// GetAgentAliasWithResponse Get an alias
+//
+// Returns the alias, including its policy.
+//
+// Returns a wrapper object for the known response body format(s).
+//
+// Corresponds with GET /v2/agent_aliases/{alias_key} (the `GetAgentAlias` operationId).
+func (c *ClientWithResponses) GetAgentAliasWithResponse(ctx context.Context, aliasKey AgentAliasKey, params *GetAgentAliasParams, reqEditors ...RequestEditorFn) (*GetAgentAliasResponse, error) {
+	rsp, err := c.GetAgentAlias(ctx, aliasKey, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetAgentAliasResponse(rsp)
+}
+
+// UpdateAgentAliasWithBodyWithResponse Update an alias's metadata
+//
+// Updates an alias's metadata fields (name, description, enabled, metadata). To replace the routing policy, use `PUT /v2/agent_aliases/{alias_key}/policy`. Policies are atomic and do not support partial updates.
+//
+// Takes any type of body and a specified content type, and returns a wrapper object for the known response body format(s).
+//
+// Corresponds with PATCH /v2/agent_aliases/{alias_key} (the `UpdateAgentAlias` operationId).
+func (c *ClientWithResponses) UpdateAgentAliasWithBodyWithResponse(ctx context.Context, aliasKey AgentAliasKey, params *UpdateAgentAliasParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateAgentAliasResponse, error) {
+	rsp, err := c.UpdateAgentAliasWithBody(ctx, aliasKey, params, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdateAgentAliasResponse(rsp)
+}
+
+// UpdateAgentAliasWithResponse Update an alias's metadata
+//
+// Updates an alias's metadata fields (name, description, enabled, metadata). To replace the routing policy, use `PUT /v2/agent_aliases/{alias_key}/policy`. Policies are atomic and do not support partial updates.
+//
+// Takes a body of the `application/json` content type, and returns a wrapper object for the known response body format(s).
+//
+// Corresponds with PATCH /v2/agent_aliases/{alias_key} (the `UpdateAgentAlias` operationId).
+func (c *ClientWithResponses) UpdateAgentAliasWithResponse(ctx context.Context, aliasKey AgentAliasKey, params *UpdateAgentAliasParams, body UpdateAgentAliasJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateAgentAliasResponse, error) {
+	rsp, err := c.UpdateAgentAlias(ctx, aliasKey, params, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdateAgentAliasResponse(rsp)
+}
+
+// ListAgentConnectorsWithResponse List agent connectors
+//
+// Lists all connectors on an alias, with optional filtering and pagination.
+//
+// Returns a wrapper object for the known response body format(s).
+//
+// Corresponds with GET /v2/agent_aliases/{alias_key}/connectors (the `ListAgentConnectors` operationId).
+func (c *ClientWithResponses) ListAgentConnectorsWithResponse(ctx context.Context, aliasKey AgentAliasKey, params *ListAgentConnectorsParams, reqEditors ...RequestEditorFn) (*ListAgentConnectorsResponse2, error) {
+	rsp, err := c.ListAgentConnectors(ctx, aliasKey, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListAgentConnectorsResponse2(rsp)
+}
+
+// CreateAgentConnectorWithBodyWithResponse Create agent connector
+//
+// Creates a connector on an alias to receive events from an external platform such as Slack, Google Chat, or Zoom Contact Center, or to serve the embeddable widget. Sessions created through the connector are routed to an agent by the alias's policy.
+//
+// Takes any type of body and a specified content type, and returns a wrapper object for the known response body format(s).
+//
+// Corresponds with POST /v2/agent_aliases/{alias_key}/connectors (the `CreateAgentConnector` operationId).
+func (c *ClientWithResponses) CreateAgentConnectorWithBodyWithResponse(ctx context.Context, aliasKey AgentAliasKey, params *CreateAgentConnectorParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateAgentConnectorResponse, error) {
+	rsp, err := c.CreateAgentConnectorWithBody(ctx, aliasKey, params, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateAgentConnectorResponse(rsp)
+}
+
+// CreateAgentConnectorWithResponse Create agent connector
+//
+// Creates a connector on an alias to receive events from an external platform such as Slack, Google Chat, or Zoom Contact Center, or to serve the embeddable widget. Sessions created through the connector are routed to an agent by the alias's policy.
+//
+// Takes a body of the `application/json` content type, and returns a wrapper object for the known response body format(s).
+//
+// Corresponds with POST /v2/agent_aliases/{alias_key}/connectors (the `CreateAgentConnector` operationId).
+func (c *ClientWithResponses) CreateAgentConnectorWithResponse(ctx context.Context, aliasKey AgentAliasKey, params *CreateAgentConnectorParams, body CreateAgentConnectorJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateAgentConnectorResponse, error) {
+	rsp, err := c.CreateAgentConnector(ctx, aliasKey, params, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateAgentConnectorResponse(rsp)
+}
+
+// DeleteAgentConnectorWithResponse Delete agent connector
+//
+// Deletes an agent connector and all of its configuration. The alias a widget connector fronts is operator-owned and is not deleted with it. The deletion is permanent.
+//
+// Returns a wrapper object for the known response body format(s).
+//
+// Corresponds with DELETE /v2/agent_aliases/{alias_key}/connectors/{connector_id} (the `DeleteAgentConnector` operationId).
+func (c *ClientWithResponses) DeleteAgentConnectorWithResponse(ctx context.Context, aliasKey AgentAliasKey, connectorId ConnectorId, params *DeleteAgentConnectorParams, reqEditors ...RequestEditorFn) (*DeleteAgentConnectorResponse, error) {
+	rsp, err := c.DeleteAgentConnector(ctx, aliasKey, connectorId, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseDeleteAgentConnectorResponse(rsp)
+}
+
+// GetAgentConnectorWithResponse Get agent connector
+//
+// Retrieves a connector on an alias, configuration included, whatever its type and whether or not it is enabled.
+//
+// Returns a wrapper object for the known response body format(s).
+//
+// Corresponds with GET /v2/agent_aliases/{alias_key}/connectors/{connector_id} (the `GetAgentConnector` operationId).
+func (c *ClientWithResponses) GetAgentConnectorWithResponse(ctx context.Context, aliasKey AgentAliasKey, connectorId ConnectorId, params *GetAgentConnectorParams, reqEditors ...RequestEditorFn) (*GetAgentConnectorResponse, error) {
+	rsp, err := c.GetAgentConnector(ctx, aliasKey, connectorId, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetAgentConnectorResponse(rsp)
+}
+
+// UpdateAgentConnectorWithBodyWithResponse Update agent connector
+//
+// Updates an agent connector's configuration, status, or other properties.
+//
+// Takes any type of body and a specified content type, and returns a wrapper object for the known response body format(s).
+//
+// Corresponds with PATCH /v2/agent_aliases/{alias_key}/connectors/{connector_id} (the `UpdateAgentConnector` operationId).
+func (c *ClientWithResponses) UpdateAgentConnectorWithBodyWithResponse(ctx context.Context, aliasKey AgentAliasKey, connectorId ConnectorId, params *UpdateAgentConnectorParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateAgentConnectorResponse, error) {
+	rsp, err := c.UpdateAgentConnectorWithBody(ctx, aliasKey, connectorId, params, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdateAgentConnectorResponse(rsp)
+}
+
+// UpdateAgentConnectorWithResponse Update agent connector
+//
+// Updates an agent connector's configuration, status, or other properties.
+//
+// Takes a body of the `application/json` content type, and returns a wrapper object for the known response body format(s).
+//
+// Corresponds with PATCH /v2/agent_aliases/{alias_key}/connectors/{connector_id} (the `UpdateAgentConnector` operationId).
+func (c *ClientWithResponses) UpdateAgentConnectorWithResponse(ctx context.Context, aliasKey AgentAliasKey, connectorId ConnectorId, params *UpdateAgentConnectorParams, body UpdateAgentConnectorJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateAgentConnectorResponse, error) {
+	rsp, err := c.UpdateAgentConnector(ctx, aliasKey, connectorId, params, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseUpdateAgentConnectorResponse(rsp)
+}
+
+// GetPublicConnectorWithResponse Get public connector
+//
+// The public view of a connector, served unauthenticated to the embed snippet. The snippet carries the alias key and the connector's globally unique id, which expose no agent or customer identifier.
+// Returns the `customer_id` visitor minting is addressed to, the `presentation` to render, whether anonymous visitors are admitted (`public_access`), and the sign-in configuration when the widget offers one.
+//
+// A read with no side effects: minting an anonymous visitor id is a separate call, `POST /v2/visitors`, so a returning visitor who already holds an id only reads this view.
+// The view tells the client how to authenticate: `public_access` true — mint or present a visitor id; `end_user_sign_in` present — sign the user in through the referenced issuer. A widget may offer both, and the two follow-up calls do not depend on each other.
+//
+// This operation serves only the public projection; operators read the full connector, configuration included, from `GET /v2/agent_aliases/{alias_key}/connectors/{connector_id}`.
+//
+// Serves connectors that front an end-user surface — today, widget connectors. Returns `404` if the connector does not exist on the addressed alias, is a channel connector with no end-user surface (Slack, Google Chat, or Zoom), is disabled, or belongs to a disabled customer.
+//
+// Returns a wrapper object for the known response body format(s).
+//
+// Corresponds with GET /v2/agent_aliases/{alias_key}/connectors/{connector_id}/public (the `GetPublicConnector` operationId).
+func (c *ClientWithResponses) GetPublicConnectorWithResponse(ctx context.Context, aliasKey AgentAliasKey, connectorId ConnectorId, params *GetPublicConnectorParams, reqEditors ...RequestEditorFn) (*GetPublicConnectorResponse, error) {
+	rsp, err := c.GetPublicConnector(ctx, aliasKey, connectorId, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetPublicConnectorResponse(rsp)
+}
+
+// ListEndUserAliasRoutedSessionsWithResponse List end user sessions for alias
+//
+// Lists the calling end user's own sessions created through this alias. The response never includes sessions owned by another principal.
+// An administrator calling this operation is bound to the sessions it owns like every other caller; the operator endpoints are the administrative view of an alias's sessions.
+// No connector admission is evaluated: the results are the caller's own sessions, visible to their owner regardless of any widget's current `public_access`.
+// Anonymous widget visitors authenticate by presenting `X-Visitor-Id` instead of an `Authorization` credential; the platform mints an identity holding `agent_end_user` on the addressed alias, which satisfies this operation's role requirement.
+//
+// Returns a wrapper object for the known response body format(s).
+//
+// Corresponds with GET /v2/agent_aliases/{alias_key}/end_user_sessions (the `ListEndUserAliasRoutedSessions` operationId).
+func (c *ClientWithResponses) ListEndUserAliasRoutedSessionsWithResponse(ctx context.Context, aliasKey AgentAliasKey, params *ListEndUserAliasRoutedSessionsParams, reqEditors ...RequestEditorFn) (*ListEndUserAliasRoutedSessionsResponse, error) {
+	rsp, err := c.ListEndUserAliasRoutedSessions(ctx, aliasKey, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListEndUserAliasRoutedSessionsResponse(rsp)
+}
+
 // CreateEndUserAliasRoutedSessionWithBodyWithResponse Create end user session for alias
 //
 // Creates a session owned by the calling end user, routed through this alias's policy. The session's owning principal is the caller's authenticated identity.
@@ -145,6 +351,25 @@ func (c *ClientWithResponses) CreateEndUserAliasRoutedInputWithResponse(ctx cont
 		return nil, err
 	}
 	return ParseCreateEndUserAliasRoutedInputResponse(rsp)
+}
+
+// ListEndUserAliasRoutedOutstandingClientToolCallsWithResponse List end user outstanding client tool calls for alias
+//
+// Lists the client tool calls that a session the caller owns is waiting on, addressed by the alias it was created through.
+// Use it to recover waiting calls after a reconnect or reload, because the `client_tool_pending` event is not in the session's history. Submit each call's output as a `tool_output` input.
+// Each entry carries the call's arguments, including argument override values, with secrets unmasked.
+// The list is empty when the session is not waiting on a client tool. Returns 403 if the session belongs to a different principal.
+// Anonymous widget visitors authenticate by presenting `X-Visitor-Id` instead of an `Authorization` credential; the platform mints an identity holding `agent_end_user` on the addressed alias, which satisfies this operation's role requirement.
+//
+// Returns a wrapper object for the known response body format(s).
+//
+// Corresponds with GET /v2/agent_aliases/{alias_key}/end_user_sessions/{session_key}/outstanding_client_tool_calls (the `ListEndUserAliasRoutedOutstandingClientToolCalls` operationId).
+func (c *ClientWithResponses) ListEndUserAliasRoutedOutstandingClientToolCallsWithResponse(ctx context.Context, aliasKey AgentAliasKey, sessionKey AgentSessionKey, params *ListEndUserAliasRoutedOutstandingClientToolCallsParams, reqEditors ...RequestEditorFn) (*ListEndUserAliasRoutedOutstandingClientToolCallsResponse, error) {
+	rsp, err := c.ListEndUserAliasRoutedOutstandingClientToolCalls(ctx, aliasKey, sessionKey, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListEndUserAliasRoutedOutstandingClientToolCallsResponse(rsp)
 }
 
 // ReplaceAgentAliasPolicyWithBodyWithResponse Replace an alias's routing policy
@@ -4728,7 +4953,6 @@ func (c *ClientWithResponses) GetLLMWithResponse(ctx context.Context, llmId stri
 // - `headers` - Additional HTTP headers (for openai-compatible and anthropic types)
 // - `enabled` - Whether the LLM is enabled
 // - `capabilities` - Model capabilities (image support, context limit, tool calling)
-// - `requests_per_second`, `input_tokens_per_minute`, `output_tokens_per_minute`, `input_tokens_per_day`, `output_tokens_per_day`, `input_tokens_per_month`, `output_tokens_per_month` - Request and token quotas
 //
 // **Immutable fields:**
 // - `id` - System-generated identifier
@@ -4762,7 +4986,6 @@ func (c *ClientWithResponses) UpdateLLMWithBodyWithResponse(ctx context.Context,
 // - `headers` - Additional HTTP headers (for openai-compatible and anthropic types)
 // - `enabled` - Whether the LLM is enabled
 // - `capabilities` - Model capabilities (image support, context limit, tool calling)
-// - `requests_per_second`, `input_tokens_per_minute`, `output_tokens_per_minute`, `input_tokens_per_day`, `output_tokens_per_day`, `input_tokens_per_month`, `output_tokens_per_month` - Request and token quotas
 //
 // **Immutable fields:**
 // - `id` - System-generated identifier
@@ -6208,22 +6431,22 @@ func ParseDeleteAgentConnectorResponse(rsp *http.Response) (*DeleteAgentConnecto
 	return response, nil
 }
 
-// ParseGetLegacyPublicConnectorResponse parses an HTTP response from a GetLegacyPublicConnectorWithResponse call
-func ParseGetLegacyPublicConnectorResponse(rsp *http.Response) (*GetLegacyPublicConnectorResponse, error) {
+// ParseGetAgentConnectorResponse parses an HTTP response from a GetAgentConnectorWithResponse call
+func ParseGetAgentConnectorResponse(rsp *http.Response) (*GetAgentConnectorResponse, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &GetLegacyPublicConnectorResponse{
+	response := &GetAgentConnectorResponse{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest PublicConnector
+		var dest AgentConnector
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -6680,6 +6903,53 @@ func ParseCreateEndUserAliasRoutedInputResponse(rsp *http.Response) (*CreateEndU
 			headers.RetryAfter = &value
 		}
 		response.Headers429 = &headers
+	}
+
+	return response, nil
+}
+
+// ParseListEndUserAliasRoutedOutstandingClientToolCallsResponse parses an HTTP response from a ListEndUserAliasRoutedOutstandingClientToolCallsWithResponse call
+func ParseListEndUserAliasRoutedOutstandingClientToolCallsResponse(rsp *http.Response) (*ListEndUserAliasRoutedOutstandingClientToolCallsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListEndUserAliasRoutedOutstandingClientToolCallsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest OutstandingClientToolCallsResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 401:
+		var dest Error
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON401 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest Error
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest NotFoundError
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON404 = &dest
+
 	}
 
 	return response, nil
@@ -11139,6 +11409,20 @@ func ParseReplaceFilterAttributesResponse2(rsp *http.Response) (*ReplaceFilterAt
 			return nil, err
 		}
 		response.JSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 409:
+		var dest Error
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON409 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 422:
+		var dest Error
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON422 = &dest
 
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 507:
 		var dest Error

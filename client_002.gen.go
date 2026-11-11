@@ -14,502 +14,7 @@ import (
 	"time"
 
 	"github.com/oapi-codegen/runtime"
-	openapi_types "github.com/oapi-codegen/runtime/types"
 )
-
-// UpdateWidgetConnectorConfiguration Partial update of a widget connector's configuration: an omitted field keeps its stored value; `presentation` is replaced whole when supplied.
-type UpdateWidgetConnectorConfiguration struct {
-	// AllowedOrigins Allowed browser origins. Entries must be unique.
-	// A non-empty list rejects unmatched `Origin` headers with `403`; requests without `Origin` are allowed.
-	// Omitted preserves the current list. Set to null or an empty array to clear. Null entries are rejected.
-	//
-	//
-	// Example: ["https://example.com","https://*.example.com"]
-	AllowedOrigins *[]WidgetAllowedOrigin `json:"allowed_origins,omitempty"`
-
-	// EndUserSignIn The sign-in to apply. Omitted leaves the current sign-in unchanged, and `null` removes it so the widget no longer offers sign-in.
-	EndUserSignIn *WidgetSignIn `json:"end_user_sign_in,omitempty"`
-
-	// HiddenOutputTypes Present on the read view for consistency with other connector types; widget connectors ignore it and control end-user visibility through `revealed_output_types`. Accepted on update so a read-modify-write round trip is not rejected.
-	//
-	// Example: ["tool_calls"]
-	HiddenOutputTypes *[]AgentOutputType `json:"hidden_output_types,omitempty"`
-
-	// Presentation The presentation configuration the widget client renders — branding, palette, welcome content, suggested prompts.
-	// Free-form apart from the required `version`; the platform stores it verbatim, serves it back uninterpreted, and caps its total size.
-	// Null-valued keys are accepted but are omitted from responses.
-	// Served to anonymous visitors by the unauthenticated public connector view, so widget clients must treat every value as untrusted data.
-	// Schema validation of the payload lands with the first Altera release; `version` is what lets clients render older payloads once the shape evolves.
-	Presentation *WidgetPresentation `json:"presentation,omitempty"`
-
-	// PublicAccess Whether the widget admits anonymous visitors. Omitted leaves the current value unchanged.
-	// Setting it to `false` closes the widget to anonymous visitors: anonymous session creation naming it is refused, and sessions bound to it refuse anonymous access. Visitor ids themselves stay valid on the customer's other open widgets. The change takes effect within a few seconds.
-	// Gates anonymous admission only; authenticated callers presenting this connector are governed by `enabled`.
-	//
-	//
-	// Example: false
-	PublicAccess *bool `json:"public_access,omitempty"`
-
-	// RevealedOutputTypes Agent output types included in the widget's end-user event projection; the final response is always visible.
-	//
-	// Example: ["tool_calls"]
-	RevealedOutputTypes *[]AgentOutputType `json:"revealed_output_types,omitempty"`
-
-	// SessionMetadata Written into every session created through this widget connector, under `metadata.connector.<connector_id>`.
-	//
-	// Example: {"instance":"conversational-ai"}
-	SessionMetadata *map[string]interface{} `json:"session_metadata,omitempty"`
-
-	// SessionTtiMinutes How long a session created through this widget may sit idle before it is closed, in minutes. Set to 0 for sessions that never expire.
-	SessionTtiMinutes *int32 `json:"session_tti_minutes,omitempty"`
-
-	// Type The type of connector configuration.
-	//
-	// Example: widget
-	Type string `json:"type"`
-}
-
-// UpdateWolkenFormsSourceConfiguration Partial update for Wolken forms source configuration. Only provided fields are merged.
-type UpdateWolkenFormsSourceConfiguration = BaseWolkenFormsSourceConfiguration
-
-// UpdateWolkenKbSourceConfiguration Partial update for Wolken source configuration. Only provided fields are merged.
-type UpdateWolkenKbSourceConfiguration = BaseWolkenKbSourceConfiguration
-
-// UpdateWolkenTicketsSourceConfiguration Partial update for Wolken tickets source configuration. Only provided fields are merged.
-// An update cannot return `backfill_window` or `note_response_type_ids` to its unset state.
-// A `null` value for either is accepted and ignored, keeping the stored value, and an empty
-// `note_response_type_ids` is not a reset but the distinct no-notes state. To unset either
-// field, replace the pipeline with `PUT /v2/pipelines/{pipeline_key}` using a configuration
-// that omits it.
-type UpdateWolkenTicketsSourceConfiguration = BaseWolkenTicketsSourceConfiguration
-
-// UploadFileRequest Request to upload and index a file into a corpus within a customer account.
-//
-// Example: {"chunking_strategy":{"type":"sentence_chunking_strategy"},"file":"system_design_v1.pdf","filename":"system_design_v1.pdf","metadata":{"department\"":"engineering","doc_type\"":"architecture_diagram"},"table_extraction_config":{"extract_tables":true}}
-type UploadFileRequest struct {
-	// ChunkingStrategy Chooses how to split documents into chunks during indexing. This is optional. If you do not set a chunking strategy, the platform uses the default strategy, which creates one chunk (docpart) per sentence.
-	ChunkingStrategy *ChunkingStrategy `json:"chunking_strategy,omitempty"`
-
-	// File Binary file contents. The filename of the file becomes the document ID.
-	File openapi_types.File `json:"file"`
-
-	// Filename Optional multipart section to override the filename.
-	//
-	// Example: system_design_v1.pdf
-	Filename *string `json:"filename,omitempty"`
-
-	// Metadata Arbitrary object that is attached as document metadata to the extracted document.
-	//
-	// Example: {"department":"engineering","doc_type\"":"architecture_diagram"}
-	Metadata *map[string]interface{} `json:"metadata,omitempty"`
-
-	// TableExtractionConfig Configuration for table extraction from the document. This configuration is optional. If omitted, the platform does not extract tables from PDF files.
-	TableExtractionConfig *TableExtractionConfig `json:"table_extraction_config,omitempty"`
-}
-
-// UpsertGlossaryEntriesRequest Request to upsert entries into a glossary in bulk. Entries with existing terms are updated; new terms are inserted.
-// The platform rebuilds the glossary index after the upsert. Agents use the updated glossary after the rebuild completes.
-type UpsertGlossaryEntriesRequest struct {
-	// Entries A map of terms to their expanded forms. Keys are terms (1–200 characters);
-	// values are expansions (1–1000 characters).
-	//
-	//
-	// Example: {"k8s":"Kubernetes","tf":"Terraform"}
-	Entries map[string]string `json:"entries"`
-}
-
-// User A user account with associated profile information and permissions.
-type User struct {
-	// AgentRoles Agent-specific role assignments for the user.
-	AgentRoles *[]AgentRole `json:"agent_roles,omitempty"`
-
-	// ApiPolicy The actions a principal can take on the Vectara platform.
-	ApiPolicy *ApiPolicy `json:"api_policy,omitempty"`
-
-	// ApiRoles The customer-level role names of the user.
-	ApiRoles *[]ApiRole `json:"api_roles,omitempty"`
-
-	// CorpusRoles Corpus-specific role assignments for the user.
-	CorpusRoles *[]CorpusRole `json:"corpus_roles,omitempty"`
-
-	// CreatedAt When the user was created.
-	CreatedAt *time.Time `json:"created_at,omitempty"`
-
-	// Description The description of the user.
-	Description *string `json:"description,omitempty"`
-
-	// Email The email address for the user.
-	Email openapi_types.Email `json:"email"`
-
-	// Enabled Indicates whether the user is enabled or disabled.
-	Enabled *bool `json:"enabled,omitempty"`
-
-	// Id The Vectara ID for the user.
-	Id string `json:"id"`
-
-	// Metadata Arbitrary metadata associated with the user.
-	//
-	// Example: {"console_mode":"business"}
-	Metadata *map[string]interface{} `json:"metadata,omitempty"`
-
-	// UpdatedAt When a user property was last updated.
-	UpdatedAt *time.Time `json:"updated_at,omitempty"`
-
-	// Username The username for the user.
-	Username *string `json:"username,omitempty"`
-}
-
-// UserFunctionReranker A reranker that uses user-defined functions to reorder search results.
-type UserFunctionReranker struct {
-	// Cutoff The minimum score threshold for results to be included after the reranking process. When you apply a reranker with a cutoff, it performs these steps:
-	// 1. Reranks all input results according to its algorithm. 2. Removes any results with scores below the cutoff. 3. Returns the remaining results, sorted by their new scores.
-	// Note: This cutoff applies per reranking stage. In a chain of rerankers, each reranker can have its own cutoff. This can further reduce the number of results at each stage. If you specify both `limit` and `cutoff`, the cutoff applies first, then the limit.
-	Cutoff *float32 `json:"cutoff,omitempty"`
-
-	// Limit The maximum number of results to return after the reranking process.
-	// When you apply a reranker, it performs these steps:
-	// 1. Reranks all input results according to its algorithm.
-	// 2. Sorts the reranked results by their new scores.
-	// 3. Returns the top N results, where N is the value of this limit.
-	//
-	// Note: This limit applies per reranking stage. In a chain of rerankers, each reranker can have its own limit. This can reduce the number of results at each stage.
-	Limit *int32 `json:"limit,omitempty"`
-
-	// Type When the type is `userfn`, you can define custom reranking functions using document-level metadata, part-level metadata, or scores generated from the request-level metadata.
-	Type *string `json:"type,omitempty"`
-
-	// UserFunction The user defined function.
-	//
-	// Example: get('$.score') * get('$.document_metadata.boost')
-	UserFunction *string `json:"user_function,omitempty"`
-}
-
-// VertexAccessTokenAuth Google Cloud Vertex AI access token authentication
-type VertexAccessTokenAuth struct {
-	// AccessToken The GCP access token
-	//
-	// Example: ya29.c.Kp...
-	AccessToken string `json:"access_token"`
-
-	// Project GCP project ID
-	//
-	// Example: my-project-id
-	Project string `json:"project"`
-
-	// Region GCP region for Vertex AI
-	//
-	// Example: us-central1
-	Region string `json:"region"`
-
-	// Type Must be "vertex_access_token" for access token auth
-	//
-	// Example: vertex_access_token
-	Type string `json:"type"`
-}
-
-// VertexAiApiKeyAuth API key authentication for Vertex AI
-type VertexAiApiKeyAuth struct {
-	// ApiKey The Google Cloud API key for authentication
-	ApiKey string `json:"api_key"`
-
-	// Type Must be "api_key" for API key authentication
-	Type string `json:"type"`
-}
-
-// VertexAiAuth Authentication configuration for Vertex AI
-type VertexAiAuth struct {
-	union json.RawMessage
-}
-
-// VertexAiServiceAccountAuth Service account authentication for Vertex AI
-type VertexAiServiceAccountAuth struct {
-	// KeyJson The service account JSON key file contents as a string
-	KeyJson string `json:"key_json"`
-
-	// Type Must be "service_account" for service account authentication
-	Type string `json:"type"`
-}
-
-// VertexServiceAccountAuth Google Cloud Vertex AI service account authentication
-type VertexServiceAccountAuth struct {
-	// KeyJson The service account key JSON
-	//
-	// Example: {"type":"service_account","project_id":"my-project",...}
-	KeyJson string `json:"key_json"`
-
-	// Project GCP project ID
-	//
-	// Example: my-project-id
-	Project string `json:"project"`
-
-	// Region GCP region for Vertex AI
-	//
-	// Example: us-central1
-	Region string `json:"region"`
-
-	// Type Must be "vertex_service_account" for service account auth
-	//
-	// Example: vertex_service_account
-	Type string `json:"type"`
-}
-
-// WatermarkAdvancedEvent The pipeline's persisted watermark moved forward at the end of the run.
-type WatermarkAdvancedEvent struct {
-	// Id Monotonic, unique-per-run identifier for this event.
-	//
-	// Example: evt_42
-	Id string `json:"id"`
-
-	// OccurredAt When the event occurred.
-	OccurredAt time.Time `json:"occurred_at"`
-	Type       string    `json:"type"`
-	Watermark  string    `json:"watermark"`
-}
-
-// WebGetAuth Authentication configuration for the outgoing HTTP request.
-type WebGetAuth struct {
-	union json.RawMessage
-}
-
-// WebGetAwsSigV4Auth AWS Signature Version 4 request signing, e.g. for reading an S3 bucket directly. The platform signs the final request (method, URL, query parameters, and body) with the supplied credentials. User-supplied headers ride along unsigned. The platform never follows redirects on signed requests. When `role_arn` is set, the platform first calls sts:AssumeRole with the static credentials and signs with the assumed-role credentials.
-type WebGetAwsSigV4Auth struct {
-	// AccessKeyId AWS access key id.
-	AccessKeyId WebGetAwsSigV4Auth_AccessKeyId `json:"access_key_id"`
-
-	// Region AWS region to sign for (e.g. `us-east-2`).
-	//
-	// Example: us-east-2
-	Region string `json:"region"`
-
-	// RoleArn Optional IAM role to assume (via sts:AssumeRole) from the static credentials before signing.
-	RoleArn *string `json:"role_arn,omitempty"`
-
-	// RoleSessionName Session name for the assumed role. Defaults to `vectara-agent`.
-	RoleSessionName *string `json:"role_session_name,omitempty"`
-
-	// SecretAccessKey AWS secret access key.
-	SecretAccessKey WebGetAwsSigV4Auth_SecretAccessKey `json:"secret_access_key"`
-
-	// Service AWS service name to sign for.
-	//
-	// Example: s3
-	Service *string `json:"service,omitempty"`
-
-	// SessionToken Optional session token when the static credentials are temporary.
-	SessionToken *WebGetAwsSigV4Auth_SessionToken `json:"session_token,omitempty"`
-
-	// Type Example: aws_sigv4
-	Type string `json:"type"`
-}
-
-// WebGetAwsSigV4AuthAccessKeyId0 defines model for WebGetAwsSigV4Auth.AccessKeyId.0.
-type WebGetAwsSigV4AuthAccessKeyId0 = string
-
-// WebGetAwsSigV4Auth_AccessKeyId AWS access key id.
-type WebGetAwsSigV4Auth_AccessKeyId struct {
-	union json.RawMessage
-}
-
-// WebGetAwsSigV4AuthSecretAccessKey0 defines model for WebGetAwsSigV4Auth.SecretAccessKey.0.
-type WebGetAwsSigV4AuthSecretAccessKey0 = string
-
-// WebGetAwsSigV4Auth_SecretAccessKey AWS secret access key.
-type WebGetAwsSigV4Auth_SecretAccessKey struct {
-	union json.RawMessage
-}
-
-// WebGetAwsSigV4AuthSessionToken0 defines model for WebGetAwsSigV4Auth.SessionToken.0.
-type WebGetAwsSigV4AuthSessionToken0 = string
-
-// WebGetAwsSigV4Auth_SessionToken Optional session token when the static credentials are temporary.
-type WebGetAwsSigV4Auth_SessionToken struct {
-	union json.RawMessage
-}
-
-// WebGetBearerAuth Static bearer token authentication. Adds `Authorization: Bearer <token>`.
-type WebGetBearerAuth struct {
-	// Token The bearer token. May be an EagerReference to an agent secret.
-	Token WebGetBearerAuth_Token `json:"token"`
-
-	// Type Example: bearer
-	Type string `json:"type"`
-}
-
-// WebGetBearerAuthToken0 defines model for WebGetBearerAuth.Token.0.
-type WebGetBearerAuthToken0 = string
-
-// WebGetBearerAuth_Token The bearer token. May be an EagerReference to an agent secret.
-type WebGetBearerAuth_Token struct {
-	union json.RawMessage
-}
-
-// WebGetHeaderAuth Static custom-header authentication, suitable for API keys.
-type WebGetHeaderAuth struct {
-	// Header The header name to set (e.g. `X-API-Key`).
-	Header string `json:"header"`
-
-	// Type Example: header
-	Type string `json:"type"`
-
-	// Value The header value. May be an EagerReference to an agent secret.
-	Value WebGetHeaderAuth_Value `json:"value"`
-}
-
-// WebGetHeaderAuthValue0 defines model for WebGetHeaderAuth.Value.0.
-type WebGetHeaderAuthValue0 = string
-
-// WebGetHeaderAuth_Value The header value. May be an EagerReference to an agent secret.
-type WebGetHeaderAuth_Value struct {
-	union json.RawMessage
-}
-
-// WebGetHeaderValue The value for a single HTTP header in the web_get tool.
-// Either a literal string or an EagerReference ({"$ref": "agent.secrets.foo"}) that resolves at session start so the secret value never appears in the tool configuration.
-type WebGetHeaderValue struct {
-	union json.RawMessage
-}
-
-// WebGetHeaderValue0 defines model for WebGetHeaderValue.0.
-type WebGetHeaderValue0 = string
-
-// WebGetHeadersMap A map of HTTP header names to their values for the web_get tool.
-// Each value may be a literal string or an EagerReference for per-header secret resolution.
-type WebGetHeadersMap map[string]WebGetHeaderValue
-
-// WebGetNoAuth Explicitly disables authentication.
-// Useful in argument_override to force a tool config to clear any auth the agent would otherwise supply, since merge semantics ignore null patches.
-type WebGetNoAuth struct {
-	// Type Example: none
-	Type string `json:"type"`
-}
-
-// WebGetOAuthClientCredentialsAuth OAuth 2.0 client-credentials grant.
-// The platform fetches an access token from the token endpoint and caches it until it expires.
-type WebGetOAuthClientCredentialsAuth struct {
-	// Audience Optional. Sent as the OAuth `audience` form parameter so the IdP mints a token scoped to this audience.
-	// Required by IdPs like Ory Hydra to issue a token whose `aud` claim targets an external service (e.g. an STS).
-	//
-	// Example: https://sts.example.com
-	Audience     *string                                       `json:"audience,omitempty"`
-	ClientId     WebGetOAuthClientCredentialsAuth_ClientId     `json:"client_id"`
-	ClientSecret WebGetOAuthClientCredentialsAuth_ClientSecret `json:"client_secret"`
-
-	// Scopes Example: ["read:items"]
-	Scopes *[]string `json:"scopes,omitempty"`
-
-	// TokenEndpoint Example: https://auth.example.com/oauth2/token
-	TokenEndpoint string `json:"token_endpoint"`
-
-	// Type Example: oauth_client_credentials
-	Type string `json:"type"`
-}
-
-// WebGetOAuthClientCredentialsAuthClientId0 defines model for WebGetOAuthClientCredentialsAuth.ClientId.0.
-type WebGetOAuthClientCredentialsAuthClientId0 = string
-
-// WebGetOAuthClientCredentialsAuth_ClientId defines model for WebGetOAuthClientCredentialsAuth.ClientId.
-type WebGetOAuthClientCredentialsAuth_ClientId struct {
-	union json.RawMessage
-}
-
-// WebGetOAuthClientCredentialsAuthClientSecret0 defines model for WebGetOAuthClientCredentialsAuth.ClientSecret.0.
-type WebGetOAuthClientCredentialsAuthClientSecret0 = string
-
-// WebGetOAuthClientCredentialsAuth_ClientSecret defines model for WebGetOAuthClientCredentialsAuth.ClientSecret.
-type WebGetOAuthClientCredentialsAuth_ClientSecret struct {
-	union json.RawMessage
-}
-
-// WebGetOAuthRefreshTokenAuth OAuth 2.0 refresh-token grant.
-// The platform exchanges a long-lived refresh token for an access token and caches the result until it expires.
-// Supports refresh-token rotation: if the IdP returns a new refresh_token, subsequent refreshes use it automatically.
-type WebGetOAuthRefreshTokenAuth struct {
-	ClientId     WebGetOAuthRefreshTokenAuth_ClientId     `json:"client_id"`
-	ClientSecret WebGetOAuthRefreshTokenAuth_ClientSecret `json:"client_secret"`
-	RefreshToken WebGetOAuthRefreshTokenAuth_RefreshToken `json:"refresh_token"`
-
-	// TokenEndpoint Example: https://auth.example.com/oauth2/token
-	TokenEndpoint string `json:"token_endpoint"`
-
-	// Type Example: oauth_refresh_token
-	Type string `json:"type"`
-}
-
-// WebGetOAuthRefreshTokenAuthClientId0 defines model for WebGetOAuthRefreshTokenAuth.ClientId.0.
-type WebGetOAuthRefreshTokenAuthClientId0 = string
-
-// WebGetOAuthRefreshTokenAuth_ClientId defines model for WebGetOAuthRefreshTokenAuth.ClientId.
-type WebGetOAuthRefreshTokenAuth_ClientId struct {
-	union json.RawMessage
-}
-
-// WebGetOAuthRefreshTokenAuthClientSecret0 defines model for WebGetOAuthRefreshTokenAuth.ClientSecret.0.
-type WebGetOAuthRefreshTokenAuthClientSecret0 = string
-
-// WebGetOAuthRefreshTokenAuth_ClientSecret defines model for WebGetOAuthRefreshTokenAuth.ClientSecret.
-type WebGetOAuthRefreshTokenAuth_ClientSecret struct {
-	union json.RawMessage
-}
-
-// WebGetOAuthRefreshTokenAuthRefreshToken0 defines model for WebGetOAuthRefreshTokenAuth.RefreshToken.0.
-type WebGetOAuthRefreshTokenAuthRefreshToken0 = string
-
-// WebGetOAuthRefreshTokenAuth_RefreshToken defines model for WebGetOAuthRefreshTokenAuth.RefreshToken.
-type WebGetOAuthRefreshTokenAuth_RefreshToken struct {
-	union json.RawMessage
-}
-
-// WebGetOAuthTokenExchangeAuth Two-legged OAuth token exchange. The platform first mints a subject token via the client-credentials grant at `token_endpoint`, scoped to `subject_audience`. It then exchanges the subject token at `exchange_endpoint` for the token sent to the target service. Configurable to cover both RFC 8693 and non-standard STS endpoints that present the subject token or parameters differently. The platform caches both tokens until they expire.
-type WebGetOAuthTokenExchangeAuth struct {
-	// ClientId Client id used to mint the subject token (client-credentials grant). May be an EagerReference to an agent secret.
-	ClientId WebGetOAuthTokenExchangeAuth_ClientId `json:"client_id"`
-
-	// ClientSecret Client secret used to mint the subject token. May be an EagerReference to an agent secret.
-	ClientSecret WebGetOAuthTokenExchangeAuth_ClientSecret `json:"client_secret"`
-
-	// ExchangeEndpoint STS endpoint that exchanges the subject token for the target token.
-	//
-	// Example: https://sts.example.com/exchange
-	ExchangeEndpoint string `json:"exchange_endpoint"`
-
-	// ParamLocation Where the exchange `params` are sent: query or body (RFC 8693 uses body).
-	ParamLocation *WebGetOAuthTokenExchangeAuthParamLocation `json:"param_location,omitempty"`
-
-	// Params Extra exchange parameters (e.g. `aud` and an `identity` selector for an assumable-identity STS; `grant_type`, `audience`,
-	// `subject_token_type` for RFC 8693).
-	//
-	// Example: {"aud":"https://api.example.com","identity":"\u003cassumable-identity-id\u003e"}
-	Params *map[string]string `json:"params,omitempty"`
-
-	// Scopes OAuth scopes requested for the subject token.
-	Scopes *[]string `json:"scopes,omitempty"`
-
-	// SubjectAudience Audience requested for the subject token; must be accepted by the exchange endpoint (e.g. the STS issuer).
-	//
-	// Example: https://sts.example.com
-	SubjectAudience string `json:"subject_audience"`
-
-	// SubjectBodyParam Body parameter name carrying the subject token when subject_placement is body_param (e.g. `subject_token`).
-	SubjectBodyParam *string `json:"subject_body_param,omitempty"`
-
-	// SubjectPlacement How the subject token is sent to the exchange endpoint: authorization_bearer (in the `Authorization: Bearer` header) or body_param (an RFC 8693 `subject_token` form field).
-	SubjectPlacement *WebGetOAuthTokenExchangeAuthSubjectPlacement `json:"subject_placement,omitempty"`
-
-	// TokenEndpoint Token endpoint that mints the subject token.
-	//
-	// Example: https://auth.example.com/oauth2/token
-	TokenEndpoint string `json:"token_endpoint"`
-
-	// TokenResponseField JSON field in the exchange response holding the issued token (e.g. `token`, or `access_token` for RFC 8693).
-	//
-	// Example: token
-	TokenResponseField *string `json:"token_response_field,omitempty"`
-
-	// Type The auth type discriminator; always `oauth_token_exchange` for this variant.
-	//
-	// Example: oauth_token_exchange
-	Type string `json:"type"`
-}
 
 // WebGetOAuthTokenExchangeAuthClientId0 defines model for WebGetOAuthTokenExchangeAuth.ClientId.0.
 type WebGetOAuthTokenExchangeAuthClientId0 = string
@@ -562,6 +67,9 @@ type WebGetTool struct {
 	//
 	// Example:
 	//   `{"query": {"$ref": ".session.metadata.query"}}`
+	//
+	// A `$ref` object may also set `$default`, the value used when the reference does not resolve:
+	//   `{"tier": {"$ref": "session.metadata.tier", "$default": "free"}}`
 	//
 	// To use a literal `"$ref"` value, write `"$$ref"`. The $$ escapes the first $.
 	//
@@ -935,6 +443,9 @@ type WebSearchTool struct {
 	//
 	// Example:
 	//   `{"query": {"$ref": ".session.metadata.query"}}`
+	//
+	// A `$ref` object may also set `$default`, the value used when the reference does not resolve:
+	//   `{"tier": {"$ref": "session.metadata.tier", "$default": "free"}}`
 	//
 	// To use a literal `"$ref"` value, write `"$$ref"`. The $$ escapes the first $.
 	//
@@ -1793,8 +1304,8 @@ type DeleteAgentConnectorParams struct {
 	RequestTimeoutMillis *RequestTimeoutMillis `json:"Request-Timeout-Millis,omitempty"`
 }
 
-// GetLegacyPublicConnectorParams defines parameters for GetLegacyPublicConnector.
-type GetLegacyPublicConnectorParams struct {
+// GetAgentConnectorParams defines parameters for GetAgentConnector.
+type GetAgentConnectorParams struct {
 	// RequestTimeout The platform makes a best effort to complete the request in the specified seconds, or it times out.
 	RequestTimeout *RequestTimeout `json:"Request-Timeout,omitempty"`
 
@@ -1904,6 +1415,20 @@ type ListEndUserAliasRoutedEventsParams struct {
 
 // CreateEndUserAliasRoutedInputParams defines parameters for CreateEndUserAliasRoutedInput.
 type CreateEndUserAliasRoutedInputParams struct {
+	// RequestTimeout The platform makes a best effort to complete the request in the specified seconds, or it times out.
+	RequestTimeout *RequestTimeout `json:"Request-Timeout,omitempty"`
+
+	// RequestTimeoutMillis The platform makes a best effort to complete the request in the specified milliseconds, or it times out.
+	RequestTimeoutMillis *RequestTimeoutMillis `json:"Request-Timeout-Millis,omitempty"`
+
+	// XVisitorId The encrypted anonymous visitor token minted by `POST /v2/visitors`, presented in place of an `Authorization` credential.
+	// The token is scoped to the customer that minted it: it authenticates the same visitor on any of that customer's widget connectors that admit anonymous visitors, and admission is decided per request by the widget connector the operation names or the session is bound to.
+	// Ignored when the request carries an authenticated credential.
+	XVisitorId *VisitorId `json:"X-Visitor-Id,omitempty"`
+}
+
+// ListEndUserAliasRoutedOutstandingClientToolCallsParams defines parameters for ListEndUserAliasRoutedOutstandingClientToolCalls.
+type ListEndUserAliasRoutedOutstandingClientToolCallsParams struct {
 	// RequestTimeout The platform makes a best effort to complete the request in the specified seconds, or it times out.
 	RequestTimeout *RequestTimeout `json:"Request-Timeout,omitempty"`
 
@@ -2201,6 +1726,18 @@ type GetTraceSpanParams struct {
 type ListAgentsParams struct {
 	// Filter A regular expression against agent names and descriptions to filter the results.
 	Filter *string `form:"filter,omitempty" json:"filter,omitempty"`
+
+	// MetadataFilter A filter expression to narrow the list to agents whose metadata matches. Field names refer to keys on the agent's `metadata` object. Syntax is similar to a SQL WHERE clause, the same as the `metadata_filter` used in query requests. See [metadata filters documentation](https://docs.vectara.com/docs/learn/metadata-search-filtering/filter-overview) for more information.
+	//
+	// Examples:
+	// - `team = 'support'`
+	// - `tier >= 2 AND region = 'us'`
+	// - `owner LIKE '%@example.com'`
+	// - `team IN ('support', 'sales')`
+	// - `team IS NULL`
+	// - `"profile.country" = 'US'` (nested fields use a quoted dotted path)
+	// - `'beta' IN tags` (value present in an array)
+	MetadataFilter *string `form:"metadata_filter,omitempty" json:"metadata_filter,omitempty"`
 
 	// Enabled Filter agents by enabled status.
 	Enabled *bool `form:"enabled,omitempty" json:"enabled,omitempty"`
@@ -6974,6 +6511,40 @@ func (t *AgentStreamedResponse) MergeStreamingThinkingEnd(v StreamingThinkingEnd
 	return err
 }
 
+// AsSessionDescriptionEvent returns the union data inside the AgentStreamedResponse as a SessionDescriptionEvent
+func (t AgentStreamedResponse) AsSessionDescriptionEvent() (SessionDescriptionEvent, error) {
+	var body SessionDescriptionEvent
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromSessionDescriptionEvent overwrites any union data inside the AgentStreamedResponse as the provided SessionDescriptionEvent
+func (t *AgentStreamedResponse) FromSessionDescriptionEvent(v SessionDescriptionEvent) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"type":"session_description"}`))
+	t.union = b
+	return err
+}
+
+// MergeSessionDescriptionEvent performs a merge with any union data inside the AgentStreamedResponse, using the provided SessionDescriptionEvent
+func (t *AgentStreamedResponse) MergeSessionDescriptionEvent(v SessionDescriptionEvent) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"type":"session_description"}`))
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
 // AsToolInputEvent returns the union data inside the AgentStreamedResponse as a ToolInputEvent
 func (t AgentStreamedResponse) AsToolInputEvent() (ToolInputEvent, error) {
 	var body ToolInputEvent
@@ -7518,6 +7089,8 @@ func (t AgentStreamedResponse) ValueByDiscriminator() (interface{}, error) {
 		return t.AsImageReadEvent()
 	case "input_message":
 		return t.AsInputMessageEvent()
+	case "session_description":
+		return t.AsSessionDescriptionEvent()
 	case "session_interrupted":
 		return t.AsSessionInterruptedEvent()
 	case "skill_load":
@@ -10028,6 +9601,44 @@ func (t *CreateEndUserInputRequest) MergeCreateEndUserInterruptRequest(v CreateE
 	return err
 }
 
+// AsCreateEndUserToolOutputRequest returns the union data inside the CreateEndUserInputRequest as a CreateEndUserToolOutputRequest
+func (t CreateEndUserInputRequest) AsCreateEndUserToolOutputRequest() (CreateEndUserToolOutputRequest, error) {
+	var body CreateEndUserToolOutputRequest
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromCreateEndUserToolOutputRequest overwrites any union data inside the CreateEndUserInputRequest as the provided CreateEndUserToolOutputRequest
+func (t *CreateEndUserInputRequest) FromCreateEndUserToolOutputRequest(v CreateEndUserToolOutputRequest) error {
+	var discriminator string = "tool_output"
+	t.Type = &discriminator
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"type":"tool_output"}`))
+	t.union = b
+	return err
+}
+
+// MergeCreateEndUserToolOutputRequest performs a merge with any union data inside the CreateEndUserInputRequest, using the provided CreateEndUserToolOutputRequest
+func (t *CreateEndUserInputRequest) MergeCreateEndUserToolOutputRequest(v CreateEndUserToolOutputRequest) error {
+	var discriminator string = "tool_output"
+	t.Type = &discriminator
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"type":"tool_output"}`))
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
 func (t CreateEndUserInputRequest) Discriminator() (string, error) {
 	var discriminator struct {
 		Discriminator string `json:"type"`
@@ -10046,6 +9657,8 @@ func (t CreateEndUserInputRequest) ValueByDiscriminator() (interface{}, error) {
 		return t.AsCreateEndUserInputMessageRequest()
 	case "interrupt":
 		return t.AsCreateEndUserInterruptRequest()
+	case "tool_output":
+		return t.AsCreateEndUserToolOutputRequest()
 	default:
 		return nil, errors.New("unknown discriminator value: " + discriminator)
 	}
@@ -10860,6 +10473,40 @@ func (t *EndUserAgentStreamedResponse) MergeEndUserErrorEvent(v EndUserErrorEven
 	return err
 }
 
+// AsClientToolPendingEvent returns the union data inside the EndUserAgentStreamedResponse as a ClientToolPendingEvent
+func (t EndUserAgentStreamedResponse) AsClientToolPendingEvent() (ClientToolPendingEvent, error) {
+	var body ClientToolPendingEvent
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromClientToolPendingEvent overwrites any union data inside the EndUserAgentStreamedResponse as the provided ClientToolPendingEvent
+func (t *EndUserAgentStreamedResponse) FromClientToolPendingEvent(v ClientToolPendingEvent) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"type":"client_tool_pending"}`))
+	t.union = b
+	return err
+}
+
+// MergeClientToolPendingEvent performs a merge with any union data inside the EndUserAgentStreamedResponse, using the provided ClientToolPendingEvent
+func (t *EndUserAgentStreamedResponse) MergeClientToolPendingEvent(v ClientToolPendingEvent) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"type":"client_tool_pending"}`))
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
 // AsToolInputEvent returns the union data inside the EndUserAgentStreamedResponse as a ToolInputEvent
 func (t EndUserAgentStreamedResponse) AsToolInputEvent() (ToolInputEvent, error) {
 	var body ToolInputEvent
@@ -11132,6 +10779,40 @@ func (t *EndUserAgentStreamedResponse) MergeStreamingThinkingEnd(v StreamingThin
 	return err
 }
 
+// AsSessionDescriptionEvent returns the union data inside the EndUserAgentStreamedResponse as a SessionDescriptionEvent
+func (t EndUserAgentStreamedResponse) AsSessionDescriptionEvent() (SessionDescriptionEvent, error) {
+	var body SessionDescriptionEvent
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromSessionDescriptionEvent overwrites any union data inside the EndUserAgentStreamedResponse as the provided SessionDescriptionEvent
+func (t *EndUserAgentStreamedResponse) FromSessionDescriptionEvent(v SessionDescriptionEvent) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"type":"session_description"}`))
+	t.union = b
+	return err
+}
+
+// MergeSessionDescriptionEvent performs a merge with any union data inside the EndUserAgentStreamedResponse, using the provided SessionDescriptionEvent
+func (t *EndUserAgentStreamedResponse) MergeSessionDescriptionEvent(v SessionDescriptionEvent) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"type":"session_description"}`))
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
 // AsToolActivityEvent returns the union data inside the EndUserAgentStreamedResponse as a ToolActivityEvent
 func (t EndUserAgentStreamedResponse) AsToolActivityEvent() (ToolActivityEvent, error) {
 	var body ToolActivityEvent
@@ -11216,12 +10897,16 @@ func (t EndUserAgentStreamedResponse) ValueByDiscriminator() (interface{}, error
 	switch discriminator {
 	case "agent_output":
 		return t.AsEndUserAgentOutputEvent()
+	case "client_tool_pending":
+		return t.AsClientToolPendingEvent()
 	case "end":
 		return t.AsStreamResponseEnd()
 	case "error":
 		return t.AsEndUserErrorEvent()
 	case "input_message":
 		return t.AsEndUserInputMessageEvent()
+	case "session_description":
+		return t.AsSessionDescriptionEvent()
 	case "streaming_agent_output":
 		return t.AsStreamingAgentOutput()
 	case "streaming_agent_output_end":
@@ -11348,6 +11033,40 @@ func (t *EndUserEvent) MergeEndUserErrorEvent(v EndUserErrorEvent) error {
 		return err
 	}
 	b, err = runtime.JSONMerge(b, []byte(`{"type":"error"}`))
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsClientToolPendingEvent returns the union data inside the EndUserEvent as a ClientToolPendingEvent
+func (t EndUserEvent) AsClientToolPendingEvent() (ClientToolPendingEvent, error) {
+	var body ClientToolPendingEvent
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromClientToolPendingEvent overwrites any union data inside the EndUserEvent as the provided ClientToolPendingEvent
+func (t *EndUserEvent) FromClientToolPendingEvent(v ClientToolPendingEvent) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"type":"client_tool_pending"}`))
+	t.union = b
+	return err
+}
+
+// MergeClientToolPendingEvent performs a merge with any union data inside the EndUserEvent, using the provided ClientToolPendingEvent
+func (t *EndUserEvent) MergeClientToolPendingEvent(v ClientToolPendingEvent) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"type":"client_tool_pending"}`))
 	if err != nil {
 		return err
 	}
@@ -11509,6 +11228,8 @@ func (t EndUserEvent) ValueByDiscriminator() (interface{}, error) {
 	switch discriminator {
 	case "agent_output":
 		return t.AsEndUserAgentOutputEvent()
+	case "client_tool_pending":
+		return t.AsClientToolPendingEvent()
 	case "error":
 		return t.AsEndUserErrorEvent()
 	case "input_message":
@@ -14603,6 +14324,143 @@ func (t SearchReranker) MarshalJSON() ([]byte, error) {
 }
 
 func (t *SearchReranker) UnmarshalJSON(b []byte) error {
+	err := t.union.UnmarshalJSON(b)
+	return err
+}
+
+// AsStepToolCallEndTurn returns the union data inside the StepToolCallOnFailure as a StepToolCallEndTurn
+func (t StepToolCallOnFailure) AsStepToolCallEndTurn() (StepToolCallEndTurn, error) {
+	var body StepToolCallEndTurn
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromStepToolCallEndTurn overwrites any union data inside the StepToolCallOnFailure as the provided StepToolCallEndTurn
+func (t *StepToolCallOnFailure) FromStepToolCallEndTurn(v StepToolCallEndTurn) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"type":"end_turn"}`))
+	t.union = b
+	return err
+}
+
+// MergeStepToolCallEndTurn performs a merge with any union data inside the StepToolCallOnFailure, using the provided StepToolCallEndTurn
+func (t *StepToolCallOnFailure) MergeStepToolCallEndTurn(v StepToolCallEndTurn) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"type":"end_turn"}`))
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsStepToolCallContinue returns the union data inside the StepToolCallOnFailure as a StepToolCallContinue
+func (t StepToolCallOnFailure) AsStepToolCallContinue() (StepToolCallContinue, error) {
+	var body StepToolCallContinue
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromStepToolCallContinue overwrites any union data inside the StepToolCallOnFailure as the provided StepToolCallContinue
+func (t *StepToolCallOnFailure) FromStepToolCallContinue(v StepToolCallContinue) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"type":"continue"}`))
+	t.union = b
+	return err
+}
+
+// MergeStepToolCallContinue performs a merge with any union data inside the StepToolCallOnFailure, using the provided StepToolCallContinue
+func (t *StepToolCallOnFailure) MergeStepToolCallContinue(v StepToolCallContinue) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"type":"continue"}`))
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsStepToolCallNextStep returns the union data inside the StepToolCallOnFailure as a StepToolCallNextStep
+func (t StepToolCallOnFailure) AsStepToolCallNextStep() (StepToolCallNextStep, error) {
+	var body StepToolCallNextStep
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromStepToolCallNextStep overwrites any union data inside the StepToolCallOnFailure as the provided StepToolCallNextStep
+func (t *StepToolCallOnFailure) FromStepToolCallNextStep(v StepToolCallNextStep) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"type":"next_step"}`))
+	t.union = b
+	return err
+}
+
+// MergeStepToolCallNextStep performs a merge with any union data inside the StepToolCallOnFailure, using the provided StepToolCallNextStep
+func (t *StepToolCallOnFailure) MergeStepToolCallNextStep(v StepToolCallNextStep) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"type":"next_step"}`))
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+func (t StepToolCallOnFailure) Discriminator() (string, error) {
+	var discriminator struct {
+		Discriminator string `json:"type"`
+	}
+	err := json.Unmarshal(t.union, &discriminator)
+	return discriminator.Discriminator, err
+}
+
+func (t StepToolCallOnFailure) ValueByDiscriminator() (interface{}, error) {
+	discriminator, err := t.Discriminator()
+	if err != nil {
+		return nil, err
+	}
+	switch discriminator {
+	case "continue":
+		return t.AsStepToolCallContinue()
+	case "end_turn":
+		return t.AsStepToolCallEndTurn()
+	case "next_step":
+		return t.AsStepToolCallNextStep()
+	default:
+		return nil, errors.New("unknown discriminator value: " + discriminator)
+	}
+}
+
+func (t StepToolCallOnFailure) MarshalJSON() ([]byte, error) {
+	b, err := t.union.MarshalJSON()
+	return b, err
+}
+
+func (t *StepToolCallOnFailure) UnmarshalJSON(b []byte) error {
 	err := t.union.UnmarshalJSON(b)
 	return err
 }
@@ -18898,24 +18756,12 @@ type ClientInterface interface {
 	// Corresponds with DELETE /v2/agent_aliases/{alias_key}/connectors/{connector_id} (the `DeleteAgentConnector` operationId).
 	DeleteAgentConnector(ctx context.Context, aliasKey AgentAliasKey, connectorId ConnectorId, params *DeleteAgentConnectorParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// GetLegacyPublicConnector Get public connector (legacy path)
+	// GetAgentConnector Get agent connector
 	//
-	// Deprecated: read the public view from `GET /v2/agent_aliases/{alias_key}/connectors/{connector_id}/public`. This path serves the same view while embeds already deployed move to that path; it is then repurposed as the authenticated operator read of the full connector.
+	// Retrieves a connector on an alias, configuration included, whatever its type and whether or not it is enabled.
 	//
-	// The public view of a connector, served unauthenticated to the embed snippet. The snippet carries the alias key and the connector's globally unique id, which expose no agent or customer identifier.
-	// Returns the `customer_id` visitor minting is addressed to, the `presentation` to render, whether anonymous visitors are admitted (`public_access`), and the sign-in configuration when the widget offers one.
-	//
-	// A read with no side effects: minting an anonymous visitor id is a separate call, `POST /v2/visitors`, so a returning visitor who already holds an id only reads this view.
-	// The view tells the client how to authenticate: `public_access` true — mint or present a visitor id; `end_user_sign_in` present — sign the user in through the referenced issuer. A widget may offer both, and the two follow-up calls do not depend on each other.
-	//
-	// This operation serves only the public projection; operators read the full connector, configuration included, from the connector list.
-	//
-	// Serves connectors that front an end-user surface — today, widget connectors. Returns `404` if the connector does not exist on the addressed alias, is a channel connector with no end-user surface (Slack, Google Chat, or Zoom), is disabled, or belongs to a disabled customer.
-	//
-	// Corresponds with GET /v2/agent_aliases/{alias_key}/connectors/{connector_id} (the `GetLegacyPublicConnector` operationId).
-	//
-	// Deprecated: this operation has been marked as deprecated upstream, but no `x-deprecated-reason` was set
-	GetLegacyPublicConnector(ctx context.Context, aliasKey AgentAliasKey, connectorId ConnectorId, params *GetLegacyPublicConnectorParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+	// Corresponds with GET /v2/agent_aliases/{alias_key}/connectors/{connector_id} (the `GetAgentConnector` operationId).
+	GetAgentConnector(ctx context.Context, aliasKey AgentAliasKey, connectorId ConnectorId, params *GetAgentConnectorParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// UpdateAgentConnectorWithBody Update agent connector
 	//
@@ -18943,7 +18789,7 @@ type ClientInterface interface {
 	// A read with no side effects: minting an anonymous visitor id is a separate call, `POST /v2/visitors`, so a returning visitor who already holds an id only reads this view.
 	// The view tells the client how to authenticate: `public_access` true — mint or present a visitor id; `end_user_sign_in` present — sign the user in through the referenced issuer. A widget may offer both, and the two follow-up calls do not depend on each other.
 	//
-	// This operation serves only the public projection; operators read the full connector, configuration included, from the connector list.
+	// This operation serves only the public projection; operators read the full connector, configuration included, from `GET /v2/agent_aliases/{alias_key}/connectors/{connector_id}`.
 	//
 	// Serves connectors that front an end-user surface — today, widget connectors. Returns `404` if the connector does not exist on the addressed alias, is a channel connector with no end-user surface (Slack, Google Chat, or Zoom), is disabled, or belongs to a disabled customer.
 	//
@@ -19043,6 +18889,17 @@ type ClientInterface interface {
 	//
 	// Corresponds with POST /v2/agent_aliases/{alias_key}/end_user_sessions/{session_key}/events (the `CreateEndUserAliasRoutedInput` operationId).
 	CreateEndUserAliasRoutedInput(ctx context.Context, aliasKey AgentAliasKey, sessionKey AgentSessionKey, params *CreateEndUserAliasRoutedInputParams, body CreateEndUserAliasRoutedInputJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ListEndUserAliasRoutedOutstandingClientToolCalls List end user outstanding client tool calls for alias
+	//
+	// Lists the client tool calls that a session the caller owns is waiting on, addressed by the alias it was created through.
+	// Use it to recover waiting calls after a reconnect or reload, because the `client_tool_pending` event is not in the session's history. Submit each call's output as a `tool_output` input.
+	// Each entry carries the call's arguments, including argument override values, with secrets unmasked.
+	// The list is empty when the session is not waiting on a client tool. Returns 403 if the session belongs to a different principal.
+	// Anonymous widget visitors authenticate by presenting `X-Visitor-Id` instead of an `Authorization` credential; the platform mints an identity holding `agent_end_user` on the addressed alias, which satisfies this operation's role requirement.
+	//
+	// Corresponds with GET /v2/agent_aliases/{alias_key}/end_user_sessions/{session_key}/outstanding_client_tool_calls (the `ListEndUserAliasRoutedOutstandingClientToolCalls` operationId).
+	ListEndUserAliasRoutedOutstandingClientToolCalls(ctx context.Context, aliasKey AgentAliasKey, sessionKey AgentSessionKey, params *ListEndUserAliasRoutedOutstandingClientToolCallsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ReplaceAgentAliasPolicyWithBody Replace an alias's routing policy
 	//
@@ -22220,7 +22077,6 @@ type ClientInterface interface {
 	// - `headers` - Additional HTTP headers (for openai-compatible and anthropic types)
 	// - `enabled` - Whether the LLM is enabled
 	// - `capabilities` - Model capabilities (image support, context limit, tool calling)
-	// - `requests_per_second`, `input_tokens_per_minute`, `output_tokens_per_minute`, `input_tokens_per_day`, `output_tokens_per_day`, `input_tokens_per_month`, `output_tokens_per_month` - Request and token quotas
 	//
 	// **Immutable fields:**
 	// - `id` - System-generated identifier
@@ -22248,7 +22104,6 @@ type ClientInterface interface {
 	// - `headers` - Additional HTTP headers (for openai-compatible and anthropic types)
 	// - `enabled` - Whether the LLM is enabled
 	// - `capabilities` - Model capabilities (image support, context limit, tool calling)
-	// - `requests_per_second`, `input_tokens_per_minute`, `output_tokens_per_minute`, `input_tokens_per_day`, `output_tokens_per_day`, `input_tokens_per_month`, `output_tokens_per_month` - Request and token quotas
 	//
 	// **Immutable fields:**
 	// - `id` - System-generated identifier

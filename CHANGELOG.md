@@ -2,6 +2,20 @@
 
 All notable changes per release. Versions follow [semver](https://semver.org).
 
+## v0.3.0, 2026-11-11
+
+- Removed the per-LLM limit fields: `RequestsPerSecond`, `InputTokensPerDay`, `InputTokensPerMinute`, `InputTokensPerMonth` and the matching output token fields from `LLM`, the Create and Update Anthropic, OpenAI, OpenAI Responses and Vertex AI LLM request types, `OpenAILLMRequestBase` and `OpenAILLMUpdateBase`.
+- Removed the `LLMQuota` type and the `LlmQuota` field from `Agent`, `CreateAgentRequest`, `UpdateAgentRequest` and `ReplaceAgentRequest`.
+- Removed `GetLegacyPublicConnector`, `GetLegacyPublicConnectorWithResponse`, `NewGetLegacyPublicConnectorRequest`, `ParseGetLegacyPublicConnectorResponse`, `GetLegacyPublicConnectorParams` and `GetLegacyPublicConnectorResponse`.
+- Changed `Type` on `AgentStep`, `FirstAgentStep`, `UpdateAgentStep` and `UpdateFirstAgentStep` from `*string` to `*AgentStepType`. The new type has the constants `AgentStepTypeConversational` and `AgentStepTypeToolCalls`.
+- Added `ToolCalls` on the four agent step types, with the new `AgentStepToolCall` type. A `tool_calls` step runs tools without calling the LLM. `StepToolCallOnFailure` sets what a failed call does, and `ToolInputEvent` has a new `StepToolCall` field.
+- Added `GetAgentConnector` and `GetAgentConnectorWithResponse`, with their request, parse, params and response helpers.
+- Added `ListEndUserAliasRoutedOutstandingClientToolCalls` and `ListEndUserAliasRoutedOutstandingClientToolCallsWithResponse`, with their helpers.
+- Added `SessionDescriptionConfiguration` and the `SessionDescription` field on `Agent` and the create, update and replace agent requests, plus `SessionDescriptionEvent` in the agent stream types.
+- Added `ClientToolPendingEvent` accessors on `EndUserEvent` and `EndUserAgentStreamedResponse`, and `CreateEndUserToolOutputRequest` as an option of `CreateEndUserInputRequest`.
+- Added `MetadataFilter` to `ListAgentsParams`, `JobProgressPhaseIndexing`, and `JSON409` and `JSON422` on `ReplaceFilterAttributesResponse2`.
+- Doc comments now describe `$default` on `$ref` argument overrides.
+
 ## v0.2.5, 2026-10-29
 
 - Vectara's spec now marks the per-LLM request and token limits as deprecated. The generated doc comments say the platform still enforces them and that Vectara support sets limits. The fields carry a Go `Deprecated:` marker: `RequestsPerSecond` on `LLM`, `InputTokensPerDay`, `InputTokensPerMinute` and `InputTokensPerMonth` on `LLMQuota` and the Create and Update LLM request types, and the matching output token and request rate fields. Existing code still compiles, but linters such as staticcheck now flag uses of these fields.
