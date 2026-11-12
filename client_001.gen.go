@@ -19611,7 +19611,7 @@ type UpdateWolkenTicketsSourceConfiguration = BaseWolkenTicketsSourceConfigurati
 
 // UploadFileRequest Request to upload and index a file into a corpus within a customer account.
 //
-// Example: {"chunking_strategy":{"type":"sentence_chunking_strategy"},"file":"system_design_v1.pdf","filename":"system_design_v1.pdf","metadata":{"department\"":"engineering","doc_type\"":"architecture_diagram"},"table_extraction_config":{"extract_tables":true}}
+// Example: {"file":"system_design_v1.pdf","filename":"system_design_v1.pdf","metadata":{"department":"engineering","doc_type":"architecture_diagram"}}
 type UploadFileRequest struct {
 	// ChunkingStrategy Chooses how to split documents into chunks during indexing. This is optional. If you do not set a chunking strategy, the platform uses the default strategy, which creates one chunk (docpart) per sentence.
 	ChunkingStrategy *ChunkingStrategy `json:"chunking_strategy,omitempty"`
@@ -19626,7 +19626,7 @@ type UploadFileRequest struct {
 
 	// Metadata Arbitrary object that is attached as document metadata to the extracted document.
 	//
-	// Example: {"department":"engineering","doc_type\"":"architecture_diagram"}
+	// Example: {"department":"engineering","doc_type":"architecture_diagram"}
 	Metadata *map[string]interface{} `json:"metadata,omitempty"`
 
 	// TableExtractionConfig Configuration for table extraction from the document. This configuration is optional. If omitted, the platform does not extract tables from PDF files.

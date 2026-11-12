@@ -2,6 +2,14 @@
 
 All notable changes per release. Versions follow [semver](https://semver.org).
 
+## v0.3.1, 2026-11-12
+
+- Raised the minimum Go version in `go.mod` from 1.26.10 to 1.26.11, which fixes the `net/http` vulnerability GO-2026-6859 found by govulncheck. The development image uses `golang:1.26.11-trixie`.
+- Updated the `UploadFileRequest` doc comment example. It now shows valid JSON metadata keys and drops the table extraction and chunking entries.
+- Fixed the `Metadata` doc comment on `UploadFileRequest`, whose example had a stray escaped quote in the `doc_type` key.
+- Removed a blank comment line before the "Tabular data extraction and summarization" heading in the file upload docs of `UploadFile` and its related client methods.
+- No exported API changes.
+
 ## v0.3.0, 2026-11-11
 
 - Removed the per-LLM limit fields: `RequestsPerSecond`, `InputTokensPerDay`, `InputTokensPerMinute`, `InputTokensPerMonth` and the matching output token fields from `LLM`, the Create and Update Anthropic, OpenAI, OpenAI Responses and Vertex AI LLM request types, `OpenAILLMRequestBase` and `OpenAILLMUpdateBase`.

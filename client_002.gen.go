@@ -21002,7 +21002,6 @@ type ClientInterface interface {
 	// To attach additional metadata to the file, specify a metadata form field that contains a JSON string:
 	//
 	// `{ "filesize": 1234 }`
-	//
 	// ## Tabular data extraction and summarization
 	//
 	// Set `table_extraction_config.extract_tables = true` to extract tabular data, such as financial filings (10-K, 10-Q, S-1). You can also apply custom prompt templates to summarize table content during upload.
