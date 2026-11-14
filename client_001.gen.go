@@ -1996,6 +1996,72 @@ func (e ToolServerType) Valid() bool {
 	}
 }
 
+// Defines values for UsageUnit.
+const (
+	UsageUnitBytes UsageUnit = "bytes"
+	UsageUnitCount UsageUnit = "count"
+)
+
+// Valid indicates whether the value is a known member of the UsageUnit enum.
+func (e UsageUnit) Valid() bool {
+	switch e {
+	case UsageUnitBytes:
+		return true
+	case UsageUnitCount:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for UsageWindow.
+const (
+	UsageWindowDay    UsageWindow = "day"
+	UsageWindowHour   UsageWindow = "hour"
+	UsageWindowMinute UsageWindow = "minute"
+	UsageWindowMonth  UsageWindow = "month"
+	UsageWindowSecond UsageWindow = "second"
+)
+
+// Valid indicates whether the value is a known member of the UsageWindow enum.
+func (e UsageWindow) Valid() bool {
+	switch e {
+	case UsageWindowDay:
+		return true
+	case UsageWindowHour:
+		return true
+	case UsageWindowMinute:
+		return true
+	case UsageWindowMonth:
+		return true
+	case UsageWindowSecond:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for UsageAllowanceState.
+const (
+	UsageAllowanceStateExceeded UsageAllowanceState = "exceeded"
+	UsageAllowanceStateOk       UsageAllowanceState = "ok"
+	UsageAllowanceStateWarning  UsageAllowanceState = "warning"
+)
+
+// Valid indicates whether the value is a known member of the UsageAllowanceState enum.
+func (e UsageAllowanceState) Valid() bool {
+	switch e {
+	case UsageAllowanceStateExceeded:
+		return true
+	case UsageAllowanceStateOk:
+		return true
+	case UsageAllowanceStateWarning:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for WebGetOAuthTokenExchangeAuthParamLocation.
 const (
 	WebGetOAuthTokenExchangeAuthParamLocationBody  WebGetOAuthTokenExchangeAuthParamLocation = "body"
@@ -3562,6 +3628,9 @@ type Agent struct {
 	//
 	// Example: {"sales_handler":{"instructions":[{"template":"Handle sales inquiries","type":"inline"}],"output_parser":{"type":"default"}},"support_handler":{"instructions":[{"template":"Handle support requests","type":"inline"}],"output_parser":{"type":"default"}}}
 	Steps *map[string]AgentStep `json:"steps,omitempty"`
+
+	// Storage The bytes one corpus or agent stores, as of the latest hourly measurement. Absent until it has been measured.
+	Storage *MeasuredStorage `json:"storage,omitempty"`
 
 	// ToolConfigurations A map of tool configurations available to the agent. The key is the name of the tool configuration and the value is an agent tool configuration.
 	//
@@ -7887,6 +7956,9 @@ type Corpus struct {
 
 	// SaveHistory Indicates whether to save corpus queries to query history by default.
 	SaveHistory *bool `json:"save_history,omitempty"`
+
+	// Storage The bytes one corpus or agent stores, as of the latest hourly measurement. Absent until it has been measured.
+	Storage *MeasuredStorage `json:"storage,omitempty"`
 }
 
 // CorpusCustomDimension A custom dimension attached to all document parts in a corpus. Custom dimensions allow arbitrary modification of the search score.
@@ -13976,6 +14048,17 @@ type ListTrustedTokenIssuersResponse struct {
 	TrustedTokenIssuers []TrustedTokenIssuer `json:"trusted_token_issuers"`
 }
 
+// ListUsagesResponse The account's usage of everything the platform measures or counts for it.
+type ListUsagesResponse struct {
+	// Metadata The standard metadata in the response of a list operation.
+	//
+	// Example: {"page_key":"eyJvZmZzZXQiOjF9"}
+	Metadata ListMetadata `json:"metadata"`
+
+	// Usages One entry per thing measured or counted, and per window it is counted over. Entries may be added as the platform tracks more, so clients should show an entry of a `type` they do not know from its `unit`, `amount` and `allowance` alone.
+	Usages []Usage `json:"usages"`
+}
+
 // ListUsersResponse Response containing a list of user accounts.
 type ListUsersResponse struct {
 	// Metadata The standard metadata in the response of a list operation.
@@ -14323,6 +14406,24 @@ type McpToolConfiguration struct {
 
 	// UpdatedAt Timestamp when the tool configuration was last updated.
 	UpdatedAt *time.Time `json:"updated_at,omitempty"`
+}
+
+// MeasuredStorage The bytes one corpus or agent stores, as of the latest hourly measurement. Absent until it has been measured.
+type MeasuredStorage struct {
+	// ContentBytes The bytes of data given, including the search indexes built from it, before compression or copies.
+	//
+	// Example: 21402512903
+	ContentBytes int64 `json:"content_bytes"`
+
+	// MeasuredAt The start of the hour the bytes were measured in.
+	//
+	// Example: 2026-11-05T09:00:00Z
+	MeasuredAt time.Time `json:"measured_at"`
+
+	// StoredBytes The bytes the platform keeps, compressed and with every copy.
+	//
+	// Example: 40533402118
+	StoredBytes int64 `json:"stored_bytes"`
 }
 
 // MetadataQueryRequest Defines parameters for fuzzy searching across metadata fields in a corpus.
@@ -15530,7 +15631,7 @@ type RephraseSpan struct {
 }
 
 // ReplaceAgentRequest Full replacement of an existing agent. Accepts every field that agent creation accepts;
-// created_at and updated_at may be included but are ignored, so the body returned by
+// created_at, updated_at and storage may be included but are ignored, so the body returned by
 // getAgent can be sent back unmodified.
 type ReplaceAgentRequest struct {
 	// Compaction Configuration for automatic context compaction.
@@ -15607,6 +15708,9 @@ type ReplaceAgentRequest struct {
 	//
 	// Example: {"sales_handler":{"instructions":[{"template":"Handle sales inquiries","type":"inline"}],"output_parser":{"type":"default"}},"support_handler":{"instructions":[{"template":"Handle support requests","type":"inline"}],"output_parser":{"type":"default"}}}
 	Steps *map[string]AgentStep `json:"steps,omitempty"`
+
+	// Storage The bytes one corpus or agent stores, as of the latest hourly measurement. Absent until it has been measured.
+	Storage *MeasuredStorage `json:"storage,omitempty"`
 
 	// ToolConfigurations A map of tool configurations available to the agent. The key is the name of the tool configuration and the value is the AgentToolConfiguration.
 	//
@@ -19644,6 +19748,90 @@ type UpsertGlossaryEntriesRequest struct {
 	Entries map[string]string `json:"entries"`
 }
 
+// Usage How much of one thing the account uses, and its use of the allowance on it, when one applies.
+type Usage struct {
+	// Allowance The allowance that applies to one usage, and how much of it the account uses. Absent when no allowance applies.
+	Allowance *UsageAllowance `json:"allowance,omitempty"`
+
+	// Amount How much the account uses, in `unit`.
+	//
+	// Example: 61733402118
+	Amount int64 `json:"amount"`
+
+	// MeasuredAt When `amount` was taken. A total measured at intervals, such as storage, reports the start of the hour it was measured in; one counted over a `window` reports when it was read.
+	//
+	// Example: 2026-11-05T09:00:00Z
+	MeasuredAt time.Time `json:"measured_at"`
+
+	// ResetsAt When the current `window` ends and `amount` starts again from zero. Absent when there is no `window`.
+	//
+	// Example: 2026-11-06T00:00:00Z
+	ResetsAt *time.Time `json:"resets_at,omitempty"`
+
+	// Type What is measured or counted. New types may be added. Today:
+	// * `storage_content_bytes`: the bytes of data the account has given, including the search indexes built from it and its agents' sessions and artifacts, before compression or copies. Measured once an hour.
+	// * `storage_stored_bytes`: the bytes the platform keeps for the account, compressed and with every copy. Measured once an hour.
+	//
+	//
+	// Example: storage_stored_bytes
+	Type string `json:"type"`
+
+	// Unit What `amount` counts. New units may be added.
+	//
+	// Example: bytes
+	Unit UsageUnit `json:"unit"`
+
+	// Window The period `amount` is counted over, which starts again at `resets_at`. Absent for a total that is measured rather than counted, such as storage. New windows may be added.
+	//
+	// Example: day
+	Window *UsageWindow `json:"window,omitempty"`
+}
+
+// UsageUnit What `amount` counts. New units may be added.
+//
+// Example: bytes
+type UsageUnit string
+
+// UsageWindow The period `amount` is counted over, which starts again at `resets_at`. Absent for a total that is measured rather than counted, such as storage. New windows may be added.
+//
+// Example: day
+type UsageWindow string
+
+// UsageAllowance The allowance that applies to one usage, and how much of it the account uses. Absent when no allowance applies.
+type UsageAllowance struct {
+	// Amount How much the allowance permits, in the usage's `unit`.
+	//
+	// Example: 75000000000
+	Amount int64 `json:"amount"`
+
+	// State Where the account stands against the allowance:
+	// * `ok`: below `warn_at`, or below the whole allowance when it does not warn.
+	// * `warning`: from `warn_at`, below the whole allowance.
+	// * `exceeded`: the whole allowance or more. Requests that add to the usage may be refused until it falls or the allowance is raised.
+	//
+	//
+	// Example: warning
+	State UsageAllowanceState `json:"state"`
+
+	// Used The usage as a fraction of the allowance. It is above 1 once the account has used more than the allowance permits.
+	//
+	// Example: 0.82
+	Used float64 `json:"used"`
+
+	// WarnAt The fraction of the allowance, above 0 and at most 1, from which the account is in `warning`. Absent when the allowance does not warn.
+	//
+	// Example: 0.8
+	WarnAt *float64 `json:"warn_at,omitempty"`
+}
+
+// UsageAllowanceState Where the account stands against the allowance:
+// * `ok`: below `warn_at`, or below the whole allowance when it does not warn.
+// * `warning`: from `warn_at`, below the whole allowance.
+// * `exceeded`: the whole allowance or more. Requests that add to the usage may be refused until it falls or the allowance is raised.
+//
+// Example: warning
+type UsageAllowanceState string
+
 // User A user account with associated profile information and permissions.
 type User struct {
 	// AgentRoles Agent-specific role assignments for the user.
@@ -19825,214 +20013,5 @@ type WebGetAwsSigV4Auth struct {
 	SessionToken *WebGetAwsSigV4Auth_SessionToken `json:"session_token,omitempty"`
 
 	// Type Example: aws_sigv4
-	Type string `json:"type"`
-}
-
-// WebGetAwsSigV4AuthAccessKeyId0 defines model for WebGetAwsSigV4Auth.AccessKeyId.0.
-type WebGetAwsSigV4AuthAccessKeyId0 = string
-
-// WebGetAwsSigV4Auth_AccessKeyId AWS access key id.
-type WebGetAwsSigV4Auth_AccessKeyId struct {
-	union json.RawMessage
-}
-
-// WebGetAwsSigV4AuthSecretAccessKey0 defines model for WebGetAwsSigV4Auth.SecretAccessKey.0.
-type WebGetAwsSigV4AuthSecretAccessKey0 = string
-
-// WebGetAwsSigV4Auth_SecretAccessKey AWS secret access key.
-type WebGetAwsSigV4Auth_SecretAccessKey struct {
-	union json.RawMessage
-}
-
-// WebGetAwsSigV4AuthSessionToken0 defines model for WebGetAwsSigV4Auth.SessionToken.0.
-type WebGetAwsSigV4AuthSessionToken0 = string
-
-// WebGetAwsSigV4Auth_SessionToken Optional session token when the static credentials are temporary.
-type WebGetAwsSigV4Auth_SessionToken struct {
-	union json.RawMessage
-}
-
-// WebGetBearerAuth Static bearer token authentication. Adds `Authorization: Bearer <token>`.
-type WebGetBearerAuth struct {
-	// Token The bearer token. May be an EagerReference to an agent secret.
-	Token WebGetBearerAuth_Token `json:"token"`
-
-	// Type Example: bearer
-	Type string `json:"type"`
-}
-
-// WebGetBearerAuthToken0 defines model for WebGetBearerAuth.Token.0.
-type WebGetBearerAuthToken0 = string
-
-// WebGetBearerAuth_Token The bearer token. May be an EagerReference to an agent secret.
-type WebGetBearerAuth_Token struct {
-	union json.RawMessage
-}
-
-// WebGetHeaderAuth Static custom-header authentication, suitable for API keys.
-type WebGetHeaderAuth struct {
-	// Header The header name to set (e.g. `X-API-Key`).
-	Header string `json:"header"`
-
-	// Type Example: header
-	Type string `json:"type"`
-
-	// Value The header value. May be an EagerReference to an agent secret.
-	Value WebGetHeaderAuth_Value `json:"value"`
-}
-
-// WebGetHeaderAuthValue0 defines model for WebGetHeaderAuth.Value.0.
-type WebGetHeaderAuthValue0 = string
-
-// WebGetHeaderAuth_Value The header value. May be an EagerReference to an agent secret.
-type WebGetHeaderAuth_Value struct {
-	union json.RawMessage
-}
-
-// WebGetHeaderValue The value for a single HTTP header in the web_get tool.
-// Either a literal string or an EagerReference ({"$ref": "agent.secrets.foo"}) that resolves at session start so the secret value never appears in the tool configuration.
-type WebGetHeaderValue struct {
-	union json.RawMessage
-}
-
-// WebGetHeaderValue0 defines model for WebGetHeaderValue.0.
-type WebGetHeaderValue0 = string
-
-// WebGetHeadersMap A map of HTTP header names to their values for the web_get tool.
-// Each value may be a literal string or an EagerReference for per-header secret resolution.
-type WebGetHeadersMap map[string]WebGetHeaderValue
-
-// WebGetNoAuth Explicitly disables authentication.
-// Useful in argument_override to force a tool config to clear any auth the agent would otherwise supply, since merge semantics ignore null patches.
-type WebGetNoAuth struct {
-	// Type Example: none
-	Type string `json:"type"`
-}
-
-// WebGetOAuthClientCredentialsAuth OAuth 2.0 client-credentials grant.
-// The platform fetches an access token from the token endpoint and caches it until it expires.
-type WebGetOAuthClientCredentialsAuth struct {
-	// Audience Optional. Sent as the OAuth `audience` form parameter so the IdP mints a token scoped to this audience.
-	// Required by IdPs like Ory Hydra to issue a token whose `aud` claim targets an external service (e.g. an STS).
-	//
-	// Example: https://sts.example.com
-	Audience     *string                                       `json:"audience,omitempty"`
-	ClientId     WebGetOAuthClientCredentialsAuth_ClientId     `json:"client_id"`
-	ClientSecret WebGetOAuthClientCredentialsAuth_ClientSecret `json:"client_secret"`
-
-	// Scopes Example: ["read:items"]
-	Scopes *[]string `json:"scopes,omitempty"`
-
-	// TokenEndpoint Example: https://auth.example.com/oauth2/token
-	TokenEndpoint string `json:"token_endpoint"`
-
-	// Type Example: oauth_client_credentials
-	Type string `json:"type"`
-}
-
-// WebGetOAuthClientCredentialsAuthClientId0 defines model for WebGetOAuthClientCredentialsAuth.ClientId.0.
-type WebGetOAuthClientCredentialsAuthClientId0 = string
-
-// WebGetOAuthClientCredentialsAuth_ClientId defines model for WebGetOAuthClientCredentialsAuth.ClientId.
-type WebGetOAuthClientCredentialsAuth_ClientId struct {
-	union json.RawMessage
-}
-
-// WebGetOAuthClientCredentialsAuthClientSecret0 defines model for WebGetOAuthClientCredentialsAuth.ClientSecret.0.
-type WebGetOAuthClientCredentialsAuthClientSecret0 = string
-
-// WebGetOAuthClientCredentialsAuth_ClientSecret defines model for WebGetOAuthClientCredentialsAuth.ClientSecret.
-type WebGetOAuthClientCredentialsAuth_ClientSecret struct {
-	union json.RawMessage
-}
-
-// WebGetOAuthRefreshTokenAuth OAuth 2.0 refresh-token grant.
-// The platform exchanges a long-lived refresh token for an access token and caches the result until it expires.
-// Supports refresh-token rotation: if the IdP returns a new refresh_token, subsequent refreshes use it automatically.
-type WebGetOAuthRefreshTokenAuth struct {
-	ClientId     WebGetOAuthRefreshTokenAuth_ClientId     `json:"client_id"`
-	ClientSecret WebGetOAuthRefreshTokenAuth_ClientSecret `json:"client_secret"`
-	RefreshToken WebGetOAuthRefreshTokenAuth_RefreshToken `json:"refresh_token"`
-
-	// TokenEndpoint Example: https://auth.example.com/oauth2/token
-	TokenEndpoint string `json:"token_endpoint"`
-
-	// Type Example: oauth_refresh_token
-	Type string `json:"type"`
-}
-
-// WebGetOAuthRefreshTokenAuthClientId0 defines model for WebGetOAuthRefreshTokenAuth.ClientId.0.
-type WebGetOAuthRefreshTokenAuthClientId0 = string
-
-// WebGetOAuthRefreshTokenAuth_ClientId defines model for WebGetOAuthRefreshTokenAuth.ClientId.
-type WebGetOAuthRefreshTokenAuth_ClientId struct {
-	union json.RawMessage
-}
-
-// WebGetOAuthRefreshTokenAuthClientSecret0 defines model for WebGetOAuthRefreshTokenAuth.ClientSecret.0.
-type WebGetOAuthRefreshTokenAuthClientSecret0 = string
-
-// WebGetOAuthRefreshTokenAuth_ClientSecret defines model for WebGetOAuthRefreshTokenAuth.ClientSecret.
-type WebGetOAuthRefreshTokenAuth_ClientSecret struct {
-	union json.RawMessage
-}
-
-// WebGetOAuthRefreshTokenAuthRefreshToken0 defines model for WebGetOAuthRefreshTokenAuth.RefreshToken.0.
-type WebGetOAuthRefreshTokenAuthRefreshToken0 = string
-
-// WebGetOAuthRefreshTokenAuth_RefreshToken defines model for WebGetOAuthRefreshTokenAuth.RefreshToken.
-type WebGetOAuthRefreshTokenAuth_RefreshToken struct {
-	union json.RawMessage
-}
-
-// WebGetOAuthTokenExchangeAuth Two-legged OAuth token exchange. The platform first mints a subject token via the client-credentials grant at `token_endpoint`, scoped to `subject_audience`. It then exchanges the subject token at `exchange_endpoint` for the token sent to the target service. Configurable to cover both RFC 8693 and non-standard STS endpoints that present the subject token or parameters differently. The platform caches both tokens until they expire.
-type WebGetOAuthTokenExchangeAuth struct {
-	// ClientId Client id used to mint the subject token (client-credentials grant). May be an EagerReference to an agent secret.
-	ClientId WebGetOAuthTokenExchangeAuth_ClientId `json:"client_id"`
-
-	// ClientSecret Client secret used to mint the subject token. May be an EagerReference to an agent secret.
-	ClientSecret WebGetOAuthTokenExchangeAuth_ClientSecret `json:"client_secret"`
-
-	// ExchangeEndpoint STS endpoint that exchanges the subject token for the target token.
-	//
-	// Example: https://sts.example.com/exchange
-	ExchangeEndpoint string `json:"exchange_endpoint"`
-
-	// ParamLocation Where the exchange `params` are sent: query or body (RFC 8693 uses body).
-	ParamLocation *WebGetOAuthTokenExchangeAuthParamLocation `json:"param_location,omitempty"`
-
-	// Params Extra exchange parameters (e.g. `aud` and an `identity` selector for an assumable-identity STS; `grant_type`, `audience`,
-	// `subject_token_type` for RFC 8693).
-	//
-	// Example: {"aud":"https://api.example.com","identity":"\u003cassumable-identity-id\u003e"}
-	Params *map[string]string `json:"params,omitempty"`
-
-	// Scopes OAuth scopes requested for the subject token.
-	Scopes *[]string `json:"scopes,omitempty"`
-
-	// SubjectAudience Audience requested for the subject token; must be accepted by the exchange endpoint (e.g. the STS issuer).
-	//
-	// Example: https://sts.example.com
-	SubjectAudience string `json:"subject_audience"`
-
-	// SubjectBodyParam Body parameter name carrying the subject token when subject_placement is body_param (e.g. `subject_token`).
-	SubjectBodyParam *string `json:"subject_body_param,omitempty"`
-
-	// SubjectPlacement How the subject token is sent to the exchange endpoint: authorization_bearer (in the `Authorization: Bearer` header) or body_param (an RFC 8693 `subject_token` form field).
-	SubjectPlacement *WebGetOAuthTokenExchangeAuthSubjectPlacement `json:"subject_placement,omitempty"`
-
-	// TokenEndpoint Token endpoint that mints the subject token.
-	//
-	// Example: https://auth.example.com/oauth2/token
-	TokenEndpoint string `json:"token_endpoint"`
-
-	// TokenResponseField JSON field in the exchange response holding the issued token (e.g. `token`, or `access_token` for RFC 8693).
-	//
-	// Example: token
-	TokenResponseField *string `json:"token_response_field,omitempty"`
-
-	// Type The auth type discriminator; always `oauth_token_exchange` for this variant.
-	//
-	// Example: oauth_token_exchange
 	Type string `json:"type"`
 }

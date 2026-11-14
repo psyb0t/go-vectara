@@ -16,6 +16,215 @@ import (
 	"github.com/oapi-codegen/runtime"
 )
 
+// WebGetAwsSigV4AuthAccessKeyId0 defines model for WebGetAwsSigV4Auth.AccessKeyId.0.
+type WebGetAwsSigV4AuthAccessKeyId0 = string
+
+// WebGetAwsSigV4Auth_AccessKeyId AWS access key id.
+type WebGetAwsSigV4Auth_AccessKeyId struct {
+	union json.RawMessage
+}
+
+// WebGetAwsSigV4AuthSecretAccessKey0 defines model for WebGetAwsSigV4Auth.SecretAccessKey.0.
+type WebGetAwsSigV4AuthSecretAccessKey0 = string
+
+// WebGetAwsSigV4Auth_SecretAccessKey AWS secret access key.
+type WebGetAwsSigV4Auth_SecretAccessKey struct {
+	union json.RawMessage
+}
+
+// WebGetAwsSigV4AuthSessionToken0 defines model for WebGetAwsSigV4Auth.SessionToken.0.
+type WebGetAwsSigV4AuthSessionToken0 = string
+
+// WebGetAwsSigV4Auth_SessionToken Optional session token when the static credentials are temporary.
+type WebGetAwsSigV4Auth_SessionToken struct {
+	union json.RawMessage
+}
+
+// WebGetBearerAuth Static bearer token authentication. Adds `Authorization: Bearer <token>`.
+type WebGetBearerAuth struct {
+	// Token The bearer token. May be an EagerReference to an agent secret.
+	Token WebGetBearerAuth_Token `json:"token"`
+
+	// Type Example: bearer
+	Type string `json:"type"`
+}
+
+// WebGetBearerAuthToken0 defines model for WebGetBearerAuth.Token.0.
+type WebGetBearerAuthToken0 = string
+
+// WebGetBearerAuth_Token The bearer token. May be an EagerReference to an agent secret.
+type WebGetBearerAuth_Token struct {
+	union json.RawMessage
+}
+
+// WebGetHeaderAuth Static custom-header authentication, suitable for API keys.
+type WebGetHeaderAuth struct {
+	// Header The header name to set (e.g. `X-API-Key`).
+	Header string `json:"header"`
+
+	// Type Example: header
+	Type string `json:"type"`
+
+	// Value The header value. May be an EagerReference to an agent secret.
+	Value WebGetHeaderAuth_Value `json:"value"`
+}
+
+// WebGetHeaderAuthValue0 defines model for WebGetHeaderAuth.Value.0.
+type WebGetHeaderAuthValue0 = string
+
+// WebGetHeaderAuth_Value The header value. May be an EagerReference to an agent secret.
+type WebGetHeaderAuth_Value struct {
+	union json.RawMessage
+}
+
+// WebGetHeaderValue The value for a single HTTP header in the web_get tool.
+// Either a literal string or an EagerReference ({"$ref": "agent.secrets.foo"}) that resolves at session start so the secret value never appears in the tool configuration.
+type WebGetHeaderValue struct {
+	union json.RawMessage
+}
+
+// WebGetHeaderValue0 defines model for WebGetHeaderValue.0.
+type WebGetHeaderValue0 = string
+
+// WebGetHeadersMap A map of HTTP header names to their values for the web_get tool.
+// Each value may be a literal string or an EagerReference for per-header secret resolution.
+type WebGetHeadersMap map[string]WebGetHeaderValue
+
+// WebGetNoAuth Explicitly disables authentication.
+// Useful in argument_override to force a tool config to clear any auth the agent would otherwise supply, since merge semantics ignore null patches.
+type WebGetNoAuth struct {
+	// Type Example: none
+	Type string `json:"type"`
+}
+
+// WebGetOAuthClientCredentialsAuth OAuth 2.0 client-credentials grant.
+// The platform fetches an access token from the token endpoint and caches it until it expires.
+type WebGetOAuthClientCredentialsAuth struct {
+	// Audience Optional. Sent as the OAuth `audience` form parameter so the IdP mints a token scoped to this audience.
+	// Required by IdPs like Ory Hydra to issue a token whose `aud` claim targets an external service (e.g. an STS).
+	//
+	// Example: https://sts.example.com
+	Audience     *string                                       `json:"audience,omitempty"`
+	ClientId     WebGetOAuthClientCredentialsAuth_ClientId     `json:"client_id"`
+	ClientSecret WebGetOAuthClientCredentialsAuth_ClientSecret `json:"client_secret"`
+
+	// Scopes Example: ["read:items"]
+	Scopes *[]string `json:"scopes,omitempty"`
+
+	// TokenEndpoint Example: https://auth.example.com/oauth2/token
+	TokenEndpoint string `json:"token_endpoint"`
+
+	// Type Example: oauth_client_credentials
+	Type string `json:"type"`
+}
+
+// WebGetOAuthClientCredentialsAuthClientId0 defines model for WebGetOAuthClientCredentialsAuth.ClientId.0.
+type WebGetOAuthClientCredentialsAuthClientId0 = string
+
+// WebGetOAuthClientCredentialsAuth_ClientId defines model for WebGetOAuthClientCredentialsAuth.ClientId.
+type WebGetOAuthClientCredentialsAuth_ClientId struct {
+	union json.RawMessage
+}
+
+// WebGetOAuthClientCredentialsAuthClientSecret0 defines model for WebGetOAuthClientCredentialsAuth.ClientSecret.0.
+type WebGetOAuthClientCredentialsAuthClientSecret0 = string
+
+// WebGetOAuthClientCredentialsAuth_ClientSecret defines model for WebGetOAuthClientCredentialsAuth.ClientSecret.
+type WebGetOAuthClientCredentialsAuth_ClientSecret struct {
+	union json.RawMessage
+}
+
+// WebGetOAuthRefreshTokenAuth OAuth 2.0 refresh-token grant.
+// The platform exchanges a long-lived refresh token for an access token and caches the result until it expires.
+// Supports refresh-token rotation: if the IdP returns a new refresh_token, subsequent refreshes use it automatically.
+type WebGetOAuthRefreshTokenAuth struct {
+	ClientId     WebGetOAuthRefreshTokenAuth_ClientId     `json:"client_id"`
+	ClientSecret WebGetOAuthRefreshTokenAuth_ClientSecret `json:"client_secret"`
+	RefreshToken WebGetOAuthRefreshTokenAuth_RefreshToken `json:"refresh_token"`
+
+	// TokenEndpoint Example: https://auth.example.com/oauth2/token
+	TokenEndpoint string `json:"token_endpoint"`
+
+	// Type Example: oauth_refresh_token
+	Type string `json:"type"`
+}
+
+// WebGetOAuthRefreshTokenAuthClientId0 defines model for WebGetOAuthRefreshTokenAuth.ClientId.0.
+type WebGetOAuthRefreshTokenAuthClientId0 = string
+
+// WebGetOAuthRefreshTokenAuth_ClientId defines model for WebGetOAuthRefreshTokenAuth.ClientId.
+type WebGetOAuthRefreshTokenAuth_ClientId struct {
+	union json.RawMessage
+}
+
+// WebGetOAuthRefreshTokenAuthClientSecret0 defines model for WebGetOAuthRefreshTokenAuth.ClientSecret.0.
+type WebGetOAuthRefreshTokenAuthClientSecret0 = string
+
+// WebGetOAuthRefreshTokenAuth_ClientSecret defines model for WebGetOAuthRefreshTokenAuth.ClientSecret.
+type WebGetOAuthRefreshTokenAuth_ClientSecret struct {
+	union json.RawMessage
+}
+
+// WebGetOAuthRefreshTokenAuthRefreshToken0 defines model for WebGetOAuthRefreshTokenAuth.RefreshToken.0.
+type WebGetOAuthRefreshTokenAuthRefreshToken0 = string
+
+// WebGetOAuthRefreshTokenAuth_RefreshToken defines model for WebGetOAuthRefreshTokenAuth.RefreshToken.
+type WebGetOAuthRefreshTokenAuth_RefreshToken struct {
+	union json.RawMessage
+}
+
+// WebGetOAuthTokenExchangeAuth Two-legged OAuth token exchange. The platform first mints a subject token via the client-credentials grant at `token_endpoint`, scoped to `subject_audience`. It then exchanges the subject token at `exchange_endpoint` for the token sent to the target service. Configurable to cover both RFC 8693 and non-standard STS endpoints that present the subject token or parameters differently. The platform caches both tokens until they expire.
+type WebGetOAuthTokenExchangeAuth struct {
+	// ClientId Client id used to mint the subject token (client-credentials grant). May be an EagerReference to an agent secret.
+	ClientId WebGetOAuthTokenExchangeAuth_ClientId `json:"client_id"`
+
+	// ClientSecret Client secret used to mint the subject token. May be an EagerReference to an agent secret.
+	ClientSecret WebGetOAuthTokenExchangeAuth_ClientSecret `json:"client_secret"`
+
+	// ExchangeEndpoint STS endpoint that exchanges the subject token for the target token.
+	//
+	// Example: https://sts.example.com/exchange
+	ExchangeEndpoint string `json:"exchange_endpoint"`
+
+	// ParamLocation Where the exchange `params` are sent: query or body (RFC 8693 uses body).
+	ParamLocation *WebGetOAuthTokenExchangeAuthParamLocation `json:"param_location,omitempty"`
+
+	// Params Extra exchange parameters (e.g. `aud` and an `identity` selector for an assumable-identity STS; `grant_type`, `audience`,
+	// `subject_token_type` for RFC 8693).
+	//
+	// Example: {"aud":"https://api.example.com","identity":"\u003cassumable-identity-id\u003e"}
+	Params *map[string]string `json:"params,omitempty"`
+
+	// Scopes OAuth scopes requested for the subject token.
+	Scopes *[]string `json:"scopes,omitempty"`
+
+	// SubjectAudience Audience requested for the subject token; must be accepted by the exchange endpoint (e.g. the STS issuer).
+	//
+	// Example: https://sts.example.com
+	SubjectAudience string `json:"subject_audience"`
+
+	// SubjectBodyParam Body parameter name carrying the subject token when subject_placement is body_param (e.g. `subject_token`).
+	SubjectBodyParam *string `json:"subject_body_param,omitempty"`
+
+	// SubjectPlacement How the subject token is sent to the exchange endpoint: authorization_bearer (in the `Authorization: Bearer` header) or body_param (an RFC 8693 `subject_token` form field).
+	SubjectPlacement *WebGetOAuthTokenExchangeAuthSubjectPlacement `json:"subject_placement,omitempty"`
+
+	// TokenEndpoint Token endpoint that mints the subject token.
+	//
+	// Example: https://auth.example.com/oauth2/token
+	TokenEndpoint string `json:"token_endpoint"`
+
+	// TokenResponseField JSON field in the exchange response holding the issued token (e.g. `token`, or `access_token` for RFC 8693).
+	//
+	// Example: token
+	TokenResponseField *string `json:"token_response_field,omitempty"`
+
+	// Type The auth type discriminator; always `oauth_token_exchange` for this variant.
+	//
+	// Example: oauth_token_exchange
+	Type string `json:"type"`
+}
+
 // WebGetOAuthTokenExchangeAuthClientId0 defines model for WebGetOAuthTokenExchangeAuth.ClientId.0.
 type WebGetOAuthTokenExchangeAuthClientId0 = string
 
@@ -3682,6 +3891,15 @@ type GetTrustedTokenIssuerParams struct {
 
 // ReplaceTrustedTokenIssuerParams defines parameters for ReplaceTrustedTokenIssuer.
 type ReplaceTrustedTokenIssuerParams struct {
+	// RequestTimeout The platform makes a best effort to complete the request in the specified seconds, or it times out.
+	RequestTimeout *RequestTimeout `json:"Request-Timeout,omitempty"`
+
+	// RequestTimeoutMillis The platform makes a best effort to complete the request in the specified milliseconds, or it times out.
+	RequestTimeoutMillis *RequestTimeoutMillis `json:"Request-Timeout-Millis,omitempty"`
+}
+
+// ListUsagesParams defines parameters for ListUsages.
+type ListUsagesParams struct {
 	// RequestTimeout The platform makes a best effort to complete the request in the specified seconds, or it times out.
 	RequestTimeout *RequestTimeout `json:"Request-Timeout,omitempty"`
 
@@ -22645,6 +22863,15 @@ type ClientInterface interface {
 	//
 	// Corresponds with PUT /v2/trusted_token_issuers/{trusted_token_issuer_id} (the `ReplaceTrustedTokenIssuer` operationId).
 	ReplaceTrustedTokenIssuer(ctx context.Context, trustedTokenIssuerId TrustedTokenIssuerId, params *ReplaceTrustedTokenIssuerParams, body ReplaceTrustedTokenIssuerJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ListUsages List usages
+	//
+	// Lists how much the account uses of everything the platform measures or counts for it, each with its use of the allowance on it when one applies.
+	//
+	// Storage is measured once an hour; its `measured_at` is the start of the hour reported, and bytes added or deleted since then appear after a later measurement. Storage is absent until the account has been measured, and while it has not been measured in the last two days. Each corpus and agent reports its own bytes from the same measurement in its `storage` field.
+	//
+	// Corresponds with GET /v2/usages (the `ListUsages` operationId).
+	ListUsages(ctx context.Context, params *ListUsagesParams, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ListUsers List users
 	//

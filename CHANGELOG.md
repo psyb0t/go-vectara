@@ -2,6 +2,14 @@
 
 All notable changes per release. Versions follow [semver](https://semver.org).
 
+## v0.4.0, 2026-11-14
+
+- Added `ListUsages` and `ListUsagesWithResponse` for `GET /v2/usages`, with `NewListUsagesRequest`, `ParseListUsagesResponse2`, `ListUsagesParams`, `ListUsagesResponse` and `ListUsagesResponse2`. The response lists the account's `Usage` entries.
+- Added the `Usage` and `UsageAllowance` types, the `UsageUnit` type with `UsageUnitBytes` and `UsageUnitCount`, the `UsageWindow` type with `UsageWindowSecond`, `UsageWindowMinute`, `UsageWindowHour`, `UsageWindowDay` and `UsageWindowMonth`, and the `UsageAllowanceState` type with `UsageAllowanceStateOk`, `UsageAllowanceStateWarning` and `UsageAllowanceStateExceeded`. Each enum has a `Valid` method.
+- Added the `MeasuredStorage` type and the optional `Storage` field on `Agent`, `Corpus` and `ReplaceAgentRequest`. It reports `ContentBytes`, `StoredBytes` and `MeasuredAt` from the latest hourly measurement. `ReplaceAgentRequest` ignores `Storage`.
+- **Breaking:** `ClientInterface` gained `ListUsages` and `ClientWithResponsesInterface` gained `ListUsagesWithResponse`. Code that implements either interface, such as a mock, must add the new method. Callers of the concrete clients are not affected.
+- The `WebGet*` auth and header types moved between generated files. Their definitions are unchanged.
+
 ## v0.3.1, 2026-11-12
 
 - Raised the minimum Go version in `go.mod` from 1.26.10 to 1.26.11, which fixes the `net/http` vulnerability GO-2026-6859 found by govulncheck. The development image uses `golang:1.26.11-trixie`.

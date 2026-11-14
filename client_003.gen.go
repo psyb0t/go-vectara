@@ -6837,6 +6837,25 @@ func (c *Client) ReplaceTrustedTokenIssuer(ctx context.Context, trustedTokenIssu
 	return c.Client.Do(req)
 }
 
+// ListUsages List usages
+//
+// Lists how much the account uses of everything the platform measures or counts for it, each with its use of the allowance on it when one applies.
+//
+// Storage is measured once an hour; its `measured_at` is the start of the hour reported, and bytes added or deleted since then appear after a later measurement. Storage is absent until the account has been measured, and while it has not been measured in the last two days. Each corpus and agent reports its own bytes from the same measurement in its `storage` field.
+//
+// Corresponds with GET /v2/usages (the `ListUsages` operationId).
+func (c *Client) ListUsages(ctx context.Context, params *ListUsagesParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListUsagesRequest(c.Server, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
 // ListUsers List users
 //
 // Lists all users in the customer account. The response shows each user's corpus access and customer-level authorizations.

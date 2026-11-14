@@ -15,6 +15,125 @@ import (
 	openapi_types "github.com/oapi-codegen/runtime/types"
 )
 
+// GetJSON429 returns the response for an HTTP 429 `application/json` response
+func (r CreateVisitorResponse2) GetJSON429() *Error {
+	return r.JSON429
+}
+
+// GetBody returns the raw response body bytes
+func (r CreateVisitorResponse2) GetBody() []byte {
+	return r.Body
+}
+
+// Status returns HTTPResponse.Status
+func (r CreateVisitorResponse2) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r CreateVisitorResponse2) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r CreateVisitorResponse2) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
+// GetOAuthTokenWithBodyWithResponse Request an access token
+//
+// Exchanges client credentials for an OAuth 2.0 access token.
+//
+// Takes any type of body and a specified content type, and returns a wrapper object for the known response body format(s).
+//
+// Corresponds with POST /oauth/token (the `GetOAuthToken` operationId).
+func (c *ClientWithResponses) GetOAuthTokenWithBodyWithResponse(ctx context.Context, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*GetOAuthTokenResponse, error) {
+	rsp, err := c.GetOAuthTokenWithBody(ctx, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetOAuthTokenResponse(rsp)
+}
+
+// GetOAuthTokenWithResponse Request an access token
+//
+// Exchanges client credentials for an OAuth 2.0 access token.
+//
+// Takes a body of the `application/json` content type, and returns a wrapper object for the known response body format(s).
+//
+// Corresponds with POST /oauth/token (the `GetOAuthToken` operationId).
+func (c *ClientWithResponses) GetOAuthTokenWithResponse(ctx context.Context, body GetOAuthTokenJSONRequestBody, reqEditors ...RequestEditorFn) (*GetOAuthTokenResponse, error) {
+	rsp, err := c.GetOAuthToken(ctx, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetOAuthTokenResponse(rsp)
+}
+
+// ListAgentAliasesWithResponse List aliases
+//
+// Lists aliases. Results are paginated.
+//
+// Returns a wrapper object for the known response body format(s).
+//
+// Corresponds with GET /v2/agent_aliases (the `ListAgentAliases` operationId).
+func (c *ClientWithResponses) ListAgentAliasesWithResponse(ctx context.Context, params *ListAgentAliasesParams, reqEditors ...RequestEditorFn) (*ListAgentAliasesResponse2, error) {
+	rsp, err := c.ListAgentAliases(ctx, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListAgentAliasesResponse2(rsp)
+}
+
+// CreateAgentAliasWithBodyWithResponse Create an alias
+//
+// Creates an alias. An alias maps a public name to one or more underlying agents under a configurable policy. When you create a session through an alias (via `POST /v2/agent_aliases/{alias_key}/sessions`), the alias's policy selects the underlying agent that runs the session.
+//
+// Common patterns:
+// - **Direct alias** — a `routed` policy with one rule and one target. Identical in behavior to invoking the agent directly.
+// - **Canary rollout** — a `routed` policy with one rule and multiple weighted targets (e.g. 90% v1, 10% v2).
+// - **Tenant routing** — a `routed` policy with multiple rules, each matching on session metadata (e.g. `session.metadata.tenant`).
+//
+// Takes any type of body and a specified content type, and returns a wrapper object for the known response body format(s).
+//
+// Corresponds with POST /v2/agent_aliases (the `CreateAgentAlias` operationId).
+func (c *ClientWithResponses) CreateAgentAliasWithBodyWithResponse(ctx context.Context, params *CreateAgentAliasParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateAgentAliasResponse, error) {
+	rsp, err := c.CreateAgentAliasWithBody(ctx, params, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateAgentAliasResponse(rsp)
+}
+
+// CreateAgentAliasWithResponse Create an alias
+//
+// Creates an alias. An alias maps a public name to one or more underlying agents under a configurable policy. When you create a session through an alias (via `POST /v2/agent_aliases/{alias_key}/sessions`), the alias's policy selects the underlying agent that runs the session.
+//
+// Common patterns:
+// - **Direct alias** — a `routed` policy with one rule and one target. Identical in behavior to invoking the agent directly.
+// - **Canary rollout** — a `routed` policy with one rule and multiple weighted targets (e.g. 90% v1, 10% v2).
+// - **Tenant routing** — a `routed` policy with multiple rules, each matching on session metadata (e.g. `session.metadata.tenant`).
+//
+// Takes a body of the `application/json` content type, and returns a wrapper object for the known response body format(s).
+//
+// Corresponds with POST /v2/agent_aliases (the `CreateAgentAlias` operationId).
+func (c *ClientWithResponses) CreateAgentAliasWithResponse(ctx context.Context, params *CreateAgentAliasParams, body CreateAgentAliasJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateAgentAliasResponse, error) {
+	rsp, err := c.CreateAgentAlias(ctx, params, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseCreateAgentAliasResponse(rsp)
+}
+
 // DeleteAgentAliasWithResponse Delete an alias
 //
 // Deletes an alias. The underlying agents the alias points at are not affected. Returns 409 if any live resources still reference this alias, including its connectors; delete them first.
@@ -5916,6 +6035,23 @@ func (c *ClientWithResponses) ReplaceTrustedTokenIssuerWithResponse(ctx context.
 		return nil, err
 	}
 	return ParseReplaceTrustedTokenIssuerResponse(rsp)
+}
+
+// ListUsagesWithResponse List usages
+//
+// Lists how much the account uses of everything the platform measures or counts for it, each with its use of the allowance on it when one applies.
+//
+// Storage is measured once an hour; its `measured_at` is the start of the hour reported, and bytes added or deleted since then appear after a later measurement. Storage is absent until the account has been measured, and while it has not been measured in the last two days. Each corpus and agent reports its own bytes from the same measurement in its `storage` field.
+//
+// Returns a wrapper object for the known response body format(s).
+//
+// Corresponds with GET /v2/usages (the `ListUsages` operationId).
+func (c *ClientWithResponses) ListUsagesWithResponse(ctx context.Context, params *ListUsagesParams, reqEditors ...RequestEditorFn) (*ListUsagesResponse2, error) {
+	rsp, err := c.ListUsages(ctx, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListUsagesResponse2(rsp)
 }
 
 // ListUsersWithResponse List users
@@ -14598,6 +14734,39 @@ func ParseReplaceTrustedTokenIssuerResponse(rsp *http.Response) (*ReplaceTrusted
 			return nil, err
 		}
 		response.JSON404 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseListUsagesResponse2 parses an HTTP response from a ListUsagesWithResponse call
+func ParseListUsagesResponse2(rsp *http.Response) (*ListUsagesResponse2, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListUsagesResponse2{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest ListUsagesResponse
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 403:
+		var dest Error
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON403 = &dest
 
 	}
 
