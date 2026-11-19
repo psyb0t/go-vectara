@@ -2,6 +2,13 @@
 
 All notable changes per release. Versions follow [semver](https://semver.org).
 
+## v0.4.1, 2026-11-19
+
+- Added `AsSessionInterruptedEvent`, `FromSessionInterruptedEvent` and `MergeSessionInterruptedEvent` on `EndUserEvent` and `EndUserAgentStreamedResponse`. `ValueByDiscriminator` on both unions now returns a `SessionInterruptedEvent` for the `session_interrupted` type.
+- Added the optional `ToolName` field on `LambdaToolConfiguration` and the `LambdaToolName` type. It holds the lambda tool's `name`, unique within the customer account.
+- Added `JobProgressPhaseStaging` for the `staging` job phase, which a rebuild reports while it readies and unloads indices that an operator switches onto later. `JobProgressPhase.Valid` accepts it.
+- Updated doc comments on `EndUserEvent`, `JobProgress` and `JobProgressPhase` to describe the `session_interrupted` event and the `staging` phase.
+
 ## v0.4.0, 2026-11-14
 
 - Added `ListUsages` and `ListUsagesWithResponse` for `GET /v2/usages`, with `NewListUsagesRequest`, `ParseListUsagesResponse2`, `ListUsagesParams`, `ListUsagesResponse` and `ListUsagesResponse2`. The response lists the account's `Usage` entries.

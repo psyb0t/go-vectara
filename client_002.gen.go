@@ -10861,6 +10861,40 @@ func (t *EndUserAgentStreamedResponse) MergeStructuredOutputEvent(v StructuredOu
 	return err
 }
 
+// AsSessionInterruptedEvent returns the union data inside the EndUserAgentStreamedResponse as a SessionInterruptedEvent
+func (t EndUserAgentStreamedResponse) AsSessionInterruptedEvent() (SessionInterruptedEvent, error) {
+	var body SessionInterruptedEvent
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromSessionInterruptedEvent overwrites any union data inside the EndUserAgentStreamedResponse as the provided SessionInterruptedEvent
+func (t *EndUserAgentStreamedResponse) FromSessionInterruptedEvent(v SessionInterruptedEvent) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"type":"session_interrupted"}`))
+	t.union = b
+	return err
+}
+
+// MergeSessionInterruptedEvent performs a merge with any union data inside the EndUserAgentStreamedResponse, using the provided SessionInterruptedEvent
+func (t *EndUserAgentStreamedResponse) MergeSessionInterruptedEvent(v SessionInterruptedEvent) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"type":"session_interrupted"}`))
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
 // AsStreamingAgentOutput returns the union data inside the EndUserAgentStreamedResponse as a StreamingAgentOutput
 func (t EndUserAgentStreamedResponse) AsStreamingAgentOutput() (StreamingAgentOutput, error) {
 	var body StreamingAgentOutput
@@ -11125,6 +11159,8 @@ func (t EndUserAgentStreamedResponse) ValueByDiscriminator() (interface{}, error
 		return t.AsEndUserInputMessageEvent()
 	case "session_description":
 		return t.AsSessionDescriptionEvent()
+	case "session_interrupted":
+		return t.AsSessionInterruptedEvent()
 	case "streaming_agent_output":
 		return t.AsStreamingAgentOutput()
 	case "streaming_agent_output_end":
@@ -11430,6 +11466,40 @@ func (t *EndUserEvent) MergeStructuredOutputEvent(v StructuredOutputEvent) error
 	return err
 }
 
+// AsSessionInterruptedEvent returns the union data inside the EndUserEvent as a SessionInterruptedEvent
+func (t EndUserEvent) AsSessionInterruptedEvent() (SessionInterruptedEvent, error) {
+	var body SessionInterruptedEvent
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromSessionInterruptedEvent overwrites any union data inside the EndUserEvent as the provided SessionInterruptedEvent
+func (t *EndUserEvent) FromSessionInterruptedEvent(v SessionInterruptedEvent) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"type":"session_interrupted"}`))
+	t.union = b
+	return err
+}
+
+// MergeSessionInterruptedEvent performs a merge with any union data inside the EndUserEvent, using the provided SessionInterruptedEvent
+func (t *EndUserEvent) MergeSessionInterruptedEvent(v SessionInterruptedEvent) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	b, err = runtime.JSONMerge(b, []byte(`{"type":"session_interrupted"}`))
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
 func (t EndUserEvent) Discriminator() (string, error) {
 	var discriminator struct {
 		Discriminator string `json:"type"`
@@ -11452,6 +11522,8 @@ func (t EndUserEvent) ValueByDiscriminator() (interface{}, error) {
 		return t.AsEndUserErrorEvent()
 	case "input_message":
 		return t.AsEndUserInputMessageEvent()
+	case "session_interrupted":
+		return t.AsSessionInterruptedEvent()
 	case "structured_output":
 		return t.AsStructuredOutputEvent()
 	case "thinking":

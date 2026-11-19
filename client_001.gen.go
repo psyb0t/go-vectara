@@ -1237,6 +1237,7 @@ const (
 	JobProgressPhasePreparing         JobProgressPhase = "preparing"
 	JobProgressPhaseReplayingJournals JobProgressPhase = "replaying_journals"
 	JobProgressPhaseScanning          JobProgressPhase = "scanning"
+	JobProgressPhaseStaging           JobProgressPhase = "staging"
 )
 
 // Valid indicates whether the value is a known member of the JobProgressPhase enum.
@@ -1255,6 +1256,8 @@ func (e JobProgressPhase) Valid() bool {
 	case JobProgressPhaseReplayingJournals:
 		return true
 	case JobProgressPhaseScanning:
+		return true
+	case JobProgressPhaseStaging:
 		return true
 	default:
 		return false
@@ -10712,11 +10715,13 @@ type EndUserErrorEvent struct {
 }
 
 // EndUserEvent A session event visible to the end user who owns the session.
-// The `input_message`, `agent_output`, `error`, and `client_tool_pending` variants are always visible, as are the `tool_input` and `tool_output` variants of client tool calls.
+// The `input_message`, `agent_output`, `error`, `session_interrupted`, and `client_tool_pending` variants are always visible, as are the `tool_input` and `tool_output` variants of client tool calls.
 // The `tool_input` and `tool_output` variants of other tools, and the `thinking` and `structured_output` variants, appear only when the widget connector the session is bound to reveals the matching output category via `revealed_output_types`.
 // Revealed variants carry the same payload as their operator representations. Unless `tool_calls` is revealed, client tool `tool_input` and `tool_output` events omit `argument_override_paths` and `resolved_argument_overrides`.
 //
 // `client_tool_pending` appears in the response and stream of the turn that calls a client tool, but not in the session's history. It carries the call's arguments, including argument override values, with secrets unmasked.
+//
+// `session_interrupted` ends a turn that stopped before it finished, either at the end user's interrupt or because the platform interrupted it. A reply the agent was still writing is not saved, so a turn that ends this way can have no `agent_output`.
 type EndUserEvent struct {
 	union json.RawMessage
 }
@@ -13114,7 +13119,7 @@ type JobProgress struct {
 	// PagesPendingImport Staged scan batches waiting to be imported. Bounded by the rebuild's own backpressure, so this does not grow with the size of the corpus. Reports 0 when incremental import is not in use.
 	PagesPendingImport *int32 `json:"pages_pending_import,omitempty"`
 
-	// Phase The stage of the job that is currently running. A rebuild scans the corpus and imports it into the new indices, then cuts the corpus over to them and replays everything written while it ran. A filter attribute change that does not rebuild the corpus scans the corpus, reports `indexing` while the new filter attributes are being indexed, then cuts over. Filters on the new attributes work once the job completes. New phases may be added; treat unrecognized values as opaque.
+	// Phase The stage of the job that is currently running. A rebuild scans the corpus and imports it into the new indices, then cuts the corpus over to them and replays everything written while it ran. A rebuild that leaves its indices for an operator to switch onto later reports `staging` while it readies and unloads them, instead of cutting over. A filter attribute change that does not rebuild the corpus scans the corpus, reports `indexing` while the new filter attributes are being indexed, then cuts over. Filters on the new attributes work once the job completes. New phases may be added; treat unrecognized values as opaque.
 	Phase *JobProgressPhase `json:"phase,omitempty"`
 
 	// ScanShards The number of shards the corpus is being scanned in, all read concurrently.
@@ -13127,7 +13132,7 @@ type JobProgress struct {
 	StartedAt *time.Time `json:"started_at,omitempty"`
 }
 
-// JobProgressPhase The stage of the job that is currently running. A rebuild scans the corpus and imports it into the new indices, then cuts the corpus over to them and replays everything written while it ran. A filter attribute change that does not rebuild the corpus scans the corpus, reports `indexing` while the new filter attributes are being indexed, then cuts over. Filters on the new attributes work once the job completes. New phases may be added; treat unrecognized values as opaque.
+// JobProgressPhase The stage of the job that is currently running. A rebuild scans the corpus and imports it into the new indices, then cuts the corpus over to them and replays everything written while it ran. A rebuild that leaves its indices for an operator to switch onto later reports `staging` while it readies and unloads them, instead of cutting over. A filter attribute change that does not rebuild the corpus scans the corpus, reports `indexing` while the new filter attributes are being indexed, then cuts over. Filters on the new attributes work once the job completes. New phases may be added; treat unrecognized values as opaque.
 type JobProgressPhase string
 
 // JobState The state of a background job.
@@ -13656,6 +13661,11 @@ type LambdaToolConfiguration struct {
 	// Example: tol_123e4567-e89b-12d3-a456-426614174000
 	ToolId *ToolId `json:"tool_id,omitempty"`
 
+	// ToolName The `name` of a lambda tool, unique among the lambda tools of a customer account.
+	//
+	// Example: calculate_customer_score
+	ToolName *LambdaToolName `json:"tool_name,omitempty"`
+
 	// ToolOutputOffloading Overrides the agent's `tool_output_offloading` for outputs of this tool. Fields left unset inherit their value from the agent's configuration. When unset, the agent's configuration applies unchanged.
 	ToolOutputOffloading *ToolOutputOffloadingConfiguration `json:"tool_output_offloading,omitempty"`
 
@@ -13667,6 +13677,11 @@ type LambdaToolConfiguration struct {
 	// UpdatedAt Timestamp when the tool configuration was last updated.
 	UpdatedAt *time.Time `json:"updated_at,omitempty"`
 }
+
+// LambdaToolName The `name` of a lambda tool, unique among the lambda tools of a customer account.
+//
+// Example: calculate_customer_score
+type LambdaToolName = string
 
 // Language Languages that the platform supports.
 type Language string
@@ -16456,7 +16471,7 @@ type SessionEnrichmentToolCall struct {
 	Tool string `json:"tool"`
 }
 
-// SessionInterruptedEvent A turn-ending event indicating the current turn was interrupted by a user request.
+// SessionInterruptedEvent A turn-ending event indicating the current turn was interrupted, by a user request or by the platform, for example when the server running the session shuts down.
 // A subsequent turn can be started with the next input. Persisted to the session history.
 type SessionInterruptedEvent struct {
 	// CreatedAt Timestamp when the event was created.
