@@ -2,6 +2,11 @@
 
 All notable changes per release. Versions follow [semver](https://semver.org).
 
+## v0.4.2, 2026-11-25
+
+- Updated the doc comment on the `session.caller` reference in the tool types `ToolBase`, `ArtifactCreateTool`, `ArtifactGrepTool`, `ArtifactReadTool`, `ClientTool`, `CorporaSearchTool`, `DocumentConversionTool`, `DynamicVectaraTool`, `GetDocumentTextTool`, `ImageReadTool`, `LambdaTool`, `McpTool`, `SubAgentTool`, `WebGetTool` and `WebSearchTool`, and in `DynamicVectaraToolConfiguration`, `LambdaToolConfiguration` and `McpToolConfiguration`. It now says a new session opened by a conversation hand-over reports the caller the conversation was opened under, and reports none when a chat connector thread opened it.
+- No exported API changes.
+
 ## v0.4.1, 2026-11-19
 
 - Added `AsSessionInterruptedEvent`, `FromSessionInterruptedEvent` and `MergeSessionInterruptedEvent` on `EndUserEvent` and `EndUserAgentStreamedResponse`. `ValueByDiscriminator` on both unions now returns a `SessionInterruptedEvent` for the `session_interrupted` type.
