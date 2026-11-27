@@ -6,6 +6,7 @@
 .python-version
 .nvmrc
 pyrightconfig.json
+CLAUDE.local.md
 CODEX.local.md
 .agent_notes/
 .agent_knowledge/
@@ -24,8 +25,6 @@ profile.out
 htmlcov/
 __pycache__
 *.out
-CLAUDE.md
-.claude
 .research_files
 .refactor/
 .anustimes/
@@ -40,3 +39,6 @@ git-update.sh.debot
 
 # Vectara's API spec is downloaded by `make generate` and not redistributed.
 /api/
+
+# Local config overrides at any depth
+*.local.json

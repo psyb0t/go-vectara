@@ -2,6 +2,11 @@
 
 All notable changes per release. Versions follow [semver](https://semver.org).
 
+## v0.5.1, 2026-11-27
+
+- The pipeline runs the checks on branch pushes only. A release tag waits for the default-branch run of the same commit, creates the GitHub release, and then publishes the agent skill to ClawHub. Branch pushes still dry-run the skill against ClawHub, so a skill ClawHub would reject fails the push instead of the release. The security scan must now upload its SARIF report for the run to pass, and the workflow grants no permissions beyond those each job declares.
+- The agent skill now says that, with OAuth client credentials, your own code sends the client ID and secret to `auth.vectara.io` and the library never calls that host. It also says that deleting has no undo and that create, update, delete and reset calls should only touch resources the task owns, and only when the user asked for that change.
+
 ## v0.5.0, 2026-11-27
 
 - **Breaking:** `TrustedTokenIssuer` gained a required `Claims` field of type `[]string`, so the struct is no longer comparable. Code that compares two `TrustedTokenIssuer` values with `==` or uses one as a map key must compare fields instead.

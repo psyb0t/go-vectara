@@ -61,4 +61,4 @@ Rules for every change live in `.agents/rules/`:
 | `testing.md` | Test layout, the README example, what needs a test |
 | `releases.md` | Versions, CHANGELOG, the agent skill |
 
-Working on this repo with Claude Code needs the local links `ln -s AGENTS.md CLAUDE.md` and `ln -s .agents .claude`; both are gitignored.
+`CLAUDE.md` is a committed symlink to `AGENTS.md`, and `.claude` is a committed symlink to `.agents`, so Claude Code reads the same instructions, rules and skills as Codex. Edit `AGENTS.md` and `.agents/rules/*.md` directly, because Claude's Edit and Write tools refuse to write through a symlink.

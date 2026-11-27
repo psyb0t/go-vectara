@@ -21,7 +21,7 @@ Use `https://api.vectara.io`. Generated paths include `/v2`; adding it to the se
 
 Set `x-api-key` with `req.Header.Set("x-api-key", os.Getenv("VECTARA_API_KEY"))` in a request editor.
 
-OAuth client credentials are exchanged at `https://auth.vectara.io/oauth2/token`. Send the access token as `Authorization: Bearer <token>`. Token acquisition and renewal belong to the caller. The spec also has a distinct `GetOAuthToken` operation at `/oauth/token`; do not assume it is the security scheme's token URL.
+OAuth client credentials are exchanged at `https://auth.vectara.io/oauth2/token`. Send the returned bearer token as `Authorization: Bearer <token>`. Token acquisition and renewal belong to the caller. The spec also has a distinct `GetOAuthToken` operation at `/oauth/token`; do not assume it is the security scheme's token URL.
 
 `VisitorToken` uses `X-Visitor-Id`, carrying the encrypted token returned by visitor creation. `FederatedSignIn` uses a bearer token from a registered trusted issuer. Only operations declaring these schemes accept them.
 
@@ -36,7 +36,7 @@ OAuth client credentials are exchanged at `https://auth.vectara.io/oauth2/token`
 | Method | Endpoint |
 | --- | --- |
 | `ListCorporaWithResponse`, `CreateCorpusWithResponse` | `GET`, `POST /v2/corpora` |
-| `GetCorpusWithResponse`, `UpdateCorpusWithResponse`, `DeleteCorpusWithResponse` | `GET`, `PATCH`, `DELETE /v2/corpora/{corpus_key}` |
+| `GetCorpusWithResponse`, `UpdateCorpusWithResponse`, `DeleteCorpusWithResponse` | `GET`, `PATCH` and `DELETE` on `/v2/corpora/{corpus_key}` |
 | `ListCorpusDocumentsWithResponse`, `CreateCorpusDocumentWithResponse` | `GET`, `POST /v2/corpora/{corpus_key}/documents` |
 | `SearchCorpusWithResponse`, `QueryCorpusWithResponse` | `GET`, `POST /v2/corpora/{corpus_key}/query` |
 | `QueryWithResponse` | `POST /v2/query` |

@@ -13,7 +13,7 @@ metadata:
 permissions:
   filesystem: "Guides edits to the Go source of the current project. The library reads and writes no files."
   shell: "The Go toolchain (`go get`, `go build`, `go test`) to add and compile the dependency."
-  network: "`go get` fetches the module from your Go module proxy. At runtime the code you write talks HTTPS to api.vectara.io only."
+  network: "`go get` fetches the module from your Go module proxy. At runtime the code you write talks HTTPS to api.vectara.io. If you choose OAuth client credentials, your own code also sends the client ID and secret over HTTPS to auth.vectara.io, once per token; the library never calls that host."
 ---
 
 # go-vectara
@@ -26,8 +26,8 @@ For installation, operations, pagination and response fields, see [references/se
 
 - Read an API key from `VECTARA_API_KEY` and send it in `x-api-key`. Never hardcode, commit or log credentials or authentication headers.
 - Use `https://api.vectara.io` as the base URL. Generated paths include `/v2`.
-- OAuth uses a bearer access token. Visitor tokens and federated bearer credentials work only on operations declaring those schemes.
-- Creating, updating, deleting or resetting resources changes account data. Run those operations only when the user requests them. Queries and agent execution may consume account resources or invoke configured tools.
+- OAuth uses a bearer token in the `Authorization` header, which your code gets from `https://auth.vectara.io/oauth2/token`. Visitor tokens and federated bearer credentials work only on operations declaring those schemes.
+- Creating, updating, deleting or resetting resources changes account data, and deleting has no undo. Run those operations only on resources the task owns and only when the user asked for that specific change. Queries and agent execution may consume account resources or invoke configured tools.
 
 ## When to use
 
