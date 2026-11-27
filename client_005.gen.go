@@ -347,7 +347,7 @@ func (c *ClientWithResponses) ListEndUserAliasRoutedSessionsWithResponse(ctx con
 // Ownership binds to the alias key, not the resolved agent, so it is unaffected by a later change to the alias's routing weights.
 // Anonymous widget visitors authenticate by presenting `X-Visitor-Id` instead of an `Authorization` credential; the platform mints an identity holding `agent_end_user` on the addressed alias, which satisfies this operation's role requirement. A visitor id is customer-scoped, so it need not have been minted through the connector named in the request body; that connector must still admit anonymous visitors (`403` otherwise). The connector's `allowed_origins` also applies to anonymous and signed-in callers; requests without an `Origin` header are admitted.
 // The session binds to the connector named by the request body's `connector_id` and takes its idle lifetime from that connector's `session_tti_minutes`, reported on the returned session.
-// Returns `429` when the caller reaches the live-session or hourly session-creation cap, or when the customer-wide anonymous session-creation ceiling is reached.
+// Returns `429` when the caller reaches the live-session or hourly session-creation cap, or when the customer-wide anonymous session-creation ceiling is reached. The live-session cap counts the caller's live end-user sessions and live end-user conversations together, each conversation once however many sessions it has moved through; deleting a session or a conversation frees room under it.
 //
 // Takes any type of body and a specified content type, and returns a wrapper object for the known response body format(s).
 //
@@ -367,7 +367,7 @@ func (c *ClientWithResponses) CreateEndUserAliasRoutedSessionWithBodyWithRespons
 // Ownership binds to the alias key, not the resolved agent, so it is unaffected by a later change to the alias's routing weights.
 // Anonymous widget visitors authenticate by presenting `X-Visitor-Id` instead of an `Authorization` credential; the platform mints an identity holding `agent_end_user` on the addressed alias, which satisfies this operation's role requirement. A visitor id is customer-scoped, so it need not have been minted through the connector named in the request body; that connector must still admit anonymous visitors (`403` otherwise). The connector's `allowed_origins` also applies to anonymous and signed-in callers; requests without an `Origin` header are admitted.
 // The session binds to the connector named by the request body's `connector_id` and takes its idle lifetime from that connector's `session_tti_minutes`, reported on the returned session.
-// Returns `429` when the caller reaches the live-session or hourly session-creation cap, or when the customer-wide anonymous session-creation ceiling is reached.
+// Returns `429` when the caller reaches the live-session or hourly session-creation cap, or when the customer-wide anonymous session-creation ceiling is reached. The live-session cap counts the caller's live end-user sessions and live end-user conversations together, each conversation once however many sessions it has moved through; deleting a session or a conversation frees room under it.
 //
 // Takes a body of the `application/json` content type, and returns a wrapper object for the known response body format(s).
 //

@@ -16,6 +16,78 @@ import (
 	"github.com/oapi-codegen/runtime"
 )
 
+// VertexServiceAccountAuth Google Cloud Vertex AI service account authentication
+type VertexServiceAccountAuth struct {
+	// KeyJson The service account key JSON
+	//
+	// Example: {"type":"service_account","project_id":"my-project",...}
+	KeyJson string `json:"key_json"`
+
+	// Project GCP project ID
+	//
+	// Example: my-project-id
+	Project string `json:"project"`
+
+	// Region GCP region for Vertex AI
+	//
+	// Example: us-central1
+	Region string `json:"region"`
+
+	// Type Must be "vertex_service_account" for service account auth
+	//
+	// Example: vertex_service_account
+	Type string `json:"type"`
+}
+
+// WatermarkAdvancedEvent The pipeline's persisted watermark moved forward at the end of the run.
+type WatermarkAdvancedEvent struct {
+	// Id Monotonic, unique-per-run identifier for this event.
+	//
+	// Example: evt_42
+	Id string `json:"id"`
+
+	// OccurredAt When the event occurred.
+	OccurredAt time.Time `json:"occurred_at"`
+	Type       string    `json:"type"`
+	Watermark  string    `json:"watermark"`
+}
+
+// WebGetAuth Authentication configuration for the outgoing HTTP request.
+type WebGetAuth struct {
+	union json.RawMessage
+}
+
+// WebGetAwsSigV4Auth AWS Signature Version 4 request signing, e.g. for reading an S3 bucket directly. The platform signs the final request (method, URL, query parameters, and body) with the supplied credentials. User-supplied headers ride along unsigned. The platform never follows redirects on signed requests. When `role_arn` is set, the platform first calls sts:AssumeRole with the static credentials and signs with the assumed-role credentials.
+type WebGetAwsSigV4Auth struct {
+	// AccessKeyId AWS access key id.
+	AccessKeyId WebGetAwsSigV4Auth_AccessKeyId `json:"access_key_id"`
+
+	// Region AWS region to sign for (e.g. `us-east-2`).
+	//
+	// Example: us-east-2
+	Region string `json:"region"`
+
+	// RoleArn Optional IAM role to assume (via sts:AssumeRole) from the static credentials before signing.
+	RoleArn *string `json:"role_arn,omitempty"`
+
+	// RoleSessionName Session name for the assumed role. Defaults to `vectara-agent`.
+	RoleSessionName *string `json:"role_session_name,omitempty"`
+
+	// SecretAccessKey AWS secret access key.
+	SecretAccessKey WebGetAwsSigV4Auth_SecretAccessKey `json:"secret_access_key"`
+
+	// Service AWS service name to sign for.
+	//
+	// Example: s3
+	Service *string `json:"service,omitempty"`
+
+	// SessionToken Optional session token when the static credentials are temporary.
+	SessionToken *WebGetAwsSigV4Auth_SessionToken `json:"session_token,omitempty"`
+
+	// Type Example: aws_sigv4
+	Type string `json:"type"`
+}
+
 // WebGetAwsSigV4AuthAccessKeyId0 defines model for WebGetAwsSigV4Auth.AccessKeyId.0.
 type WebGetAwsSigV4AuthAccessKeyId0 = string
 
@@ -268,6 +340,7 @@ type WebGetTool struct {
 	// - agent.secrets.* - Access agent secrets (masked in audit events)
 	// - tools.* - Access prior tool outputs (resolved after the dependent tool runs)
 	// - inputs.user.latest.text, inputs.user.latest.artifacts[i].artifact_id, .filename, .mime_type, .size_bytes, .purpose - The session's most recent user input: its text and the files uploaded or shared with it, each with the fields of its artifact reference (purpose is set on shared files that have one). text is absent when the input has none, such as files sent without a message. Resolved when the tool runs. A $ref with nothing to read (before the session's first user input, text on an input without text, during session enrichment, or for a tool called from code running in a sandbox) fails to resolve, which fails the tool call unless the $ref has a $default, as in {"$ref": "inputs.user.latest.text", "$default": ""}, whose value is used instead. In a lambda tool's own tool_configurations, inputs.* refs are rejected with 400 when the lambda tool is created, updated, or tested; to use the input there, pass it in through the lambda's own arguments.
+	// - inputs.user.latest.caller.claims.<name> - A claim from the token of the end user who sent the session's most recent input, with its JSON type, when the token's trusted token issuer lists it in `claims`. Each input carries the claims of the token that sent it, so a refreshed token's claims apply from the next input it sends. A name that is not a plain identifier, such as a namespaced URL, is addressed with a quoted bracket key: `inputs.user.latest.caller.claims['https://acme.com/roles']`. The same rules as inputs.user.latest.text apply: an input whose sender's token does not carry the claim, or files sent without a message, leave it unresolved unless the $ref has a $default.
 	// - currentDate - The current date/time in ISO 8601 format
 	//
 	// A bracket index may reference another context value. The resolved value becomes the lookup key. The inner path may optionally carry a leading $ root marker:
@@ -644,6 +717,7 @@ type WebSearchTool struct {
 	// - agent.secrets.* - Access agent secrets (masked in audit events)
 	// - tools.* - Access prior tool outputs (resolved after the dependent tool runs)
 	// - inputs.user.latest.text, inputs.user.latest.artifacts[i].artifact_id, .filename, .mime_type, .size_bytes, .purpose - The session's most recent user input: its text and the files uploaded or shared with it, each with the fields of its artifact reference (purpose is set on shared files that have one). text is absent when the input has none, such as files sent without a message. Resolved when the tool runs. A $ref with nothing to read (before the session's first user input, text on an input without text, during session enrichment, or for a tool called from code running in a sandbox) fails to resolve, which fails the tool call unless the $ref has a $default, as in {"$ref": "inputs.user.latest.text", "$default": ""}, whose value is used instead. In a lambda tool's own tool_configurations, inputs.* refs are rejected with 400 when the lambda tool is created, updated, or tested; to use the input there, pass it in through the lambda's own arguments.
+	// - inputs.user.latest.caller.claims.<name> - A claim from the token of the end user who sent the session's most recent input, with its JSON type, when the token's trusted token issuer lists it in `claims`. Each input carries the claims of the token that sent it, so a refreshed token's claims apply from the next input it sends. A name that is not a plain identifier, such as a namespaced URL, is addressed with a quoted bracket key: `inputs.user.latest.caller.claims['https://acme.com/roles']`. The same rules as inputs.user.latest.text apply: an input whose sender's token does not carry the claim, or files sent without a message, leave it unresolved unless the $ref has a $default.
 	// - currentDate - The current date/time in ISO 8601 format
 	//
 	// A bracket index may reference another context value. The resolved value becomes the lookup key. The inner path may optionally carry a leading $ root marker:
@@ -1011,6 +1085,7 @@ type WidgetConnectorConfiguration struct {
 	// The host page supplies a token minted by the referenced trusted token issuer, and the widget presents it as the bearer credential on end-user session requests.
 	// The platform verifies the token by its `iss` claim against the globally-unique issuer registration — never against this connector — so the token stands on its own: it signs the caller in as an end user across the customer's aliases, not this widget's alone.
 	// The platform accepts the token when its signature verifies against the issuer's JWKS and it carries an `email` claim.
+	// The platform copies the claims listed in the issuer registration's `claims` onto each input the token sends, where the agent's tools read them as `inputs.user.latest.caller.claims`.
 	// The referenced registration must exist, or the connector write is rejected with `400`.
 	EndUserSignIn *WidgetSignIn `json:"end_user_sign_in,omitempty"`
 
@@ -1081,6 +1156,7 @@ type WidgetPresentation struct {
 // The host page supplies a token minted by the referenced trusted token issuer, and the widget presents it as the bearer credential on end-user session requests.
 // The platform verifies the token by its `iss` claim against the globally-unique issuer registration — never against this connector — so the token stands on its own: it signs the caller in as an end user across the customer's aliases, not this widget's alone.
 // The platform accepts the token when its signature verifies against the issuer's JWKS and it carries an `email` claim.
+// The platform copies the claims listed in the issuer registration's `claims` onto each input the token sends, where the agent's tools read them as `inputs.user.latest.caller.claims`.
 // The referenced registration must exist, or the connector write is rejected with `400`.
 type WidgetSignIn struct {
 	// TrustedTokenIssuerId The unique identifier of a trusted token issuer.
@@ -19103,7 +19179,7 @@ type ClientInterface interface {
 	// Ownership binds to the alias key, not the resolved agent, so it is unaffected by a later change to the alias's routing weights.
 	// Anonymous widget visitors authenticate by presenting `X-Visitor-Id` instead of an `Authorization` credential; the platform mints an identity holding `agent_end_user` on the addressed alias, which satisfies this operation's role requirement. A visitor id is customer-scoped, so it need not have been minted through the connector named in the request body; that connector must still admit anonymous visitors (`403` otherwise). The connector's `allowed_origins` also applies to anonymous and signed-in callers; requests without an `Origin` header are admitted.
 	// The session binds to the connector named by the request body's `connector_id` and takes its idle lifetime from that connector's `session_tti_minutes`, reported on the returned session.
-	// Returns `429` when the caller reaches the live-session or hourly session-creation cap, or when the customer-wide anonymous session-creation ceiling is reached.
+	// Returns `429` when the caller reaches the live-session or hourly session-creation cap, or when the customer-wide anonymous session-creation ceiling is reached. The live-session cap counts the caller's live end-user sessions and live end-user conversations together, each conversation once however many sessions it has moved through; deleting a session or a conversation frees room under it.
 	//
 	// Takes any type of body and a specified content type.
 	//
@@ -19117,7 +19193,7 @@ type ClientInterface interface {
 	// Ownership binds to the alias key, not the resolved agent, so it is unaffected by a later change to the alias's routing weights.
 	// Anonymous widget visitors authenticate by presenting `X-Visitor-Id` instead of an `Authorization` credential; the platform mints an identity holding `agent_end_user` on the addressed alias, which satisfies this operation's role requirement. A visitor id is customer-scoped, so it need not have been minted through the connector named in the request body; that connector must still admit anonymous visitors (`403` otherwise). The connector's `allowed_origins` also applies to anonymous and signed-in callers; requests without an `Origin` header are admitted.
 	// The session binds to the connector named by the request body's `connector_id` and takes its idle lifetime from that connector's `session_tti_minutes`, reported on the returned session.
-	// Returns `429` when the caller reaches the live-session or hourly session-creation cap, or when the customer-wide anonymous session-creation ceiling is reached.
+	// Returns `429` when the caller reaches the live-session or hourly session-creation cap, or when the customer-wide anonymous session-creation ceiling is reached. The live-session cap counts the caller's live end-user sessions and live end-user conversations together, each conversation once however many sessions it has moved through; deleting a session or a conversation frees room under it.
 	//
 	// Takes a body of the `application/json` content type.
 	//

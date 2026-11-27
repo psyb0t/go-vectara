@@ -2,6 +2,14 @@
 
 All notable changes per release. Versions follow [semver](https://semver.org).
 
+## v0.5.0, 2026-11-27
+
+- **Breaking:** `TrustedTokenIssuer` gained a required `Claims` field of type `[]string`, so the struct is no longer comparable. Code that compares two `TrustedTokenIssuer` values with `==` or uses one as a map key must compare fields instead.
+- Added the optional `Claims` field (`*[]string`) on `CreateTrustedTokenIssuerRequest` and `ReplaceTrustedTokenIssuerRequest`. It lists token claims that the platform copies onto each input an end user sends. Standard JWT claims and `email` are rejected with `400`, and a token whose listed claims exceed 8 KB gets `401` on end-user session requests. An omitted `Claims` on a replace request carries none.
+- Added the optional `Code` field on `Error`. It names the reason for an error, for example `storage_allowance_used` on a `403` when the account has used its storage allowance.
+- Documented the `inputs.user.latest.caller.claims.<name>` reference in the argument override docs of the tool types, such as `ArtifactCreateTool`, `ArtifactGrepTool` and `ArtifactReadTool`.
+- The `VertexServiceAccountAuth`, `WatermarkAdvancedEvent` and `WebGet*` auth types moved between generated files. Their definitions are unchanged.
+
 ## v0.4.2, 2026-11-25
 
 - Updated the doc comment on the `session.caller` reference in the tool types `ToolBase`, `ArtifactCreateTool`, `ArtifactGrepTool`, `ArtifactReadTool`, `ClientTool`, `CorporaSearchTool`, `DocumentConversionTool`, `DynamicVectaraTool`, `GetDocumentTextTool`, `ImageReadTool`, `LambdaTool`, `McpTool`, `SubAgentTool`, `WebGetTool` and `WebSearchTool`, and in `DynamicVectaraToolConfiguration`, `LambdaToolConfiguration` and `McpToolConfiguration`. It now says a new session opened by a conversation hand-over reports the caller the conversation was opened under, and reports none when a chat connector thread opened it.

@@ -4724,6 +4724,7 @@ type ArtifactCreateTool struct {
 	// - agent.secrets.* - Access agent secrets (masked in audit events)
 	// - tools.* - Access prior tool outputs (resolved after the dependent tool runs)
 	// - inputs.user.latest.text, inputs.user.latest.artifacts[i].artifact_id, .filename, .mime_type, .size_bytes, .purpose - The session's most recent user input: its text and the files uploaded or shared with it, each with the fields of its artifact reference (purpose is set on shared files that have one). text is absent when the input has none, such as files sent without a message. Resolved when the tool runs. A $ref with nothing to read (before the session's first user input, text on an input without text, during session enrichment, or for a tool called from code running in a sandbox) fails to resolve, which fails the tool call unless the $ref has a $default, as in {"$ref": "inputs.user.latest.text", "$default": ""}, whose value is used instead. In a lambda tool's own tool_configurations, inputs.* refs are rejected with 400 when the lambda tool is created, updated, or tested; to use the input there, pass it in through the lambda's own arguments.
+	// - inputs.user.latest.caller.claims.<name> - A claim from the token of the end user who sent the session's most recent input, with its JSON type, when the token's trusted token issuer lists it in `claims`. Each input carries the claims of the token that sent it, so a refreshed token's claims apply from the next input it sends. A name that is not a plain identifier, such as a namespaced URL, is addressed with a quoted bracket key: `inputs.user.latest.caller.claims['https://acme.com/roles']`. The same rules as inputs.user.latest.text apply: an input whose sender's token does not carry the claim, or files sent without a message, leave it unresolved unless the $ref has a $default.
 	// - currentDate - The current date/time in ISO 8601 format
 	//
 	// A bracket index may reference another context value. The resolved value becomes the lookup key. The inner path may optionally carry a leading $ root marker:
@@ -4863,6 +4864,7 @@ type ArtifactGrepTool struct {
 	// - agent.secrets.* - Access agent secrets (masked in audit events)
 	// - tools.* - Access prior tool outputs (resolved after the dependent tool runs)
 	// - inputs.user.latest.text, inputs.user.latest.artifacts[i].artifact_id, .filename, .mime_type, .size_bytes, .purpose - The session's most recent user input: its text and the files uploaded or shared with it, each with the fields of its artifact reference (purpose is set on shared files that have one). text is absent when the input has none, such as files sent without a message. Resolved when the tool runs. A $ref with nothing to read (before the session's first user input, text on an input without text, during session enrichment, or for a tool called from code running in a sandbox) fails to resolve, which fails the tool call unless the $ref has a $default, as in {"$ref": "inputs.user.latest.text", "$default": ""}, whose value is used instead. In a lambda tool's own tool_configurations, inputs.* refs are rejected with 400 when the lambda tool is created, updated, or tested; to use the input there, pass it in through the lambda's own arguments.
+	// - inputs.user.latest.caller.claims.<name> - A claim from the token of the end user who sent the session's most recent input, with its JSON type, when the token's trusted token issuer lists it in `claims`. Each input carries the claims of the token that sent it, so a refreshed token's claims apply from the next input it sends. A name that is not a plain identifier, such as a namespaced URL, is addressed with a quoted bracket key: `inputs.user.latest.caller.claims['https://acme.com/roles']`. The same rules as inputs.user.latest.text apply: an input whose sender's token does not carry the claim, or files sent without a message, leave it unresolved unless the $ref has a $default.
 	// - currentDate - The current date/time in ISO 8601 format
 	//
 	// A bracket index may reference another context value. The resolved value becomes the lookup key. The inner path may optionally carry a leading $ root marker:
@@ -5129,6 +5131,7 @@ type ArtifactReadTool struct {
 	// - agent.secrets.* - Access agent secrets (masked in audit events)
 	// - tools.* - Access prior tool outputs (resolved after the dependent tool runs)
 	// - inputs.user.latest.text, inputs.user.latest.artifacts[i].artifact_id, .filename, .mime_type, .size_bytes, .purpose - The session's most recent user input: its text and the files uploaded or shared with it, each with the fields of its artifact reference (purpose is set on shared files that have one). text is absent when the input has none, such as files sent without a message. Resolved when the tool runs. A $ref with nothing to read (before the session's first user input, text on an input without text, during session enrichment, or for a tool called from code running in a sandbox) fails to resolve, which fails the tool call unless the $ref has a $default, as in {"$ref": "inputs.user.latest.text", "$default": ""}, whose value is used instead. In a lambda tool's own tool_configurations, inputs.* refs are rejected with 400 when the lambda tool is created, updated, or tested; to use the input there, pass it in through the lambda's own arguments.
+	// - inputs.user.latest.caller.claims.<name> - A claim from the token of the end user who sent the session's most recent input, with its JSON type, when the token's trusted token issuer lists it in `claims`. Each input carries the claims of the token that sent it, so a refreshed token's claims apply from the next input it sends. A name that is not a plain identifier, such as a namespaced URL, is addressed with a quoted bracket key: `inputs.user.latest.caller.claims['https://acme.com/roles']`. The same rules as inputs.user.latest.text apply: an input whose sender's token does not carry the claim, or files sent without a message, leave it unresolved unless the $ref has a $default.
 	// - currentDate - The current date/time in ISO 8601 format
 	//
 	// A bracket index may reference another context value. The resolved value becomes the lookup key. The inner path may optionally carry a leading $ root marker:
@@ -6837,6 +6840,7 @@ type ClientTool struct {
 	// - agent.secrets.* - Access agent secrets (masked in audit events)
 	// - tools.* - Access prior tool outputs (resolved after the dependent tool runs)
 	// - inputs.user.latest.text, inputs.user.latest.artifacts[i].artifact_id, .filename, .mime_type, .size_bytes, .purpose - The session's most recent user input: its text and the files uploaded or shared with it, each with the fields of its artifact reference (purpose is set on shared files that have one). text is absent when the input has none, such as files sent without a message. Resolved when the tool runs. A $ref with nothing to read (before the session's first user input, text on an input without text, during session enrichment, or for a tool called from code running in a sandbox) fails to resolve, which fails the tool call unless the $ref has a $default, as in {"$ref": "inputs.user.latest.text", "$default": ""}, whose value is used instead. In a lambda tool's own tool_configurations, inputs.* refs are rejected with 400 when the lambda tool is created, updated, or tested; to use the input there, pass it in through the lambda's own arguments.
+	// - inputs.user.latest.caller.claims.<name> - A claim from the token of the end user who sent the session's most recent input, with its JSON type, when the token's trusted token issuer lists it in `claims`. Each input carries the claims of the token that sent it, so a refreshed token's claims apply from the next input it sends. A name that is not a plain identifier, such as a namespaced URL, is addressed with a quoted bracket key: `inputs.user.latest.caller.claims['https://acme.com/roles']`. The same rules as inputs.user.latest.text apply: an input whose sender's token does not carry the claim, or files sent without a message, leave it unresolved unless the $ref has a $default.
 	// - currentDate - The current date/time in ISO 8601 format
 	//
 	// A bracket index may reference another context value. The resolved value becomes the lookup key. The inner path may optionally carry a leading $ root marker:
@@ -7644,6 +7648,7 @@ type CorporaSearchTool struct {
 	// - agent.secrets.* - Access agent secrets (masked in audit events)
 	// - tools.* - Access prior tool outputs (resolved after the dependent tool runs)
 	// - inputs.user.latest.text, inputs.user.latest.artifacts[i].artifact_id, .filename, .mime_type, .size_bytes, .purpose - The session's most recent user input: its text and the files uploaded or shared with it, each with the fields of its artifact reference (purpose is set on shared files that have one). text is absent when the input has none, such as files sent without a message. Resolved when the tool runs. A $ref with nothing to read (before the session's first user input, text on an input without text, during session enrichment, or for a tool called from code running in a sandbox) fails to resolve, which fails the tool call unless the $ref has a $default, as in {"$ref": "inputs.user.latest.text", "$default": ""}, whose value is used instead. In a lambda tool's own tool_configurations, inputs.* refs are rejected with 400 when the lambda tool is created, updated, or tested; to use the input there, pass it in through the lambda's own arguments.
+	// - inputs.user.latest.caller.claims.<name> - A claim from the token of the end user who sent the session's most recent input, with its JSON type, when the token's trusted token issuer lists it in `claims`. Each input carries the claims of the token that sent it, so a refreshed token's claims apply from the next input it sends. A name that is not a plain identifier, such as a namespaced URL, is addressed with a quoted bracket key: `inputs.user.latest.caller.claims['https://acme.com/roles']`. The same rules as inputs.user.latest.text apply: an input whose sender's token does not carry the claim, or files sent without a message, leave it unresolved unless the $ref has a $default.
 	// - currentDate - The current date/time in ISO 8601 format
 	//
 	// A bracket index may reference another context value. The resolved value becomes the lookup key. The inner path may optionally carry a leading $ root marker:
@@ -9426,6 +9431,14 @@ type CreateToolServerRequest struct {
 
 // CreateTrustedTokenIssuerRequest Request object for registering a trusted token issuer.
 type CreateTrustedTokenIssuerRequest struct {
+	// Claims The token claims a signed-in end user carries into each input they send as `inputs.user.latest.caller.claims.<name>`, beyond `sub` and `email`. When omitted, no claims are carried.
+	// A request that names a standard JWT claim (`iss`, `sub`, `aud`, `exp`, `nbf`, `iat`, `jti`) or `email`, or repeats a name, is rejected with `400`.
+	// A token whose listed claims exceed 8 KB, serialized as JSON, is rejected with `401` on end-user session requests.
+	//
+	//
+	// Example: ["entitledProductIDList","isOEM","https://acme.com/roles"]
+	Claims *[]string `json:"claims,omitempty"`
+
 	// Description A detailed description of what this trust registration is for.
 	//
 	// Example: Lets Acme portal users chat with the support agent.
@@ -9586,6 +9599,7 @@ type CreateWidgetConnectorConfiguration struct {
 	// The host page supplies a token minted by the referenced trusted token issuer, and the widget presents it as the bearer credential on end-user session requests.
 	// The platform verifies the token by its `iss` claim against the globally-unique issuer registration — never against this connector — so the token stands on its own: it signs the caller in as an end user across the customer's aliases, not this widget's alone.
 	// The platform accepts the token when its signature verifies against the issuer's JWKS and it carries an `email` claim.
+	// The platform copies the claims listed in the issuer registration's `claims` onto each input the token sends, where the agent's tools read them as `inputs.user.latest.caller.claims`.
 	// The referenced registration must exist, or the connector write is rejected with `400`.
 	EndUserSignIn *WidgetSignIn `json:"end_user_sign_in,omitempty"`
 
@@ -10043,6 +10057,7 @@ type DocumentConversionTool struct {
 	// - agent.secrets.* - Access agent secrets (masked in audit events)
 	// - tools.* - Access prior tool outputs (resolved after the dependent tool runs)
 	// - inputs.user.latest.text, inputs.user.latest.artifacts[i].artifact_id, .filename, .mime_type, .size_bytes, .purpose - The session's most recent user input: its text and the files uploaded or shared with it, each with the fields of its artifact reference (purpose is set on shared files that have one). text is absent when the input has none, such as files sent without a message. Resolved when the tool runs. A $ref with nothing to read (before the session's first user input, text on an input without text, during session enrichment, or for a tool called from code running in a sandbox) fails to resolve, which fails the tool call unless the $ref has a $default, as in {"$ref": "inputs.user.latest.text", "$default": ""}, whose value is used instead. In a lambda tool's own tool_configurations, inputs.* refs are rejected with 400 when the lambda tool is created, updated, or tested; to use the input there, pass it in through the lambda's own arguments.
+	// - inputs.user.latest.caller.claims.<name> - A claim from the token of the end user who sent the session's most recent input, with its JSON type, when the token's trusted token issuer lists it in `claims`. Each input carries the claims of the token that sent it, so a refreshed token's claims apply from the next input it sends. A name that is not a plain identifier, such as a namespaced URL, is addressed with a quoted bracket key: `inputs.user.latest.caller.claims['https://acme.com/roles']`. The same rules as inputs.user.latest.text apply: an input whose sender's token does not carry the claim, or files sent without a message, leave it unresolved unless the $ref has a $default.
 	// - currentDate - The current date/time in ISO 8601 format
 	//
 	// A bracket index may reference another context value. The resolved value becomes the lookup key. The inner path may optionally carry a leading $ root marker:
@@ -10345,6 +10360,7 @@ type DynamicVectaraTool struct {
 	// - agent.secrets.* - Access agent secrets (masked in audit events)
 	// - tools.* - Access prior tool outputs (resolved after the dependent tool runs)
 	// - inputs.user.latest.text, inputs.user.latest.artifacts[i].artifact_id, .filename, .mime_type, .size_bytes, .purpose - The session's most recent user input: its text and the files uploaded or shared with it, each with the fields of its artifact reference (purpose is set on shared files that have one). text is absent when the input has none, such as files sent without a message. Resolved when the tool runs. A $ref with nothing to read (before the session's first user input, text on an input without text, during session enrichment, or for a tool called from code running in a sandbox) fails to resolve, which fails the tool call unless the $ref has a $default, as in {"$ref": "inputs.user.latest.text", "$default": ""}, whose value is used instead. In a lambda tool's own tool_configurations, inputs.* refs are rejected with 400 when the lambda tool is created, updated, or tested; to use the input there, pass it in through the lambda's own arguments.
+	// - inputs.user.latest.caller.claims.<name> - A claim from the token of the end user who sent the session's most recent input, with its JSON type, when the token's trusted token issuer lists it in `claims`. Each input carries the claims of the token that sent it, so a refreshed token's claims apply from the next input it sends. A name that is not a plain identifier, such as a namespaced URL, is addressed with a quoted bracket key: `inputs.user.latest.caller.claims['https://acme.com/roles']`. The same rules as inputs.user.latest.text apply: an input whose sender's token does not carry the claim, or files sent without a message, leave it unresolved unless the $ref has a $default.
 	// - currentDate - The current date/time in ISO 8601 format
 	//
 	// A bracket index may reference another context value. The resolved value becomes the lookup key. The inner path may optionally carry a leading $ root marker:
@@ -10478,6 +10494,7 @@ type DynamicVectaraToolConfiguration struct {
 	// - agent.secrets.* - Access agent secrets (masked in audit events)
 	// - tools.* - Access prior tool outputs (resolved after the dependent tool runs)
 	// - inputs.user.latest.text, inputs.user.latest.artifacts[i].artifact_id, .filename, .mime_type, .size_bytes, .purpose - The session's most recent user input: its text and the files uploaded or shared with it, each with the fields of its artifact reference (purpose is set on shared files that have one). text is absent when the input has none, such as files sent without a message. Resolved when the tool runs. A $ref with nothing to read (before the session's first user input, text on an input without text, during session enrichment, or for a tool called from code running in a sandbox) fails to resolve, which fails the tool call unless the $ref has a $default, as in {"$ref": "inputs.user.latest.text", "$default": ""}, whose value is used instead. In a lambda tool's own tool_configurations, inputs.* refs are rejected with 400 when the lambda tool is created, updated, or tested; to use the input there, pass it in through the lambda's own arguments.
+	// - inputs.user.latest.caller.claims.<name> - A claim from the token of the end user who sent the session's most recent input, with its JSON type, when the token's trusted token issuer lists it in `claims`. Each input carries the claims of the token that sent it, so a refreshed token's claims apply from the next input it sends. A name that is not a plain identifier, such as a namespaced URL, is addressed with a quoted bracket key: `inputs.user.latest.caller.claims['https://acme.com/roles']`. The same rules as inputs.user.latest.text apply: an input whose sender's token does not carry the claim, or files sent without a message, leave it unresolved unless the $ref has a $default.
 	// - currentDate - The current date/time in ISO 8601 format
 	//
 	// A bracket index may reference another context value. The resolved value becomes the lookup key. The inner path may optionally carry a leading $ root marker:
@@ -10833,6 +10850,13 @@ type EndUserSessionStatus string
 
 // Error A general error response with an error code and message.
 type Error struct {
+	// Code Names the reason for the error when a client may act on it, so the client does not have to read `messages`. Absent for most errors. New values may be added, so clients must treat a value they do not know as if it were absent. Today:
+	// * `storage_allowance_used`: the account has used its storage allowance, so the request would add data and was refused with a `403`. Delete documents or agent data, or ask for a larger allowance. Retrying does not help until then.
+	//
+	//
+	// Example: storage_allowance_used
+	Code *string `json:"code,omitempty"`
+
 	// Messages The messages describing why the error occurred.
 	Messages *[]string `json:"messages,omitempty"`
 
@@ -11718,6 +11742,7 @@ type GetDocumentTextTool struct {
 	// - agent.secrets.* - Access agent secrets (masked in audit events)
 	// - tools.* - Access prior tool outputs (resolved after the dependent tool runs)
 	// - inputs.user.latest.text, inputs.user.latest.artifacts[i].artifact_id, .filename, .mime_type, .size_bytes, .purpose - The session's most recent user input: its text and the files uploaded or shared with it, each with the fields of its artifact reference (purpose is set on shared files that have one). text is absent when the input has none, such as files sent without a message. Resolved when the tool runs. A $ref with nothing to read (before the session's first user input, text on an input without text, during session enrichment, or for a tool called from code running in a sandbox) fails to resolve, which fails the tool call unless the $ref has a $default, as in {"$ref": "inputs.user.latest.text", "$default": ""}, whose value is used instead. In a lambda tool's own tool_configurations, inputs.* refs are rejected with 400 when the lambda tool is created, updated, or tested; to use the input there, pass it in through the lambda's own arguments.
+	// - inputs.user.latest.caller.claims.<name> - A claim from the token of the end user who sent the session's most recent input, with its JSON type, when the token's trusted token issuer lists it in `claims`. Each input carries the claims of the token that sent it, so a refreshed token's claims apply from the next input it sends. A name that is not a plain identifier, such as a namespaced URL, is addressed with a quoted bracket key: `inputs.user.latest.caller.claims['https://acme.com/roles']`. The same rules as inputs.user.latest.text apply: an input whose sender's token does not carry the claim, or files sent without a message, leave it unresolved unless the $ref has a $default.
 	// - currentDate - The current date/time in ISO 8601 format
 	//
 	// A bracket index may reference another context value. The resolved value becomes the lookup key. The inner path may optionally carry a leading $ root marker:
@@ -12282,6 +12307,7 @@ type ImageReadTool struct {
 	// - agent.secrets.* - Access agent secrets (masked in audit events)
 	// - tools.* - Access prior tool outputs (resolved after the dependent tool runs)
 	// - inputs.user.latest.text, inputs.user.latest.artifacts[i].artifact_id, .filename, .mime_type, .size_bytes, .purpose - The session's most recent user input: its text and the files uploaded or shared with it, each with the fields of its artifact reference (purpose is set on shared files that have one). text is absent when the input has none, such as files sent without a message. Resolved when the tool runs. A $ref with nothing to read (before the session's first user input, text on an input without text, during session enrichment, or for a tool called from code running in a sandbox) fails to resolve, which fails the tool call unless the $ref has a $default, as in {"$ref": "inputs.user.latest.text", "$default": ""}, whose value is used instead. In a lambda tool's own tool_configurations, inputs.* refs are rejected with 400 when the lambda tool is created, updated, or tested; to use the input there, pass it in through the lambda's own arguments.
+	// - inputs.user.latest.caller.claims.<name> - A claim from the token of the end user who sent the session's most recent input, with its JSON type, when the token's trusted token issuer lists it in `claims`. Each input carries the claims of the token that sent it, so a refreshed token's claims apply from the next input it sends. A name that is not a plain identifier, such as a namespaced URL, is addressed with a quoted bracket key: `inputs.user.latest.caller.claims['https://acme.com/roles']`. The same rules as inputs.user.latest.text apply: an input whose sender's token does not carry the claim, or files sent without a message, leave it unresolved unless the $ref has a $default.
 	// - currentDate - The current date/time in ISO 8601 format
 	//
 	// A bracket index may reference another context value. The resolved value becomes the lookup key. The inner path may optionally carry a leading $ root marker:
@@ -13380,6 +13406,7 @@ type LambdaTool struct {
 	// - agent.secrets.* - Access agent secrets (masked in audit events)
 	// - tools.* - Access prior tool outputs (resolved after the dependent tool runs)
 	// - inputs.user.latest.text, inputs.user.latest.artifacts[i].artifact_id, .filename, .mime_type, .size_bytes, .purpose - The session's most recent user input: its text and the files uploaded or shared with it, each with the fields of its artifact reference (purpose is set on shared files that have one). text is absent when the input has none, such as files sent without a message. Resolved when the tool runs. A $ref with nothing to read (before the session's first user input, text on an input without text, during session enrichment, or for a tool called from code running in a sandbox) fails to resolve, which fails the tool call unless the $ref has a $default, as in {"$ref": "inputs.user.latest.text", "$default": ""}, whose value is used instead. In a lambda tool's own tool_configurations, inputs.* refs are rejected with 400 when the lambda tool is created, updated, or tested; to use the input there, pass it in through the lambda's own arguments.
+	// - inputs.user.latest.caller.claims.<name> - A claim from the token of the end user who sent the session's most recent input, with its JSON type, when the token's trusted token issuer lists it in `claims`. Each input carries the claims of the token that sent it, so a refreshed token's claims apply from the next input it sends. A name that is not a plain identifier, such as a namespaced URL, is addressed with a quoted bracket key: `inputs.user.latest.caller.claims['https://acme.com/roles']`. The same rules as inputs.user.latest.text apply: an input whose sender's token does not carry the claim, or files sent without a message, leave it unresolved unless the $ref has a $default.
 	// - currentDate - The current date/time in ISO 8601 format
 	//
 	// A bracket index may reference another context value. The resolved value becomes the lookup key. The inner path may optionally carry a leading $ root marker:
@@ -13556,6 +13583,7 @@ type LambdaToolConfiguration struct {
 	// - agent.secrets.* - Access agent secrets (masked in audit events)
 	// - tools.* - Access prior tool outputs (resolved after the dependent tool runs)
 	// - inputs.user.latest.text, inputs.user.latest.artifacts[i].artifact_id, .filename, .mime_type, .size_bytes, .purpose - The session's most recent user input: its text and the files uploaded or shared with it, each with the fields of its artifact reference (purpose is set on shared files that have one). text is absent when the input has none, such as files sent without a message. Resolved when the tool runs. A $ref with nothing to read (before the session's first user input, text on an input without text, during session enrichment, or for a tool called from code running in a sandbox) fails to resolve, which fails the tool call unless the $ref has a $default, as in {"$ref": "inputs.user.latest.text", "$default": ""}, whose value is used instead. In a lambda tool's own tool_configurations, inputs.* refs are rejected with 400 when the lambda tool is created, updated, or tested; to use the input there, pass it in through the lambda's own arguments.
+	// - inputs.user.latest.caller.claims.<name> - A claim from the token of the end user who sent the session's most recent input, with its JSON type, when the token's trusted token issuer lists it in `claims`. Each input carries the claims of the token that sent it, so a refreshed token's claims apply from the next input it sends. A name that is not a plain identifier, such as a namespaced URL, is addressed with a quoted bracket key: `inputs.user.latest.caller.claims['https://acme.com/roles']`. The same rules as inputs.user.latest.text apply: an input whose sender's token does not carry the claim, or files sent without a message, leave it unresolved unless the $ref has a $default.
 	// - currentDate - The current date/time in ISO 8601 format
 	//
 	// A bracket index may reference another context value. The resolved value becomes the lookup key. The inner path may optionally carry a leading $ root marker:
@@ -14152,6 +14180,7 @@ type McpTool struct {
 	// - agent.secrets.* - Access agent secrets (masked in audit events)
 	// - tools.* - Access prior tool outputs (resolved after the dependent tool runs)
 	// - inputs.user.latest.text, inputs.user.latest.artifacts[i].artifact_id, .filename, .mime_type, .size_bytes, .purpose - The session's most recent user input: its text and the files uploaded or shared with it, each with the fields of its artifact reference (purpose is set on shared files that have one). text is absent when the input has none, such as files sent without a message. Resolved when the tool runs. A $ref with nothing to read (before the session's first user input, text on an input without text, during session enrichment, or for a tool called from code running in a sandbox) fails to resolve, which fails the tool call unless the $ref has a $default, as in {"$ref": "inputs.user.latest.text", "$default": ""}, whose value is used instead. In a lambda tool's own tool_configurations, inputs.* refs are rejected with 400 when the lambda tool is created, updated, or tested; to use the input there, pass it in through the lambda's own arguments.
+	// - inputs.user.latest.caller.claims.<name> - A claim from the token of the end user who sent the session's most recent input, with its JSON type, when the token's trusted token issuer lists it in `claims`. Each input carries the claims of the token that sent it, so a refreshed token's claims apply from the next input it sends. A name that is not a plain identifier, such as a namespaced URL, is addressed with a quoted bracket key: `inputs.user.latest.caller.claims['https://acme.com/roles']`. The same rules as inputs.user.latest.text apply: an input whose sender's token does not carry the claim, or files sent without a message, leave it unresolved unless the $ref has a $default.
 	// - currentDate - The current date/time in ISO 8601 format
 	//
 	// A bracket index may reference another context value. The resolved value becomes the lookup key. The inner path may optionally carry a leading $ root marker:
@@ -14306,6 +14335,7 @@ type McpToolConfiguration struct {
 	// - agent.secrets.* - Access agent secrets (masked in audit events)
 	// - tools.* - Access prior tool outputs (resolved after the dependent tool runs)
 	// - inputs.user.latest.text, inputs.user.latest.artifacts[i].artifact_id, .filename, .mime_type, .size_bytes, .purpose - The session's most recent user input: its text and the files uploaded or shared with it, each with the fields of its artifact reference (purpose is set on shared files that have one). text is absent when the input has none, such as files sent without a message. Resolved when the tool runs. A $ref with nothing to read (before the session's first user input, text on an input without text, during session enrichment, or for a tool called from code running in a sandbox) fails to resolve, which fails the tool call unless the $ref has a $default, as in {"$ref": "inputs.user.latest.text", "$default": ""}, whose value is used instead. In a lambda tool's own tool_configurations, inputs.* refs are rejected with 400 when the lambda tool is created, updated, or tested; to use the input there, pass it in through the lambda's own arguments.
+	// - inputs.user.latest.caller.claims.<name> - A claim from the token of the end user who sent the session's most recent input, with its JSON type, when the token's trusted token issuer lists it in `claims`. Each input carries the claims of the token that sent it, so a refreshed token's claims apply from the next input it sends. A name that is not a plain identifier, such as a namespaced URL, is addressed with a quoted bracket key: `inputs.user.latest.caller.claims['https://acme.com/roles']`. The same rules as inputs.user.latest.text apply: an input whose sender's token does not carry the claim, or files sent without a message, leave it unresolved unless the $ref has a $default.
 	// - currentDate - The current date/time in ISO 8601 format
 	//
 	// A bracket index may reference another context value. The resolved value becomes the lookup key. The inner path may optionally carry a leading $ root marker:
@@ -15775,9 +15805,17 @@ type ReplaceFilterAttributesResponse struct {
 }
 
 // ReplaceTrustedTokenIssuerRequest Request object for replacing a trusted token issuer registration.
-// The registration is fully replaced by this request; an omitted `description` clears it and an omitted `enabled` resets it to `true`.
+// The registration is fully replaced by this request; an omitted `description` clears it, an omitted `enabled` resets it to `true`, and an omitted `claims` carries none.
 // The `issuer` is immutable and is not part of this request.
 type ReplaceTrustedTokenIssuerRequest struct {
+	// Claims The token claims a signed-in end user carries into each input they send as `inputs.user.latest.caller.claims.<name>`, beyond `sub` and `email`. When omitted, no claims are carried.
+	// A request that names a standard JWT claim (`iss`, `sub`, `aud`, `exp`, `nbf`, `iat`, `jti`) or `email`, or repeats a name, is rejected with `400`.
+	// A token whose listed claims exceed 8 KB, serialized as JSON, is rejected with `401` on end-user session requests.
+	//
+	//
+	// Example: ["entitledProductIDList","isOEM","https://acme.com/roles"]
+	Claims *[]string `json:"claims,omitempty"`
+
 	// Description A detailed description of what this trust registration is for.
 	//
 	// Example: Lets Acme portal users chat with the support agent.
@@ -17163,6 +17201,7 @@ type SubAgentTool struct {
 	// - agent.secrets.* - Access agent secrets (masked in audit events)
 	// - tools.* - Access prior tool outputs (resolved after the dependent tool runs)
 	// - inputs.user.latest.text, inputs.user.latest.artifacts[i].artifact_id, .filename, .mime_type, .size_bytes, .purpose - The session's most recent user input: its text and the files uploaded or shared with it, each with the fields of its artifact reference (purpose is set on shared files that have one). text is absent when the input has none, such as files sent without a message. Resolved when the tool runs. A $ref with nothing to read (before the session's first user input, text on an input without text, during session enrichment, or for a tool called from code running in a sandbox) fails to resolve, which fails the tool call unless the $ref has a $default, as in {"$ref": "inputs.user.latest.text", "$default": ""}, whose value is used instead. In a lambda tool's own tool_configurations, inputs.* refs are rejected with 400 when the lambda tool is created, updated, or tested; to use the input there, pass it in through the lambda's own arguments.
+	// - inputs.user.latest.caller.claims.<name> - A claim from the token of the end user who sent the session's most recent input, with its JSON type, when the token's trusted token issuer lists it in `claims`. Each input carries the claims of the token that sent it, so a refreshed token's claims apply from the next input it sends. A name that is not a plain identifier, such as a namespaced URL, is addressed with a quoted bracket key: `inputs.user.latest.caller.claims['https://acme.com/roles']`. The same rules as inputs.user.latest.text apply: an input whose sender's token does not carry the claim, or files sent without a message, leave it unresolved unless the $ref has a $default.
 	// - currentDate - The current date/time in ISO 8601 format
 	//
 	// A bracket index may reference another context value. The resolved value becomes the lookup key. The inner path may optionally carry a leading $ root marker:
@@ -18134,6 +18173,7 @@ type ToolBase struct {
 	// - agent.secrets.* - Access agent secrets (masked in audit events)
 	// - tools.* - Access prior tool outputs (resolved after the dependent tool runs)
 	// - inputs.user.latest.text, inputs.user.latest.artifacts[i].artifact_id, .filename, .mime_type, .size_bytes, .purpose - The session's most recent user input: its text and the files uploaded or shared with it, each with the fields of its artifact reference (purpose is set on shared files that have one). text is absent when the input has none, such as files sent without a message. Resolved when the tool runs. A $ref with nothing to read (before the session's first user input, text on an input without text, during session enrichment, or for a tool called from code running in a sandbox) fails to resolve, which fails the tool call unless the $ref has a $default, as in {"$ref": "inputs.user.latest.text", "$default": ""}, whose value is used instead. In a lambda tool's own tool_configurations, inputs.* refs are rejected with 400 when the lambda tool is created, updated, or tested; to use the input there, pass it in through the lambda's own arguments.
+	// - inputs.user.latest.caller.claims.<name> - A claim from the token of the end user who sent the session's most recent input, with its JSON type, when the token's trusted token issuer lists it in `claims`. Each input carries the claims of the token that sent it, so a refreshed token's claims apply from the next input it sends. A name that is not a plain identifier, such as a namespaced URL, is addressed with a quoted bracket key: `inputs.user.latest.caller.claims['https://acme.com/roles']`. The same rules as inputs.user.latest.text apply: an input whose sender's token does not carry the claim, or files sent without a message, leave it unresolved unless the $ref has a $default.
 	// - currentDate - The current date/time in ISO 8601 format
 	//
 	// A bracket index may reference another context value. The resolved value becomes the lookup key. The inner path may optionally carry a leading $ root marker:
@@ -18713,6 +18753,20 @@ type ToolServerType string
 // The registration is a trust anchor: the issuer URL and the JWKS the platform verifies signatures against.
 // What a verified token grants is declared on the widget connector that references this registration by id.
 type TrustedTokenIssuer struct {
+	// Claims The token claims a signed-in end user carries into each input they send, beyond `sub` and `email`.
+	// When the platform verifies a token from this issuer, it copies each listed claim the token holds, with its JSON type, onto the input that token sends.
+	// The agent's tools read the latest input's claims as `inputs.user.latest.caller.claims.<name>`, so a refreshed token's claims apply from the next input it sends.
+	// A name that is not a plain identifier, such as a namespaced URL, is addressed with a quoted bracket key: `inputs.user.latest.caller.claims['https://acme.com/roles']`.
+	// Input events never return them, though a tool call's `resolved_argument_overrides` shows the values its overrides resolved to. The agent's LLM does not see the argument overrides that read them, but it does see a tool's output, so a tool that echoes a claim reveals it.
+	// A claim the token does not hold is absent, so a `$ref` to it fails closed unless the reference supplies a `$default`.
+	// The standard JWT claims (`iss`, `sub`, `aud`, `exp`, `nbf`, `iat`, `jti`) and `email` cannot be listed.
+	// Each name may appear only once.
+	// A token whose listed claims exceed 8 KB, serialized as JSON, is rejected with `401` on end-user session requests.
+	//
+	//
+	// Example: ["entitledProductIDList","isOEM","https://acme.com/roles"]
+	Claims []string `json:"claims"`
+
 	// CreatedAt Timestamp when the registration was created.
 	//
 	// Example: 2026-08-07T10:30:00Z
@@ -19956,77 +20010,5 @@ type VertexAiServiceAccountAuth struct {
 	KeyJson string `json:"key_json"`
 
 	// Type Must be "service_account" for service account authentication
-	Type string `json:"type"`
-}
-
-// VertexServiceAccountAuth Google Cloud Vertex AI service account authentication
-type VertexServiceAccountAuth struct {
-	// KeyJson The service account key JSON
-	//
-	// Example: {"type":"service_account","project_id":"my-project",...}
-	KeyJson string `json:"key_json"`
-
-	// Project GCP project ID
-	//
-	// Example: my-project-id
-	Project string `json:"project"`
-
-	// Region GCP region for Vertex AI
-	//
-	// Example: us-central1
-	Region string `json:"region"`
-
-	// Type Must be "vertex_service_account" for service account auth
-	//
-	// Example: vertex_service_account
-	Type string `json:"type"`
-}
-
-// WatermarkAdvancedEvent The pipeline's persisted watermark moved forward at the end of the run.
-type WatermarkAdvancedEvent struct {
-	// Id Monotonic, unique-per-run identifier for this event.
-	//
-	// Example: evt_42
-	Id string `json:"id"`
-
-	// OccurredAt When the event occurred.
-	OccurredAt time.Time `json:"occurred_at"`
-	Type       string    `json:"type"`
-	Watermark  string    `json:"watermark"`
-}
-
-// WebGetAuth Authentication configuration for the outgoing HTTP request.
-type WebGetAuth struct {
-	union json.RawMessage
-}
-
-// WebGetAwsSigV4Auth AWS Signature Version 4 request signing, e.g. for reading an S3 bucket directly. The platform signs the final request (method, URL, query parameters, and body) with the supplied credentials. User-supplied headers ride along unsigned. The platform never follows redirects on signed requests. When `role_arn` is set, the platform first calls sts:AssumeRole with the static credentials and signs with the assumed-role credentials.
-type WebGetAwsSigV4Auth struct {
-	// AccessKeyId AWS access key id.
-	AccessKeyId WebGetAwsSigV4Auth_AccessKeyId `json:"access_key_id"`
-
-	// Region AWS region to sign for (e.g. `us-east-2`).
-	//
-	// Example: us-east-2
-	Region string `json:"region"`
-
-	// RoleArn Optional IAM role to assume (via sts:AssumeRole) from the static credentials before signing.
-	RoleArn *string `json:"role_arn,omitempty"`
-
-	// RoleSessionName Session name for the assumed role. Defaults to `vectara-agent`.
-	RoleSessionName *string `json:"role_session_name,omitempty"`
-
-	// SecretAccessKey AWS secret access key.
-	SecretAccessKey WebGetAwsSigV4Auth_SecretAccessKey `json:"secret_access_key"`
-
-	// Service AWS service name to sign for.
-	//
-	// Example: s3
-	Service *string `json:"service,omitempty"`
-
-	// SessionToken Optional session token when the static credentials are temporary.
-	SessionToken *WebGetAwsSigV4Auth_SessionToken `json:"session_token,omitempty"`
-
-	// Type Example: aws_sigv4
 	Type string `json:"type"`
 }
